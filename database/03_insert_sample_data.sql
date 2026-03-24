@@ -1,25 +1,16 @@
--- 05_seed_sample_data.sql
--- Script tuong thich cho du lieu mau. Co the chay sau 04_insert_roles.sql.
+-- 03_insert_sample_data.sql
+-- Du lieu mau de test dang nhap, phan quyen va cac man hinh CRUD.
 
 USE student_management;
 
-INSERT INTO faculties(faculty_code, faculty_name, description)
-VALUES ('CNTT', 'Cong nghe thong tin', 'Khoa mau de test luong chuc nang chinh')
-ON DUPLICATE KEY UPDATE
-    faculty_name = VALUES(faculty_name),
-    description = VALUES(description);
+-- Mat khau test chung cho admin / lecturer01 / student01 la 123456
+-- SHA-256(123456) = 8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92
 
-INSERT INTO class_rooms(class_code, class_name, academic_year, faculty_id)
-SELECT 'D17CQCN01-N',
-       'Lop Cong nghe thong tin 1',
-       '2025-2026',
-       f.id
-FROM faculties f
-WHERE f.faculty_code = 'CNTT'
-ON DUPLICATE KEY UPDATE
-    class_name = VALUES(class_name),
-    academic_year = VALUES(academic_year),
-    faculty_id = VALUES(faculty_id);
+INSERT INTO roles(role_code, role_name)
+VALUES ('ADMIN', 'Quan tri vien'),
+       ('LECTURER', 'Giang vien'),
+       ('STUDENT', 'Sinh vien')
+ON DUPLICATE KEY UPDATE role_name = VALUES(role_name);
 
 INSERT INTO users(username, password_hash, full_name, email, role_id, active)
 SELECT 'admin',
@@ -68,6 +59,24 @@ ON DUPLICATE KEY UPDATE
     email = VALUES(email),
     role_id = VALUES(role_id),
     active = VALUES(active);
+
+INSERT INTO faculties(faculty_code, faculty_name, description)
+VALUES ('CNTT', 'Cong nghe thong tin', 'Khoa mau de test luong chuc nang chinh')
+ON DUPLICATE KEY UPDATE
+    faculty_name = VALUES(faculty_name),
+    description = VALUES(description);
+
+INSERT INTO class_rooms(class_code, class_name, academic_year, faculty_id)
+SELECT 'D17CQCN01-N',
+       'Lop Cong nghe thong tin 1',
+       '2025-2026',
+       f.id
+FROM faculties f
+WHERE f.faculty_code = 'CNTT'
+ON DUPLICATE KEY UPDATE
+    class_name = VALUES(class_name),
+    academic_year = VALUES(academic_year),
+    faculty_id = VALUES(faculty_id);
 
 INSERT INTO lecturers(user_id, lecturer_code, full_name, email, phone, faculty_id, status)
 SELECT u.id,

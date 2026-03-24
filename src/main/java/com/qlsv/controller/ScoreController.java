@@ -1,6 +1,31 @@
 package com.qlsv.controller;
 
-public class ScoreController {
-    // TODO: Implement score controller skeleton.
-}
+import com.qlsv.model.Score;
+import com.qlsv.service.ScoreService;
 
+import java.util.List;
+
+public class ScoreController {
+
+    private final ScoreService scoreService = new ScoreService();
+
+    public List<Score> getAllScores() {
+        return scoreService.findAll();
+    }
+
+    public List<Score> getCurrentStudentScores() {
+        return scoreService.findByCurrentStudent();
+    }
+
+    public List<Score> getCurrentLecturerScores() {
+        return scoreService.findByCurrentLecturer();
+    }
+
+    public Score saveScore(Score score) {
+        return scoreService.save(score);
+    }
+
+    public boolean deleteScore(Long id) {
+        return scoreService.delete(id);
+    }
+}

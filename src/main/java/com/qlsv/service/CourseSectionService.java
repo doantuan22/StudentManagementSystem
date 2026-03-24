@@ -44,7 +44,7 @@ public class CourseSectionService {
     }
 
     private void validate(CourseSection courseSection) {
-        ValidationUtil.requireNotBlank(courseSection.getSectionCode(), "Ma hoc phan khong duoc de trong.");
+        ValidationUtil.requireWithinLength(courseSection.getSectionCode(), 50, "Ma hoc phan");
         ValidationUtil.requireNotBlank(courseSection.getSemester(), "Hoc ky khong duoc de trong.");
         ValidationUtil.requireNotBlank(courseSection.getSchoolYear(), "Nam hoc khong duoc de trong.");
         ValidationUtil.requirePositive(courseSection.getMaxStudents(), "Si so toi da phai lon hon 0.");

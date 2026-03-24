@@ -32,6 +32,7 @@ public class AdminDashboardFrame extends BaseFrame {
 
         CardLayout cardLayout = new CardLayout();
         JPanel contentPanel = new JPanel(cardLayout);
+        contentPanel.add(new AdminHomePanel(), "home");
         contentPanel.add(new StudentManagementPanel(), "students");
         contentPanel.add(new LecturerManagementPanel(), "lecturers");
         contentPanel.add(new FacultyManagementPanel(), "faculties");
@@ -40,8 +41,12 @@ public class AdminDashboardFrame extends BaseFrame {
         contentPanel.add(new CourseSectionManagementPanel(), "sections");
         contentPanel.add(new EnrollmentManagementPanel(), "enrollments");
         contentPanel.add(new ScoreManagementPanel(), "scores");
+        contentPanel.add(new ScheduleManagementPanel(), "schedules");
+        contentPanel.add(new ReportManagementPanel(), "reports");
+        contentPanel.add(new SystemStatisticsPanel(), "statistics");
 
         JPanel menuPanel = new JPanel(new GridLayout(0, 1, 8, 8));
+        menuPanel.add(buildMenuButton("Tong quan", cardLayout, contentPanel, "home"));
         menuPanel.add(buildMenuButton("Quan ly sinh vien", cardLayout, contentPanel, "students"));
         menuPanel.add(buildMenuButton("Quan ly giang vien", cardLayout, contentPanel, "lecturers"));
         menuPanel.add(buildMenuButton("Quan ly khoa", cardLayout, contentPanel, "faculties"));
@@ -50,6 +55,9 @@ public class AdminDashboardFrame extends BaseFrame {
         menuPanel.add(buildMenuButton("Quan ly hoc phan", cardLayout, contentPanel, "sections"));
         menuPanel.add(buildMenuButton("Quan ly dang ky", cardLayout, contentPanel, "enrollments"));
         menuPanel.add(buildMenuButton("Quan ly diem", cardLayout, contentPanel, "scores"));
+        menuPanel.add(buildMenuButton("Quan ly lich hoc", cardLayout, contentPanel, "schedules"));
+        menuPanel.add(buildMenuButton("Bao cao", cardLayout, contentPanel, "reports"));
+        menuPanel.add(buildMenuButton("Thong ke", cardLayout, contentPanel, "statistics"));
 
         JPanel bodyPanel = new JPanel(new BorderLayout(12, 12));
         bodyPanel.add(menuPanel, BorderLayout.WEST);
@@ -58,6 +66,7 @@ public class AdminDashboardFrame extends BaseFrame {
         setLayout(new BorderLayout());
         add(headerPanel, BorderLayout.NORTH);
         add(bodyPanel, BorderLayout.CENTER);
+        add(createFooter("Trang thai: ADMIN dang dang nhap | Dashboard san sang"), BorderLayout.SOUTH);
     }
 
     private JButton buildMenuButton(String text, CardLayout cardLayout, JPanel contentPanel, String cardName) {

@@ -9,6 +9,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
@@ -121,6 +122,29 @@ public class ScoreDAO {
         }
     }
 
+    public List<Score> findByCourseSectionId(Long courseSectionId) {
+        String sql = """
+                SELECT s.id, s.enrollment_id, s.process_score, s.midterm_score, s.final_score, s.total_score, s.result
+                FROM scores s
+                JOIN enrollments e ON e.id = s.enrollment_id
+                WHERE e.course_section_id = ?
+                ORDER BY s.id
+                """;
+        List<Score> scores = new ArrayList<>();
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setLong(1, courseSectionId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    scores.add(mapRow(resultSet));
+                }
+                return scores;
+            }
+        } catch (SQLException exception) {
+            throw new AppException("Khong the tai bang diem theo hoc phan.", exception);
+        }
+    }
+
     public Score insert(Score score) {
         String sql = """
                 INSERT INTO scores(enrollment_id, process_score, midterm_score, final_score, total_score, result)
@@ -163,6 +187,8 @@ public class ScoreDAO {
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setLong(1, id);
             return statement.executeUpdate() > 0;
+        } catch (SQLIntegrityConstraintViolationException exception) {
+            throw new AppException("Khong the xoa diem do co rang buoc du lieu lien quan.", exception);
         } catch (SQLException exception) {
             throw new AppException("Khong the xoa diem.", exception);
         }

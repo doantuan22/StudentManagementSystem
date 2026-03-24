@@ -47,9 +47,10 @@ public class LecturerService {
     }
 
     private void validate(Lecturer lecturer) {
-        ValidationUtil.requireNotBlank(lecturer.getLecturerCode(), "Ma giang vien khong duoc de trong.");
+        ValidationUtil.requireWithinLength(lecturer.getLecturerCode(), 50, "Ma giang vien");
         ValidationUtil.requireNotBlank(lecturer.getFullName(), "Ho ten giang vien khong duoc de trong.");
-        ValidationUtil.requireNotBlank(lecturer.getEmail(), "Email giang vien khong duoc de trong.");
+        ValidationUtil.requireEmail(lecturer.getEmail(), "Email giang vien");
+        ValidationUtil.requirePhone(lecturer.getPhone(), "So dien thoai giang vien");
         if (lecturer.getFaculty() == null || lecturer.getFaculty().getId() == null) {
             throw new ValidationException("Giang vien phai thuoc mot khoa.");
         }

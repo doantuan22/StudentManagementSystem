@@ -10,6 +10,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -105,6 +106,46 @@ public class EnrollmentDAO {
         }
     }
 
+    public List<Enrollment> findByCourseSectionId(Long courseSectionId) {
+        String sql = """
+                SELECT id, student_id, course_section_id, status, enrolled_at
+                FROM enrollments
+                WHERE course_section_id = ?
+                ORDER BY id
+                """;
+        List<Enrollment> enrollments = new ArrayList<>();
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setLong(1, courseSectionId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    enrollments.add(mapRow(resultSet));
+                }
+                return enrollments;
+            }
+        } catch (SQLException exception) {
+            throw new AppException("Khong the tai danh sach sinh vien cua hoc phan.", exception);
+        }
+    }
+
+    public Optional<Enrollment> findByStudentAndCourseSection(Long studentId, Long courseSectionId) {
+        String sql = """
+                SELECT id, student_id, course_section_id, status, enrolled_at
+                FROM enrollments
+                WHERE student_id = ? AND course_section_id = ?
+                """;
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setLong(1, studentId);
+            statement.setLong(2, courseSectionId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return resultSet.next() ? Optional.of(mapRow(resultSet)) : Optional.empty();
+            }
+        } catch (SQLException exception) {
+            throw new AppException("Khong the tim dang ky theo sinh vien va hoc phan.", exception);
+        }
+    }
+
     public boolean existsByStudentAndCourseSection(Long studentId, Long courseSectionId) {
         String sql = "SELECT COUNT(1) FROM enrollments WHERE student_id = ? AND course_section_id = ?";
         try (Connection connection = DBConnection.getConnection();
@@ -116,6 +157,19 @@ public class EnrollmentDAO {
             }
         } catch (SQLException exception) {
             throw new AppException("Khong the kiem tra dang ky trung hoc phan.", exception);
+        }
+    }
+
+    public int countByCourseSectionId(Long courseSectionId) {
+        String sql = "SELECT COUNT(1) FROM enrollments WHERE course_section_id = ?";
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setLong(1, courseSectionId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return resultSet.next() ? resultSet.getInt(1) : 0;
+            }
+        } catch (SQLException exception) {
+            throw new AppException("Khong the dem so luong dang ky cua hoc phan.", exception);
         }
     }
 
@@ -161,6 +215,8 @@ public class EnrollmentDAO {
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setLong(1, id);
             return statement.executeUpdate() > 0;
+        } catch (SQLIntegrityConstraintViolationException exception) {
+            throw new AppException("Khong the xoa dang ky hoc phan vi da co du lieu diem lien quan.", exception);
         } catch (SQLException exception) {
             throw new AppException("Khong the xoa dang ky hoc phan.", exception);
         }

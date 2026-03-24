@@ -16,10 +16,15 @@ public final class RolePermission {
     public static final String MANAGE_COURSE_SECTIONS = "MANAGE_COURSE_SECTIONS";
     public static final String MANAGE_ENROLLMENTS = "MANAGE_ENROLLMENTS";
     public static final String MANAGE_SCORES = "MANAGE_SCORES";
+    public static final String MANAGE_SCHEDULES = "MANAGE_SCHEDULES";
+    public static final String VIEW_REPORTS = "VIEW_REPORTS";
+    public static final String VIEW_SYSTEM_STATISTICS = "VIEW_SYSTEM_STATISTICS";
     public static final String VIEW_OWN_PROFILE = "VIEW_OWN_PROFILE";
     public static final String VIEW_ASSIGNED_CLASSES = "VIEW_ASSIGNED_CLASSES";
+    public static final String VIEW_ASSIGNED_STUDENTS = "VIEW_ASSIGNED_STUDENTS";
     public static final String REGISTER_ENROLLMENT = "REGISTER_ENROLLMENT";
     public static final String VIEW_OWN_SCORES = "VIEW_OWN_SCORES";
+    public static final String VIEW_OWN_SCHEDULE = "VIEW_OWN_SCHEDULE";
 
     private static final Map<Role, Set<String>> PERMISSION_MAP = buildPermissionMap();
 
@@ -37,17 +42,24 @@ public final class RolePermission {
                 MANAGE_COURSE_SECTIONS,
                 MANAGE_ENROLLMENTS,
                 MANAGE_SCORES,
-                VIEW_OWN_PROFILE
+                MANAGE_SCHEDULES,
+                VIEW_REPORTS,
+                VIEW_SYSTEM_STATISTICS,
+                VIEW_OWN_PROFILE,
+                VIEW_OWN_SCHEDULE
         ));
         permissionMap.put(Role.LECTURER, Set.of(
                 VIEW_OWN_PROFILE,
                 VIEW_ASSIGNED_CLASSES,
-                MANAGE_SCORES
+                VIEW_ASSIGNED_STUDENTS,
+                MANAGE_SCORES,
+                VIEW_OWN_SCHEDULE
         ));
         permissionMap.put(Role.STUDENT, Set.of(
                 VIEW_OWN_PROFILE,
                 REGISTER_ENROLLMENT,
-                VIEW_OWN_SCORES
+                VIEW_OWN_SCORES,
+                VIEW_OWN_SCHEDULE
         ));
         return permissionMap;
     }

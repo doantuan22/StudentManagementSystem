@@ -1,10 +1,12 @@
 package com.qlsv.service;
 
 import com.qlsv.config.SessionManager;
+import com.qlsv.dao.EnrollmentDAO;
 import com.qlsv.dao.LecturerDAO;
 import com.qlsv.dao.ScoreDAO;
 import com.qlsv.dao.StudentDAO;
 import com.qlsv.exception.ValidationException;
+import com.qlsv.model.Enrollment;
 import com.qlsv.model.Lecturer;
 import com.qlsv.model.Score;
 import com.qlsv.model.Student;
@@ -17,6 +19,7 @@ import java.util.List;
 public class ScoreService {
 
     private final ScoreDAO scoreDAO = new ScoreDAO();
+    private final EnrollmentDAO enrollmentDAO = new EnrollmentDAO();
     private final StudentDAO studentDAO = new StudentDAO();
     private final LecturerDAO lecturerDAO = new LecturerDAO();
     private final PermissionService permissionService = new PermissionService();
@@ -37,7 +40,23 @@ public class ScoreService {
         permissionService.requirePermission(RolePermission.MANAGE_SCORES);
         Lecturer lecturer = lecturerDAO.findByUserId(SessionManager.requireCurrentUser().getId())
                 .orElseThrow(() -> new ValidationException("Khong tim thay giang vien dang dang nhap."));
-        return scoreDAO.findByLecturerId(lecturer.getId());
+        List<Enrollment> enrollments = enrollmentDAO.findByLecturerId(lecturer.getId());
+        List<Score> scores = new java.util.ArrayList<>();
+        for (Enrollment enrollment : enrollments) {
+            Score score = scoreDAO.findByEnrollmentId(enrollment.getId())
+                    .orElseGet(() -> {
+                        Score newScore = new Score();
+                        newScore.setEnrollment(enrollment);
+                        newScore.setProcessScore(0.0);
+                        newScore.setMidtermScore(0.0);
+                        newScore.setFinalScore(0.0);
+                        newScore.setTotalScore(0.0);
+                        newScore.setResult("FAIL");
+                        return newScore;
+                    });
+            scores.add(score);
+        }
+        return scores;
     }
 
     public Score save(Score score) {

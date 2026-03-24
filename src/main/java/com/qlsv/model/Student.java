@@ -1,6 +1,7 @@
 package com.qlsv.model;
 
 import java.time.LocalDate;
+import java.util.Objects;
 
 public class Student {
 
@@ -125,5 +126,24 @@ public class Student {
     @Override
     public String toString() {
         return studentCode + " - " + fullName;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) {
+            return true;
+        }
+        if (!(object instanceof Student student)) {
+            return false;
+        }
+        if (id != null && student.id != null) {
+            return Objects.equals(id, student.id);
+        }
+        return Objects.equals(studentCode, student.studentCode);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id != null ? id : studentCode);
     }
 }

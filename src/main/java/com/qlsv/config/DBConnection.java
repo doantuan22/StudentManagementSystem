@@ -3,6 +3,7 @@ package com.qlsv.config;
 import com.qlsv.exception.AppException;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
@@ -43,6 +44,34 @@ public final class DBConnection {
             );
         } catch (SQLException exception) {
             throw new AppException("Khong ket noi duoc MySQL. Hay kiem tra application.properties va script database.", exception);
+        }
+    }
+
+    public static boolean canConnect() {
+        try (Connection ignored = getConnection()) {
+            return true;
+        } catch (AppException | SQLException exception) {
+            return false;
+        }
+    }
+
+    public static boolean hasRequiredTables() {
+        try (Connection connection = getConnection()) {
+            DatabaseMetaData databaseMetaData = connection.getMetaData();
+            return tableExists(databaseMetaData, "roles")
+                    && tableExists(databaseMetaData, "users")
+                    && tableExists(databaseMetaData, "course_sections")
+                    && tableExists(databaseMetaData, "enrollments")
+                    && tableExists(databaseMetaData, "scores")
+                    && tableExists(databaseMetaData, "schedules");
+        } catch (SQLException | AppException exception) {
+            return false;
+        }
+    }
+
+    private static boolean tableExists(DatabaseMetaData databaseMetaData, String tableName) throws SQLException {
+        try (var resultSet = databaseMetaData.getTables(null, null, tableName, null)) {
+            return resultSet.next();
         }
     }
 }

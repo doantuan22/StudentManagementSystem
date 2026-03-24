@@ -9,6 +9,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
@@ -134,6 +135,8 @@ public class SubjectDAO {
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setLong(1, id);
             return statement.executeUpdate() > 0;
+        } catch (SQLIntegrityConstraintViolationException exception) {
+            throw new AppException("Khong the xoa mon hoc vi van con hoc phan dang mo hoac phan cong giang day lien quan.", exception);
         } catch (SQLException exception) {
             throw new AppException("Khong the xoa mon hoc.", exception);
         }

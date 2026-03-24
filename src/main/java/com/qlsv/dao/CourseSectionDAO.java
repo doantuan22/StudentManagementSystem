@@ -11,6 +11,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
@@ -150,8 +151,35 @@ public class CourseSectionDAO {
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setLong(1, id);
             return statement.executeUpdate() > 0;
+        } catch (SQLIntegrityConstraintViolationException exception) {
+            throw new AppException("Khong the xoa hoc phan vi van con lich hoc, dang ky hoc phan hoac diem lien quan.", exception);
         } catch (SQLException exception) {
             throw new AppException("Khong the xoa hoc phan.", exception);
+        }
+    }
+
+    public int countEnrollments(Long courseSectionId) {
+        String sql = "SELECT COUNT(1) FROM enrollments WHERE course_section_id = ?";
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setLong(1, courseSectionId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return resultSet.next() ? resultSet.getInt(1) : 0;
+            }
+        } catch (SQLException exception) {
+            throw new AppException("Khong the dem so luong dang ky cua hoc phan.", exception);
+        }
+    }
+
+    public void updateScheduleText(Long courseSectionId, String scheduleText) {
+        String sql = "UPDATE course_sections SET schedule_text = ? WHERE id = ?";
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, scheduleText);
+            statement.setLong(2, courseSectionId);
+            statement.executeUpdate();
+        } catch (SQLException exception) {
+            throw new AppException("Khong the dong bo mo ta lich hoc cho hoc phan.", exception);
         }
     }
 

@@ -1,6 +1,7 @@
 package com.qlsv.model;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 public class Enrollment {
 
@@ -66,5 +67,21 @@ public class Enrollment {
         String studentName = student == null ? "" : student.getFullName();
         String sectionCode = courseSection == null ? "" : courseSection.getSectionCode();
         return studentName + " - " + sectionCode;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) {
+            return true;
+        }
+        if (!(object instanceof Enrollment enrollment)) {
+            return false;
+        }
+        return Objects.equals(id, enrollment.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

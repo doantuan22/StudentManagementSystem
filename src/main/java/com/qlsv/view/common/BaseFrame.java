@@ -5,6 +5,7 @@ import com.qlsv.config.AppConfig;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -41,6 +42,14 @@ public class BaseFrame extends JFrame {
         headerPanel.add(titleLabel, BorderLayout.WEST);
         headerPanel.add(rightPanel, BorderLayout.EAST);
         return headerPanel;
+    }
+
+    protected JPanel createFooter(String statusText) {
+        JPanel footerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 8));
+        footerPanel.setBorder(BorderFactory.createEmptyBorder(0, 16, 8, 16));
+        JLabel statusLabel = new JLabel(statusText);
+        footerPanel.add(statusLabel);
+        return footerPanel;
     }
 
     protected JButton createMenuButton(String text) {

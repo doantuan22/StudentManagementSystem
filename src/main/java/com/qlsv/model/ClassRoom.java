@@ -1,5 +1,7 @@
 package com.qlsv.model;
 
+import java.util.Objects;
+
 public class ClassRoom {
 
     private Long id;
@@ -62,5 +64,24 @@ public class ClassRoom {
     @Override
     public String toString() {
         return classCode + " - " + className;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) {
+            return true;
+        }
+        if (!(object instanceof ClassRoom classRoom)) {
+            return false;
+        }
+        if (id != null && classRoom.id != null) {
+            return Objects.equals(id, classRoom.id);
+        }
+        return Objects.equals(classCode, classRoom.classCode);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id != null ? id : classCode);
     }
 }

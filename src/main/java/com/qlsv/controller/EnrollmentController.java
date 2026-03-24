@@ -29,6 +29,10 @@ public class EnrollmentController {
         return enrollmentService.registerCurrentStudent(courseSectionId);
     }
 
+    public boolean cancelCurrentStudentEnrollment(Long enrollmentId) {
+        return enrollmentService.cancelCurrentStudentEnrollment(enrollmentId);
+    }
+
     public boolean deleteEnrollment(Long id) {
         return enrollmentService.delete(id);
     }

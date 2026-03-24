@@ -1,3 +1,3 @@
 -- 03_alter_foreign_keys.sql
--- TODO: Script skeleton for adding foreign keys.
-
+-- Script du phong cho truong hop can dieu chinh them khoa ngoai tren schema cu.
+-- Hien tai toan bo foreign key chinh da duoc tao trong 02_create_tables.sql.

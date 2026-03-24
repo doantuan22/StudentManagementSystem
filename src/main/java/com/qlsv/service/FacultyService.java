@@ -39,7 +39,7 @@ public class FacultyService {
     }
 
     private void validate(Faculty faculty) {
-        ValidationUtil.requireNotBlank(faculty.getFacultyCode(), "Ma khoa khong duoc de trong.");
+        ValidationUtil.requireWithinLength(faculty.getFacultyCode(), 50, "Ma khoa");
         ValidationUtil.requireNotBlank(faculty.getFacultyName(), "Ten khoa khong duoc de trong.");
     }
 }

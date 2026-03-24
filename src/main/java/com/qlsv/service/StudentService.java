@@ -47,9 +47,10 @@ public class StudentService {
     }
 
     private void validate(Student student) {
-        ValidationUtil.requireNotBlank(student.getStudentCode(), "Ma sinh vien khong duoc de trong.");
+        ValidationUtil.requireWithinLength(student.getStudentCode(), 50, "Ma sinh vien");
         ValidationUtil.requireNotBlank(student.getFullName(), "Ho ten sinh vien khong duoc de trong.");
-        ValidationUtil.requireNotBlank(student.getEmail(), "Email sinh vien khong duoc de trong.");
+        ValidationUtil.requireEmail(student.getEmail(), "Email sinh vien");
+        ValidationUtil.requirePhone(student.getPhone(), "So dien thoai sinh vien");
         if (student.getFaculty() == null || student.getFaculty().getId() == null) {
             throw new ValidationException("Sinh vien phai thuoc mot khoa.");
         }

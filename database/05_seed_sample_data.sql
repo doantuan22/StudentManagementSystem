@@ -1,5 +1,6 @@
 -- 05_seed_sample_data.sql
--- Script tuong thich cho du lieu mau. Co the chay sau 04_insert_roles.sql.
+-- Script tuong thich cho du lieu mau theo bo du lieu cu.
+-- De test day du cac tinh nang moi nhu schedules / report, hay uu tien 03_insert_sample_data.sql.
 
 USE student_management;
 

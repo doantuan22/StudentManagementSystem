@@ -1,5 +1,5 @@
 -- 02_create_tables.sql
--- Tao cac bang chinh phuc vu dang nhap, phan quyen va CRUD co ban.
+-- Tao cac bang chinh phuc vu dang nhap, phan quyen, CRUD, dang ky hoc phan, diem va lich hoc.
 
 USE student_management;
 
@@ -79,7 +79,8 @@ CREATE TABLE IF NOT EXISTS subjects (
     faculty_id BIGINT NOT NULL,
     description VARCHAR(255),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_subjects_faculty FOREIGN KEY (faculty_id) REFERENCES faculties(id)
+    CONSTRAINT fk_subjects_faculty FOREIGN KEY (faculty_id) REFERENCES faculties(id),
+    CONSTRAINT chk_subjects_credits CHECK (credits > 0)
 );
 
 CREATE TABLE IF NOT EXISTS lecturer_subjects (
@@ -103,7 +104,22 @@ CREATE TABLE IF NOT EXISTS course_sections (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_course_sections_subject FOREIGN KEY (subject_id) REFERENCES subjects(id),
     CONSTRAINT fk_course_sections_lecturer FOREIGN KEY (lecturer_id) REFERENCES lecturers(id),
-    CONSTRAINT fk_course_sections_class_room FOREIGN KEY (class_room_id) REFERENCES class_rooms(id)
+    CONSTRAINT fk_course_sections_class_room FOREIGN KEY (class_room_id) REFERENCES class_rooms(id),
+    CONSTRAINT chk_course_sections_max_students CHECK (max_students > 0)
+);
+
+CREATE TABLE IF NOT EXISTS schedules (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    course_section_id BIGINT NOT NULL,
+    day_of_week VARCHAR(20) NOT NULL,
+    start_period INT NOT NULL,
+    end_period INT NOT NULL,
+    room VARCHAR(50) NOT NULL,
+    note VARCHAR(255),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_schedules_section_slot UNIQUE (course_section_id, day_of_week, start_period, room),
+    CONSTRAINT fk_schedules_course_section FOREIGN KEY (course_section_id) REFERENCES course_sections(id),
+    CONSTRAINT chk_schedules_period CHECK (start_period > 0 AND end_period > 0 AND start_period <= end_period)
 );
 
 CREATE TABLE IF NOT EXISTS enrollments (
@@ -126,5 +142,9 @@ CREATE TABLE IF NOT EXISTS scores (
     total_score DECIMAL(4,2) NOT NULL DEFAULT 0,
     result VARCHAR(20) NOT NULL DEFAULT 'FAIL',
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_scores_enrollment FOREIGN KEY (enrollment_id) REFERENCES enrollments(id)
+    CONSTRAINT fk_scores_enrollment FOREIGN KEY (enrollment_id) REFERENCES enrollments(id),
+    CONSTRAINT chk_scores_process CHECK (process_score BETWEEN 0 AND 10),
+    CONSTRAINT chk_scores_midterm CHECK (midterm_score BETWEEN 0 AND 10),
+    CONSTRAINT chk_scores_final CHECK (final_score BETWEEN 0 AND 10),
+    CONSTRAINT chk_scores_total CHECK (total_score BETWEEN 0 AND 10)
 );

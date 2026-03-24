@@ -9,6 +9,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
@@ -143,6 +144,8 @@ public class LecturerDAO {
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setLong(1, id);
             return statement.executeUpdate() > 0;
+        } catch (SQLIntegrityConstraintViolationException exception) {
+            throw new AppException("Khong the xoa giang vien vi van con hoc phan hoac phan cong giang day dang tham chieu.", exception);
         } catch (SQLException exception) {
             throw new AppException("Khong the xoa giang vien.", exception);
         }

@@ -39,7 +39,7 @@ public class ClassRoomService {
     }
 
     private void validate(ClassRoom classRoom) {
-        ValidationUtil.requireNotBlank(classRoom.getClassCode(), "Ma lop khong duoc de trong.");
+        ValidationUtil.requireWithinLength(classRoom.getClassCode(), 50, "Ma lop");
         ValidationUtil.requireNotBlank(classRoom.getClassName(), "Ten lop khong duoc de trong.");
         ValidationUtil.requireNotBlank(classRoom.getAcademicYear(), "Nien khoa khong duoc de trong.");
         if (classRoom.getFaculty() == null || classRoom.getFaculty().getId() == null) {

@@ -1,5 +1,7 @@
 package com.qlsv.model;
 
+import java.util.Objects;
+
 public class Subject {
 
     private Long id;
@@ -72,5 +74,24 @@ public class Subject {
     @Override
     public String toString() {
         return subjectCode + " - " + subjectName;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) {
+            return true;
+        }
+        if (!(object instanceof Subject subject)) {
+            return false;
+        }
+        if (id != null && subject.id != null) {
+            return Objects.equals(id, subject.id);
+        }
+        return Objects.equals(subjectCode, subject.subjectCode);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id != null ? id : subjectCode);
     }
 }

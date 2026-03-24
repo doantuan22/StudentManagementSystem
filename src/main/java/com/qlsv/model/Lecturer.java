@@ -1,5 +1,7 @@
 package com.qlsv.model;
 
+import java.util.Objects;
+
 public class Lecturer {
 
     private Long id;
@@ -93,5 +95,24 @@ public class Lecturer {
     @Override
     public String toString() {
         return lecturerCode + " - " + fullName;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) {
+            return true;
+        }
+        if (!(object instanceof Lecturer lecturer)) {
+            return false;
+        }
+        if (id != null && lecturer.id != null) {
+            return Objects.equals(id, lecturer.id);
+        }
+        return Objects.equals(lecturerCode, lecturer.lecturerCode);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id != null ? id : lecturerCode);
     }
 }

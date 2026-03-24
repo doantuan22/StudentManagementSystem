@@ -39,7 +39,7 @@ public class SubjectService {
     }
 
     private void validate(Subject subject) {
-        ValidationUtil.requireNotBlank(subject.getSubjectCode(), "Ma mon hoc khong duoc de trong.");
+        ValidationUtil.requireWithinLength(subject.getSubjectCode(), 50, "Ma mon hoc");
         ValidationUtil.requireNotBlank(subject.getSubjectName(), "Ten mon hoc khong duoc de trong.");
         ValidationUtil.requirePositive(subject.getCredits(), "So tin chi phai lon hon 0.");
         if (subject.getFaculty() == null || subject.getFaculty().getId() == null) {

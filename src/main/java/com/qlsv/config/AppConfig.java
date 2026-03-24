@@ -4,6 +4,8 @@ import com.qlsv.exception.AppException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Properties;
 
 public final class AppConfig {
@@ -18,14 +20,31 @@ public final class AppConfig {
         Properties properties = new Properties();
         // Doc file cau hinh duy nhat mot lan de dung cho toan bo ung dung.
         try (InputStream inputStream = AppConfig.class.getClassLoader().getResourceAsStream(CONFIG_FILE)) {
-            if (inputStream == null) {
-                throw new AppException("Khong tim thay file cau hinh " + CONFIG_FILE);
+            if (inputStream != null) {
+                properties.load(inputStream);
+                return properties;
             }
-            properties.load(inputStream);
-            return properties;
         } catch (IOException exception) {
             throw new AppException("Khong the doc file cau hinh ung dung.", exception);
         }
+
+        // Fallback cho truong hop IDE/launcher chi build class ma chua copy resource vao classpath.
+        for (Path candidatePath : new Path[]{
+                Path.of("src", "main", "resources", CONFIG_FILE),
+                Path.of(CONFIG_FILE)
+        }) {
+            if (!Files.exists(candidatePath)) {
+                continue;
+            }
+            try (InputStream inputStream = Files.newInputStream(candidatePath)) {
+                properties.load(inputStream);
+                return properties;
+            } catch (IOException exception) {
+                throw new AppException("Khong the doc file cau hinh tai " + candidatePath.toAbsolutePath(), exception);
+            }
+        }
+
+        throw new AppException("Khong tim thay file cau hinh " + CONFIG_FILE);
     }
 
     public static String getProperty(String key) {

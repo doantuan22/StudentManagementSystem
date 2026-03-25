@@ -23,7 +23,7 @@ public class ReportDAO {
                 WHERE s.class_room_id = ?
                 ORDER BY s.student_code
                 """;
-        return queryRows(sql, classRoomId, 5, "Khong the tai danh sach sinh vien theo lop.");
+        return queryRows(sql, classRoomId, 5, "Không thể tải danh sách sinh viên theo lớp.");
     }
 
     public List<Object[]> findLecturersByFaculty(Long facultyId) {
@@ -33,7 +33,7 @@ public class ReportDAO {
                 WHERE l.faculty_id = ?
                 ORDER BY l.lecturer_code
                 """;
-        return queryRows(sql, facultyId, 5, "Khong the tai danh sach giang vien theo khoa.");
+        return queryRows(sql, facultyId, 5, "Không thể tải danh sách giảng viên theo khoa.");
     }
 
     public List<Object[]> findStudentsByCourseSection(Long courseSectionId) {
@@ -44,7 +44,7 @@ public class ReportDAO {
                 WHERE e.course_section_id = ?
                 ORDER BY s.student_code
                 """;
-        return queryRows(sql, courseSectionId, 5, "Khong the tai danh sach sinh vien trong hoc phan.");
+        return queryRows(sql, courseSectionId, 5, "Không thể tải danh sách sinh viên trong học phần.");
     }
 
     public List<Object[]> findScoresByCourseSection(Long courseSectionId) {
@@ -62,7 +62,7 @@ public class ReportDAO {
                 WHERE e.course_section_id = ?
                 ORDER BY s.student_code
                 """;
-        return queryRows(sql, courseSectionId, 7, "Khong the tai bang diem theo hoc phan.");
+        return queryRows(sql, courseSectionId, 7, "Không thể tải bảng điểm theo học phần.");
     }
 
     public SystemStatistics getSystemStatistics() {
@@ -88,7 +88,7 @@ public class ReportDAO {
             }
             return new SystemStatistics();
         } catch (SQLException exception) {
-            throw new AppException("Khong the tai thong ke he thong.", exception);
+            throw new AppException("Không thể tải thống kê hệ thống.", exception);
         }
     }
 

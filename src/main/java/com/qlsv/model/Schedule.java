@@ -83,7 +83,7 @@ public class Schedule {
     }
 
     public String toDisplayText() {
-        return dayOfWeek + " tiet " + startPeriod + "-" + endPeriod + " phong " + room;
+        return dayOfWeek + " tiết " + startPeriod + "-" + endPeriod + " phòng " + room;
     }
 
     @Override

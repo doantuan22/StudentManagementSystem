@@ -29,10 +29,10 @@ import java.util.List;
 
 public class ReportManagementPanel extends BasePanel {
 
-    private static final String REPORT_STUDENTS_BY_CLASS = "Danh sach sinh vien theo lop";
-    private static final String REPORT_LECTURERS_BY_FACULTY = "Danh sach giang vien theo khoa";
-    private static final String REPORT_STUDENTS_BY_SECTION = "Danh sach sinh vien trong hoc phan";
-    private static final String REPORT_SCORES_BY_SECTION = "Bang diem theo hoc phan";
+    private static final String REPORT_STUDENTS_BY_CLASS = "Danh sách sinh viên theo lớp";
+    private static final String REPORT_LECTURERS_BY_FACULTY = "Danh sách giảng viên theo khoa";
+    private static final String REPORT_STUDENTS_BY_SECTION = "Danh sách sinh viên trong học phần";
+    private static final String REPORT_SCORES_BY_SECTION = "Bảng điểm theo học phần";
 
     private final ReportController reportController = new ReportController();
     private final ClassRoomController classRoomController = new ClassRoomController();
@@ -51,16 +51,16 @@ public class ReportManagementPanel extends BasePanel {
     private final JLabel statisticsLabel = new JLabel("-");
 
     public ReportManagementPanel() {
-        JButton loadButton = new JButton("Tai bao cao");
-        JButton exportButton = new JButton("Xuat PDF");
+        JButton loadButton = new JButton("Tải báo cáo");
+        JButton exportButton = new JButton("Xuất PDF");
         loadButton.addActionListener(event -> loadReport());
         exportButton.addActionListener(event -> exportCurrentTable());
         reportTypeComboBox.addActionListener(event -> refreshFilterOptions());
 
         JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
-        topPanel.add(new JLabel("Loai bao cao"));
+        topPanel.add(new JLabel("Loại báo cáo"));
         topPanel.add(reportTypeComboBox);
-        topPanel.add(new JLabel("Bo loc"));
+        topPanel.add(new JLabel("Bộ lọc"));
         topPanel.add(filterComboBox);
         topPanel.add(loadButton);
         topPanel.add(exportButton);
@@ -106,28 +106,28 @@ public class ReportManagementPanel extends BasePanel {
                 if (classRoom == null) {
                     return;
                 }
-                tableModel.setColumnIdentifiers(new String[]{"Ma SV", "Ho ten", "Email", "So dien thoai", "Trang thai"});
+                tableModel.setColumnIdentifiers(new String[]{"Mã sinh viên", "Họ và tên", "Email", "Số điện thoại", "Trạng thái"});
                 rows = reportController.getStudentsByClassRoom(classRoom.getId());
             } else if (REPORT_LECTURERS_BY_FACULTY.equals(reportType)) {
                 Faculty faculty = (Faculty) filterComboBox.getSelectedItem();
                 if (faculty == null) {
                     return;
                 }
-                tableModel.setColumnIdentifiers(new String[]{"Ma GV", "Ho ten", "Email", "So dien thoai", "Trang thai"});
+                tableModel.setColumnIdentifiers(new String[]{"Mã giảng viên", "Họ và tên", "Email", "Số điện thoại", "Trạng thái"});
                 rows = reportController.getLecturersByFaculty(faculty.getId());
             } else if (REPORT_STUDENTS_BY_SECTION.equals(reportType)) {
                 CourseSection courseSection = (CourseSection) filterComboBox.getSelectedItem();
                 if (courseSection == null) {
                     return;
                 }
-                tableModel.setColumnIdentifiers(new String[]{"Ma SV", "Ho ten", "Email", "Trang thai", "Dang ky luc"});
+                tableModel.setColumnIdentifiers(new String[]{"Mã sinh viên", "Họ và tên", "Email", "Trạng thái", "Đăng ký lúc"});
                 rows = reportController.getStudentsByCourseSection(courseSection.getId());
             } else {
                 CourseSection courseSection = (CourseSection) filterComboBox.getSelectedItem();
                 if (courseSection == null) {
                     return;
                 }
-                tableModel.setColumnIdentifiers(new String[]{"Ma SV", "Ho ten", "QT", "GK", "CK", "Tong ket", "Ket qua"});
+                tableModel.setColumnIdentifiers(new String[]{"Mã sinh viên", "Họ và tên", "QT", "GK", "CK", "Tổng kết", "Kết quả"});
                 rows = reportController.getScoresByCourseSection(courseSection.getId());
             }
 
@@ -143,11 +143,11 @@ public class ReportManagementPanel extends BasePanel {
     private void loadStatistics() {
         try {
             SystemStatistics statistics = reportController.getSystemStatistics();
-            statisticsLabel.setText("Thong ke nhanh: "
-                    + statistics.getTotalStudents() + " sinh vien, "
-                    + statistics.getTotalLecturers() + " giang vien, "
-                    + statistics.getTotalSubjects() + " mon hoc, "
-                    + statistics.getTotalCourseSections() + " hoc phan.");
+            statisticsLabel.setText("Thống kê nhanh: "
+                    + statistics.getTotalStudents() + " sinh viên, "
+                    + statistics.getTotalLecturers() + " giảng viên, "
+                    + statistics.getTotalSubjects() + " môn học, "
+                    + statistics.getTotalCourseSections() + " học phần.");
         } catch (Exception exception) {
             DialogUtil.showError(this, exception.getMessage());
         }
@@ -164,7 +164,7 @@ public class ReportManagementPanel extends BasePanel {
 
         try {
             PDFExportUtil.exportTable((String) reportTypeComboBox.getSelectedItem(), table, fileChooser.getSelectedFile());
-            DialogUtil.showInfo(this, "Xuat PDF thanh cong.");
+            DialogUtil.showInfo(this, "Xuất PDF thành công.");
         } catch (Exception exception) {
             DialogUtil.showError(this, exception.getMessage());
         }

@@ -10,7 +10,7 @@ public class PermissionService {
 
     public void requireLogin() {
         if (!SessionManager.isLoggedIn()) {
-            throw new AuthenticationException("Ban can dang nhap de su dung chuc nang nay.");
+            throw new AuthenticationException("Bạn cần đăng nhập để sử dụng chức năng này.");
         }
     }
 
@@ -18,14 +18,14 @@ public class PermissionService {
         requireLogin();
         // Kiem tra quyen tap trung de service va UI cung dung mot quy tac.
         if (!AuthManager.hasPermission(permission)) {
-            throw new AuthorizationException("Ban khong co quyen thuc hien thao tac nay.");
+            throw new AuthorizationException("Bạn không có quyền thực hiện thao tác này.");
         }
     }
 
     public void requireAnyRole(Role... roles) {
         requireLogin();
         if (!AuthManager.hasAnyRole(roles)) {
-            throw new AuthorizationException("Vai tro hien tai khong duoc phep truy cap chuc nang nay.");
+            throw new AuthorizationException("Vai trò hiện tại không được phép truy cập chức năng này.");
         }
     }
 }

@@ -27,7 +27,7 @@ public final class PDFExportUtil {
                 Files.createDirectories(file.toPath().getParent());
             }
         } catch (IOException exception) {
-            throw new AppException("Khong the tao thu muc chua file PDF.", exception);
+            throw new AppException("Không thể tạo thư mục chứa file PDF.", exception);
         }
 
         Document document = new Document();
@@ -54,7 +54,7 @@ public final class PDFExportUtil {
 
             document.add(pdfTable);
         } catch (IOException | DocumentException exception) {
-            throw new AppException("Khong the xuat file PDF.", exception);
+            throw new AppException("Không thể xuất file PDF.", exception);
         } finally {
             document.close();
         }

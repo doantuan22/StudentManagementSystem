@@ -17,6 +17,14 @@ public class ClassRoomController {
         return classRoomService.findAllForSelection();
     }
 
+    public List<ClassRoom> getClassRoomsByFaculty(Long facultyId) {
+        return classRoomService.findByFacultyId(facultyId);
+    }
+
+    public List<ClassRoom> getClassRoomsByAcademicYear(String academicYear) {
+        return classRoomService.findByAcademicYear(academicYear);
+    }
+
     public ClassRoom saveClassRoom(ClassRoom classRoom) {
         return classRoomService.save(classRoom);
     }

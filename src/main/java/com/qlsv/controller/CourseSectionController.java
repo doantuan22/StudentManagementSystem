@@ -21,6 +21,18 @@ public class CourseSectionController {
         return courseSectionService.findByLecturerId(lecturerId);
     }
 
+    public List<CourseSection> getCourseSectionsByFaculty(Long facultyId) {
+        return courseSectionService.findByFacultyId(facultyId);
+    }
+
+    public List<CourseSection> getCourseSectionsByRoom(String room) {
+        return courseSectionService.findByRoom(room);
+    }
+
+    public List<CourseSection> getCourseSectionsBySectionCode(String sectionCode) {
+        return courseSectionService.findBySectionCode(sectionCode);
+    }
+
     public CourseSection saveCourseSection(CourseSection courseSection) {
         return courseSectionService.save(courseSection);
     }

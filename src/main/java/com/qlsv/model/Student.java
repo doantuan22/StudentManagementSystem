@@ -15,13 +15,14 @@ public class Student {
     private String phone;
     private Faculty faculty;
     private ClassRoom classRoom;
+    private String academicYear;
     private String status;
 
     public Student() {
     }
 
     public Student(Long id, Long userId, String studentCode, String fullName, String gender, LocalDate dateOfBirth,
-                   String email, String phone, Faculty faculty, ClassRoom classRoom, String status) {
+                   String email, String phone, Faculty faculty, ClassRoom classRoom, String academicYear, String status) {
         this.id = id;
         this.userId = userId;
         this.studentCode = studentCode;
@@ -32,6 +33,7 @@ public class Student {
         this.phone = phone;
         this.faculty = faculty;
         this.classRoom = classRoom;
+        this.academicYear = academicYear;
         this.status = status;
     }
 
@@ -113,6 +115,14 @@ public class Student {
 
     public void setClassRoom(ClassRoom classRoom) {
         this.classRoom = classRoom;
+    }
+
+    public String getAcademicYear() {
+        return academicYear;
+    }
+
+    public void setAcademicYear(String academicYear) {
+        this.academicYear = academicYear;
     }
 
     public String getStatus() {

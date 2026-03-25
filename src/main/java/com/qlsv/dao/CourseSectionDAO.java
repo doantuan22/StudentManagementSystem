@@ -2,7 +2,6 @@ package com.qlsv.dao;
 
 import com.qlsv.config.DBConnection;
 import com.qlsv.exception.AppException;
-import com.qlsv.model.ClassRoom;
 import com.qlsv.model.CourseSection;
 import com.qlsv.model.Lecturer;
 import com.qlsv.model.Subject;
@@ -24,11 +23,10 @@ public class CourseSectionDAO {
 
     private final SubjectDAO subjectDAO = new SubjectDAO();
     private final LecturerDAO lecturerDAO = new LecturerDAO();
-    private final ClassRoomDAO classRoomDAO = new ClassRoomDAO();
 
     public List<CourseSection> findAll() {
         String sql = """
-                SELECT id, section_code, subject_id, lecturer_id, class_room_id, semester, school_year, schedule_text, max_students
+                SELECT id, section_code, subject_id, lecturer_id, room, semester, school_year, schedule_text, max_students
                 FROM course_sections
                 ORDER BY id
                 """;
@@ -41,13 +39,13 @@ public class CourseSectionDAO {
             }
             return courseSections;
         } catch (SQLException exception) {
-            throw new AppException("Khong the tai danh sach hoc phan.", exception);
+            throw new AppException("Không thể tải danh sách học phần.", exception);
         }
     }
 
     public Optional<CourseSection> findById(Long id) {
         String sql = """
-                SELECT id, section_code, subject_id, lecturer_id, class_room_id, semester, school_year, schedule_text, max_students
+                SELECT id, section_code, subject_id, lecturer_id, room, semester, school_year, schedule_text, max_students
                 FROM course_sections
                 WHERE id = ?
                 """;
@@ -58,13 +56,13 @@ public class CourseSectionDAO {
                 return resultSet.next() ? Optional.of(mapRow(resultSet)) : Optional.empty();
             }
         } catch (SQLException exception) {
-            throw new AppException("Khong the tim hoc phan theo id.", exception);
+            throw new AppException("Không thể tìm học phần theo mã định danh.", exception);
         }
     }
 
     public List<CourseSection> findByLecturerId(Long lecturerId) {
         String sql = """
-                SELECT id, section_code, subject_id, lecturer_id, class_room_id, semester, school_year, schedule_text, max_students
+                SELECT id, section_code, subject_id, lecturer_id, room, semester, school_year, schedule_text, max_students
                 FROM course_sections
                 WHERE lecturer_id = ?
                 ORDER BY id
@@ -80,15 +78,15 @@ public class CourseSectionDAO {
                 return courseSections;
             }
         } catch (SQLException exception) {
-            throw new AppException("Khong the tai hoc phan cua giang vien.", exception);
+            throw new AppException("Không thể tải học phần của giảng viên.", exception);
         }
     }
 
     public List<CourseSection> searchByKeyword(String keyword) {
         String sql = """
-                SELECT id, section_code, subject_id, lecturer_id, class_room_id, semester, school_year, schedule_text, max_students
+                SELECT id, section_code, subject_id, lecturer_id, room, semester, school_year, schedule_text, max_students
                 FROM course_sections
-                WHERE section_code LIKE ? OR semester LIKE ? OR school_year LIKE ?
+                WHERE section_code LIKE ? OR room LIKE ? OR semester LIKE ? OR school_year LIKE ?
                 ORDER BY id
                 """;
         String searchValue = "%" + keyword + "%";
@@ -98,6 +96,7 @@ public class CourseSectionDAO {
             statement.setString(1, searchValue);
             statement.setString(2, searchValue);
             statement.setString(3, searchValue);
+            statement.setString(4, searchValue);
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
                     courseSections.add(mapRow(resultSet));
@@ -105,13 +104,13 @@ public class CourseSectionDAO {
                 return courseSections;
             }
         } catch (SQLException exception) {
-            throw new AppException("Khong the tim kiem hoc phan.", exception);
+            throw new AppException("Không thể tìm kiếm học phần.", exception);
         }
     }
 
     public CourseSection insert(CourseSection courseSection) {
         String sql = """
-                INSERT INTO course_sections(section_code, subject_id, lecturer_id, class_room_id, semester, school_year, schedule_text, max_students)
+                INSERT INTO course_sections(section_code, subject_id, lecturer_id, room, semester, school_year, schedule_text, max_students)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """;
         try (Connection connection = DBConnection.getConnection();
@@ -125,14 +124,14 @@ public class CourseSectionDAO {
             }
             return courseSection;
         } catch (SQLException exception) {
-            throw new AppException("Khong the them hoc phan.", exception);
+            throw new AppException("Không thể thêm học phần.", exception);
         }
     }
 
     public boolean update(CourseSection courseSection) {
         String sql = """
                 UPDATE course_sections
-                SET section_code = ?, subject_id = ?, lecturer_id = ?, class_room_id = ?, semester = ?, school_year = ?, schedule_text = ?, max_students = ?
+                SET section_code = ?, subject_id = ?, lecturer_id = ?, room = ?, semester = ?, school_year = ?, schedule_text = ?, max_students = ?
                 WHERE id = ?
                 """;
         try (Connection connection = DBConnection.getConnection();
@@ -141,7 +140,7 @@ public class CourseSectionDAO {
             statement.setLong(9, courseSection.getId());
             return statement.executeUpdate() > 0;
         } catch (SQLException exception) {
-            throw new AppException("Khong the cap nhat hoc phan.", exception);
+            throw new AppException("Không thể cập nhật học phần.", exception);
         }
     }
 
@@ -152,9 +151,9 @@ public class CourseSectionDAO {
             statement.setLong(1, id);
             return statement.executeUpdate() > 0;
         } catch (SQLIntegrityConstraintViolationException exception) {
-            throw new AppException("Khong the xoa hoc phan vi van con lich hoc, dang ky hoc phan hoac diem lien quan.", exception);
+            throw new AppException("Không thể xóa học phần vì vẫn còn lịch học, đăng ký học phần hoặc điểm liên quan.", exception);
         } catch (SQLException exception) {
-            throw new AppException("Khong the xoa hoc phan.", exception);
+            throw new AppException("Không thể xóa học phần.", exception);
         }
     }
 
@@ -167,19 +166,20 @@ public class CourseSectionDAO {
                 return resultSet.next() ? resultSet.getInt(1) : 0;
             }
         } catch (SQLException exception) {
-            throw new AppException("Khong the dem so luong dang ky cua hoc phan.", exception);
+            throw new AppException("Không thể đếm số lượng đăng ký của học phần.", exception);
         }
     }
 
-    public void updateScheduleText(Long courseSectionId, String scheduleText) {
-        String sql = "UPDATE course_sections SET schedule_text = ? WHERE id = ?";
+    public void updateScheduleSummary(Long courseSectionId, String scheduleText, String room) {
+        String sql = "UPDATE course_sections SET schedule_text = ?, room = ? WHERE id = ?";
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, scheduleText);
-            statement.setLong(2, courseSectionId);
+            statement.setString(2, room);
+            statement.setLong(3, courseSectionId);
             statement.executeUpdate();
         } catch (SQLException exception) {
-            throw new AppException("Khong the dong bo mo ta lich hoc cho hoc phan.", exception);
+            throw new AppException("Không thể đồng bộ thông tin lịch học cho học phần.", exception);
         }
     }
 
@@ -187,7 +187,7 @@ public class CourseSectionDAO {
         statement.setString(1, courseSection.getSectionCode());
         statement.setLong(2, courseSection.getSubject().getId());
         statement.setLong(3, courseSection.getLecturer().getId());
-        statement.setLong(4, courseSection.getClassRoom().getId());
+        statement.setString(4, courseSection.getRoom());
         statement.setString(5, courseSection.getSemester());
         statement.setString(6, courseSection.getSchoolYear());
         statement.setString(7, courseSection.getScheduleText());
@@ -197,13 +197,12 @@ public class CourseSectionDAO {
     private CourseSection mapRow(ResultSet resultSet) throws SQLException {
         Subject subject = subjectDAO.findById(resultSet.getLong("subject_id")).orElse(null);
         Lecturer lecturer = lecturerDAO.findById(resultSet.getLong("lecturer_id")).orElse(null);
-        ClassRoom classRoom = classRoomDAO.findById(resultSet.getLong("class_room_id")).orElse(null);
         return new CourseSection(
                 resultSet.getLong("id"),
                 resultSet.getString("section_code"),
                 subject,
                 lecturer,
-                classRoom,
+                resultSet.getString("room"),
                 resultSet.getString("semester"),
                 resultSet.getString("school_year"),
                 resultSet.getString("schedule_text"),

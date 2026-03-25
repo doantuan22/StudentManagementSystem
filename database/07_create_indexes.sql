@@ -8,7 +8,7 @@ CREATE INDEX idx_students_faculty ON students(faculty_id);
 CREATE INDEX idx_lecturers_faculty ON lecturers(faculty_id);
 CREATE INDEX idx_subjects_faculty ON subjects(faculty_id);
 CREATE INDEX idx_course_sections_lecturer ON course_sections(lecturer_id);
-CREATE INDEX idx_course_sections_class_room ON course_sections(class_room_id);
+CREATE INDEX idx_course_sections_room ON course_sections(room);
 CREATE INDEX idx_enrollments_section ON enrollments(course_section_id);
 CREATE INDEX idx_enrollments_student ON enrollments(student_id);
 CREATE INDEX idx_scores_enrollment ON scores(enrollment_id);

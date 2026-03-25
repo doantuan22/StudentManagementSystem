@@ -45,7 +45,7 @@ public class SubjectDAO {
             }
             return subjects;
         } catch (SQLException exception) {
-            throw new AppException("Khong the tai danh sach mon hoc.", exception);
+            throw new AppException("Không thể tải danh sách môn học.", exception);
         }
     }
 
@@ -58,7 +58,7 @@ public class SubjectDAO {
                 return resultSet.next() ? Optional.of(mapRow(resultSet)) : Optional.empty();
             }
         } catch (SQLException exception) {
-            throw new AppException("Khong the tim mon hoc theo id.", exception);
+            throw new AppException("Không thể tìm môn học theo mã định danh.", exception);
         }
     }
 
@@ -81,7 +81,7 @@ public class SubjectDAO {
                 return subjects;
             }
         } catch (SQLException exception) {
-            throw new AppException("Khong the tim kiem mon hoc.", exception);
+            throw new AppException("Không thể tìm kiếm môn học.", exception);
         }
     }
 
@@ -105,7 +105,7 @@ public class SubjectDAO {
             }
             return subject;
         } catch (SQLException exception) {
-            throw new AppException("Khong the them mon hoc.", exception);
+            throw new AppException("Không thể thêm môn học.", exception);
         }
     }
 
@@ -125,7 +125,7 @@ public class SubjectDAO {
             statement.setLong(6, subject.getId());
             return statement.executeUpdate() > 0;
         } catch (SQLException exception) {
-            throw new AppException("Khong the cap nhat mon hoc.", exception);
+            throw new AppException("Không thể cập nhật môn học.", exception);
         }
     }
 
@@ -136,9 +136,9 @@ public class SubjectDAO {
             statement.setLong(1, id);
             return statement.executeUpdate() > 0;
         } catch (SQLIntegrityConstraintViolationException exception) {
-            throw new AppException("Khong the xoa mon hoc vi van con hoc phan dang mo hoac phan cong giang day lien quan.", exception);
+            throw new AppException("Không thể xóa môn học vì vẫn còn học phần đang mở hoặc phân công giảng dạy liên quan.", exception);
         } catch (SQLException exception) {
-            throw new AppException("Khong the xoa mon hoc.", exception);
+            throw new AppException("Không thể xóa môn học.", exception);
         }
     }
 

@@ -37,31 +37,31 @@ public final class ValidationUtil {
             return;
         }
         if (value < 0 || value > 10) {
-            throw new ValidationException(fieldName + " phai nam trong khoang 0 den 10.");
+            throw new ValidationException(fieldName + " phải nằm trong khoảng từ 0 đến 10.");
         }
     }
 
     public static String requireEmail(String value, String fieldName) {
-        String normalizedValue = requireNotBlank(value, fieldName + " khong duoc de trong.");
+        String normalizedValue = requireNotBlank(value, fieldName + " không được để trống.");
         if (!EMAIL_PATTERN.matcher(normalizedValue).matches()) {
-            throw new ValidationException(fieldName + " khong dung dinh dang.");
+            throw new ValidationException(fieldName + " không đúng định dạng.");
         }
         return normalizedValue;
     }
 
     public static String requirePhone(String value, String fieldName) {
-        String normalizedValue = requireNotBlank(value, fieldName + " khong duoc de trong.");
+        String normalizedValue = requireNotBlank(value, fieldName + " không được để trống.");
         String compactValue = normalizedValue.replace(" ", "");
         if (!PHONE_PATTERN.matcher(compactValue).matches()) {
-            throw new ValidationException(fieldName + " khong dung dinh dang.");
+            throw new ValidationException(fieldName + " không đúng định dạng.");
         }
         return compactValue;
     }
 
     public static String requireWithinLength(String value, int maxLength, String fieldName) {
-        String normalizedValue = requireNotBlank(value, fieldName + " khong duoc de trong.");
+        String normalizedValue = requireNotBlank(value, fieldName + " không được để trống.");
         if (normalizedValue.length() > maxLength) {
-            throw new ValidationException(fieldName + " khong duoc vuot qua " + maxLength + " ky tu.");
+            throw new ValidationException(fieldName + " không được vượt quá " + maxLength + " ký tự.");
         }
         return normalizedValue;
     }

@@ -47,7 +47,7 @@ public class LecturerDAO {
             }
             return lecturers;
         } catch (SQLException exception) {
-            throw new AppException("Khong the tai danh sach giang vien.", exception);
+            throw new AppException("Không thể tải danh sách giảng viên.", exception);
         }
     }
 
@@ -60,7 +60,7 @@ public class LecturerDAO {
                 return resultSet.next() ? Optional.of(mapRow(resultSet)) : Optional.empty();
             }
         } catch (SQLException exception) {
-            throw new AppException("Khong the tim giang vien theo id.", exception);
+            throw new AppException("Không thể tìm giảng viên theo mã định danh.", exception);
         }
     }
 
@@ -73,7 +73,7 @@ public class LecturerDAO {
                 return resultSet.next() ? Optional.of(mapRow(resultSet)) : Optional.empty();
             }
         } catch (SQLException exception) {
-            throw new AppException("Khong the tim giang vien theo user.", exception);
+            throw new AppException("Không thể tìm giảng viên theo tài khoản người dùng.", exception);
         }
     }
 
@@ -98,7 +98,7 @@ public class LecturerDAO {
                 return lecturers;
             }
         } catch (SQLException exception) {
-            throw new AppException("Khong the tim kiem giang vien.", exception);
+            throw new AppException("Không thể tìm kiếm giảng viên.", exception);
         }
     }
 
@@ -118,7 +118,7 @@ public class LecturerDAO {
             }
             return lecturer;
         } catch (SQLException exception) {
-            throw new AppException("Khong the them giang vien.", exception);
+            throw new AppException("Không thể thêm giảng viên.", exception);
         }
     }
 
@@ -134,7 +134,7 @@ public class LecturerDAO {
             statement.setLong(8, lecturer.getId());
             return statement.executeUpdate() > 0;
         } catch (SQLException exception) {
-            throw new AppException("Khong the cap nhat giang vien.", exception);
+            throw new AppException("Không thể cập nhật giảng viên.", exception);
         }
     }
 
@@ -145,9 +145,9 @@ public class LecturerDAO {
             statement.setLong(1, id);
             return statement.executeUpdate() > 0;
         } catch (SQLIntegrityConstraintViolationException exception) {
-            throw new AppException("Khong the xoa giang vien vi van con hoc phan hoac phan cong giang day dang tham chieu.", exception);
+            throw new AppException("Không thể xóa giảng viên vì vẫn còn học phần hoặc phân công giảng dạy đang tham chiếu.", exception);
         } catch (SQLException exception) {
-            throw new AppException("Khong the xoa giang vien.", exception);
+            throw new AppException("Không thể xóa giảng viên.", exception);
         }
     }
 

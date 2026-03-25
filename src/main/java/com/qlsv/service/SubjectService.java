@@ -22,6 +22,14 @@ public class SubjectService {
         return subjectDAO.findAll();
     }
 
+    public List<Subject> findByFacultyId(Long facultyId) {
+        return findAll().stream()
+                .filter(subject -> subject.getFaculty() != null
+                        && subject.getFaculty().getId() != null
+                        && subject.getFaculty().getId().equals(facultyId))
+                .toList();
+    }
+
     public Subject save(Subject subject) {
         permissionService.requirePermission(RolePermission.MANAGE_SUBJECTS);
         validate(subject);
@@ -39,11 +47,11 @@ public class SubjectService {
     }
 
     private void validate(Subject subject) {
-        ValidationUtil.requireWithinLength(subject.getSubjectCode(), 50, "Ma mon hoc");
-        ValidationUtil.requireNotBlank(subject.getSubjectName(), "Ten mon hoc khong duoc de trong.");
-        ValidationUtil.requirePositive(subject.getCredits(), "So tin chi phai lon hon 0.");
+        ValidationUtil.requireWithinLength(subject.getSubjectCode(), 50, "Mã môn học");
+        ValidationUtil.requireNotBlank(subject.getSubjectName(), "Tên môn học không được để trống.");
+        ValidationUtil.requirePositive(subject.getCredits(), "Số tín chỉ phải lớn hơn 0.");
         if (subject.getFaculty() == null || subject.getFaculty().getId() == null) {
-            throw new IllegalArgumentException("Mon hoc phai thuoc mot khoa.");
+            throw new IllegalArgumentException("Môn học phải thuộc một khoa.");
         }
     }
 }

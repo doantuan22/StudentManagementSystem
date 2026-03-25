@@ -22,6 +22,13 @@ public class FacultyService {
         return facultyDAO.findAll();
     }
 
+    public List<Faculty> findByCode(String facultyCode) {
+        return findAll().stream()
+                .filter(faculty -> faculty.getFacultyCode() != null
+                        && faculty.getFacultyCode().equalsIgnoreCase(facultyCode == null ? "" : facultyCode.trim()))
+                .toList();
+    }
+
     public Faculty save(Faculty faculty) {
         permissionService.requirePermission(RolePermission.MANAGE_FACULTIES);
         validate(faculty);
@@ -39,7 +46,7 @@ public class FacultyService {
     }
 
     private void validate(Faculty faculty) {
-        ValidationUtil.requireWithinLength(faculty.getFacultyCode(), 50, "Ma khoa");
-        ValidationUtil.requireNotBlank(faculty.getFacultyName(), "Ten khoa khong duoc de trong.");
+        ValidationUtil.requireWithinLength(faculty.getFacultyCode(), 50, "Mã khoa");
+        ValidationUtil.requireNotBlank(faculty.getFacultyName(), "Tên khoa không được để trống.");
     }
 }

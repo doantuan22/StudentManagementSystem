@@ -20,7 +20,7 @@ public final class SessionManager {
 
     public static User requireCurrentUser() {
         if (currentUser == null) {
-            throw new AuthenticationException("Ban chua dang nhap vao he thong.");
+            throw new AuthenticationException("Bạn chưa đăng nhập vào hệ thống.");
         }
         return currentUser;
     }

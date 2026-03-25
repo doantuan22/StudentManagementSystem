@@ -116,7 +116,7 @@ ON DUPLICATE KEY UPDATE
     description = VALUES(description);
 
 INSERT INTO class_rooms(class_code, class_name, academic_year, faculty_id)
-SELECT 'D17CQCN01-N', 'Lop Cong nghe thong tin 1', '2025-2026', f.id
+SELECT 'D17CQCN01-N', 'Lop Cong nghe thong tin 1', '2022 - 2026', f.id
 FROM faculties f
 WHERE f.faculty_code = 'CNTT'
 ON DUPLICATE KEY UPDATE
@@ -125,7 +125,7 @@ ON DUPLICATE KEY UPDATE
     faculty_id = VALUES(faculty_id);
 
 INSERT INTO class_rooms(class_code, class_name, academic_year, faculty_id)
-SELECT 'D17CQCN02-N', 'Lop Cong nghe thong tin 2', '2025-2026', f.id
+SELECT 'D17CQCN02-N', 'Lop Cong nghe thong tin 2', '2022 - 2026', f.id
 FROM faculties f
 WHERE f.faculty_code = 'CNTT'
 ON DUPLICATE KEY UPDATE
@@ -134,7 +134,7 @@ ON DUPLICATE KEY UPDATE
     faculty_id = VALUES(faculty_id);
 
 INSERT INTO class_rooms(class_code, class_name, academic_year, faculty_id)
-SELECT 'D17QTKD01-N', 'Lop Quan tri kinh doanh 1', '2025-2026', f.id
+SELECT 'D17QTKD01-N', 'Lop Quan tri kinh doanh 1', '2022 - 2026', f.id
 FROM faculties f
 WHERE f.faculty_code = 'QTKD'
 ON DUPLICATE KEY UPDATE
@@ -166,8 +166,8 @@ ON DUPLICATE KEY UPDATE
     faculty_id = VALUES(faculty_id),
     status = VALUES(status);
 
-INSERT INTO students(user_id, student_code, full_name, gender, date_of_birth, email, phone, faculty_id, class_room_id, status)
-SELECT u.id, 'SV001', 'Tran Thi Student', 'Nu', '2005-05-20', 'student01@sms.local', '0900000002', f.id, c.id, 'ACTIVE'
+INSERT INTO students(user_id, student_code, full_name, gender, date_of_birth, email, phone, faculty_id, class_room_id, academic_year, status)
+SELECT u.id, 'SV001', 'Tran Thi Student', 'Nữ', '2005-05-20', 'student01@sms.local', '0900000002', f.id, c.id, '2022 - 2026', 'ACTIVE'
 FROM users u
 JOIN faculties f ON f.faculty_code = 'CNTT'
 JOIN class_rooms c ON c.class_code = 'D17CQCN01-N'
@@ -180,10 +180,11 @@ ON DUPLICATE KEY UPDATE
     phone = VALUES(phone),
     faculty_id = VALUES(faculty_id),
     class_room_id = VALUES(class_room_id),
+    academic_year = VALUES(academic_year),
     status = VALUES(status);
 
-INSERT INTO students(user_id, student_code, full_name, gender, date_of_birth, email, phone, faculty_id, class_room_id, status)
-SELECT u.id, 'SV002', 'Pham Van Student', 'Nam', '2005-03-15', 'student02@sms.local', '0900000004', f.id, c.id, 'ACTIVE'
+INSERT INTO students(user_id, student_code, full_name, gender, date_of_birth, email, phone, faculty_id, class_room_id, academic_year, status)
+SELECT u.id, 'SV002', 'Pham Van Student', 'Nam', '2005-03-15', 'student02@sms.local', '0900000004', f.id, c.id, '2022 - 2026', 'ACTIVE'
 FROM users u
 JOIN faculties f ON f.faculty_code = 'CNTT'
 JOIN class_rooms c ON c.class_code = 'D17CQCN01-N'
@@ -196,10 +197,11 @@ ON DUPLICATE KEY UPDATE
     phone = VALUES(phone),
     faculty_id = VALUES(faculty_id),
     class_room_id = VALUES(class_room_id),
+    academic_year = VALUES(academic_year),
     status = VALUES(status);
 
-INSERT INTO students(user_id, student_code, full_name, gender, date_of_birth, email, phone, faculty_id, class_room_id, status)
-SELECT u.id, 'SV003', 'Ngo Minh Student', 'Nam', '2005-08-01', 'student03@sms.local', '0900000005', f.id, c.id, 'ACTIVE'
+INSERT INTO students(user_id, student_code, full_name, gender, date_of_birth, email, phone, faculty_id, class_room_id, academic_year, status)
+SELECT u.id, 'SV003', 'Ngo Minh Student', 'Nam', '2005-08-01', 'student03@sms.local', '0900000005', f.id, c.id, '2022 - 2026', 'ACTIVE'
 FROM users u
 JOIN faculties f ON f.faculty_code = 'QTKD'
 JOIN class_rooms c ON c.class_code = 'D17QTKD01-N'
@@ -212,6 +214,7 @@ ON DUPLICATE KEY UPDATE
     phone = VALUES(phone),
     faculty_id = VALUES(faculty_id),
     class_room_id = VALUES(class_room_id),
+    academic_year = VALUES(academic_year),
     status = VALUES(status);
 
 INSERT INTO subjects(subject_code, subject_name, credits, faculty_id, description)
@@ -262,61 +265,57 @@ FROM lecturers l
 JOIN subjects s ON s.subject_code = 'BUS101'
 WHERE l.lecturer_code = 'GV002';
 
-INSERT INTO course_sections(section_code, subject_id, lecturer_id, class_room_id, semester, school_year, schedule_text, max_students)
-SELECT 'INT101-01', s.id, l.id, c.id, 'HK1', '2025-2026', 'Thu 2 tiet 1-3 phong A101', 60
+INSERT INTO course_sections(section_code, subject_id, lecturer_id, room, semester, school_year, schedule_text, max_students)
+SELECT 'INT101-01', s.id, l.id, 'A101', 'HK1', '2025-2026', 'Thu 2 tiet 1-3 phong A101', 60
 FROM subjects s
 JOIN lecturers l ON l.lecturer_code = 'GV001'
-JOIN class_rooms c ON c.class_code = 'D17CQCN01-N'
 WHERE s.subject_code = 'INT101'
 ON DUPLICATE KEY UPDATE
     subject_id = VALUES(subject_id),
     lecturer_id = VALUES(lecturer_id),
-    class_room_id = VALUES(class_room_id),
+    room = VALUES(room),
     semester = VALUES(semester),
     school_year = VALUES(school_year),
     schedule_text = VALUES(schedule_text),
     max_students = VALUES(max_students);
 
-INSERT INTO course_sections(section_code, subject_id, lecturer_id, class_room_id, semester, school_year, schedule_text, max_students)
-SELECT 'INT102-01', s.id, l.id, c.id, 'HK1', '2025-2026', 'Thu 4 tiet 4-6 phong B201', 40
+INSERT INTO course_sections(section_code, subject_id, lecturer_id, room, semester, school_year, schedule_text, max_students)
+SELECT 'INT102-01', s.id, l.id, 'B201', 'HK1', '2025-2026', 'Thu 4 tiet 4-6 phong B201', 40
 FROM subjects s
 JOIN lecturers l ON l.lecturer_code = 'GV001'
-JOIN class_rooms c ON c.class_code = 'D17CQCN01-N'
 WHERE s.subject_code = 'INT102'
 ON DUPLICATE KEY UPDATE
     subject_id = VALUES(subject_id),
     lecturer_id = VALUES(lecturer_id),
-    class_room_id = VALUES(class_room_id),
+    room = VALUES(room),
     semester = VALUES(semester),
     school_year = VALUES(school_year),
     schedule_text = VALUES(schedule_text),
     max_students = VALUES(max_students);
 
-INSERT INTO course_sections(section_code, subject_id, lecturer_id, class_room_id, semester, school_year, schedule_text, max_students)
-SELECT 'INT102-02', s.id, l.id, c.id, 'HK1', '2025-2026', 'Thu 2 tiet 2-4 phong B202', 30
+INSERT INTO course_sections(section_code, subject_id, lecturer_id, room, semester, school_year, schedule_text, max_students)
+SELECT 'INT102-02', s.id, l.id, 'B202', 'HK1', '2025-2026', 'Thu 2 tiet 2-4 phong B202', 30
 FROM subjects s
 JOIN lecturers l ON l.lecturer_code = 'GV001'
-JOIN class_rooms c ON c.class_code = 'D17CQCN02-N'
 WHERE s.subject_code = 'INT102'
 ON DUPLICATE KEY UPDATE
     subject_id = VALUES(subject_id),
     lecturer_id = VALUES(lecturer_id),
-    class_room_id = VALUES(class_room_id),
+    room = VALUES(room),
     semester = VALUES(semester),
     school_year = VALUES(school_year),
     schedule_text = VALUES(schedule_text),
     max_students = VALUES(max_students);
 
-INSERT INTO course_sections(section_code, subject_id, lecturer_id, class_room_id, semester, school_year, schedule_text, max_students)
-SELECT 'BUS101-01', s.id, l.id, c.id, 'HK1', '2025-2026', 'Thu 3 tiet 1-3 phong C301', 50
+INSERT INTO course_sections(section_code, subject_id, lecturer_id, room, semester, school_year, schedule_text, max_students)
+SELECT 'BUS101-01', s.id, l.id, 'C301', 'HK1', '2025-2026', 'Thu 3 tiet 1-3 phong C301', 50
 FROM subjects s
 JOIN lecturers l ON l.lecturer_code = 'GV002'
-JOIN class_rooms c ON c.class_code = 'D17QTKD01-N'
 WHERE s.subject_code = 'BUS101'
 ON DUPLICATE KEY UPDATE
     subject_id = VALUES(subject_id),
     lecturer_id = VALUES(lecturer_id),
-    class_room_id = VALUES(class_room_id),
+    room = VALUES(room),
     semester = VALUES(semester),
     school_year = VALUES(school_year),
     schedule_text = VALUES(schedule_text),

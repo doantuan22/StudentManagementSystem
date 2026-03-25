@@ -18,11 +18,14 @@ public class Main {
             }
             // Kiem tra ket noi DB ngay luc khoi dong de tranh vao app roi moi biet loi cau hinh.
             if (!DBConnection.canConnect()) {
-                DialogUtil.showError(null, "Khong ket noi duoc database. Hay kiem tra MySQL va application.properties.");
+                DialogUtil.showError(null, "Không kết nối được cơ sở dữ liệu. Hãy kiểm tra MySQL và file application.properties.");
                 return;
             }
             if (!DBConnection.hasRequiredTables()) {
-                DialogUtil.showError(null, "Database dang dung chua co day du schema moi. Hay chay lai 02_create_tables.sql va 03_insert_sample_data.sql.");
+                DialogUtil.showError(
+                        null,
+                        "Cơ sở dữ liệu hiện tại chưa có đầy đủ schema mới. Hãy chạy lại 02_create_tables.sql, 03_insert_sample_data.sql "
+                                + "và các script nâng cấp 11_add_student_academic_year.sql, 12_rename_course_sections_class_room_to_room.sql nếu đang nâng cấp từ bản cũ.");
                 return;
             }
             new LoginFrame().setVisible(true);

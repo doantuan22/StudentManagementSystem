@@ -30,13 +30,38 @@ public class EnrollmentService {
     public List<Enrollment> findByCurrentStudent() {
         permissionService.requirePermission(RolePermission.REGISTER_ENROLLMENT);
         Student student = studentDAO.findByUserId(SessionManager.requireCurrentUser().getId())
-                .orElseThrow(() -> new ValidationException("Khong tim thay sinh vien dang dang nhap."));
+                .orElseThrow(() -> new ValidationException("Không tìm thấy sinh viên đang đăng nhập."));
         return enrollmentDAO.findByStudentId(student.getId());
     }
 
     public List<Enrollment> findByLecturer(Long lecturerId) {
         permissionService.requirePermission(RolePermission.VIEW_ASSIGNED_STUDENTS);
         return enrollmentDAO.findByLecturerId(lecturerId);
+    }
+
+    public List<Enrollment> findByCourseSectionId(Long courseSectionId) {
+        return findAll().stream()
+                .filter(enrollment -> enrollment.getCourseSection() != null
+                        && enrollment.getCourseSection().getId() != null
+                        && enrollment.getCourseSection().getId().equals(courseSectionId))
+                .toList();
+    }
+
+    public List<Enrollment> findByClassRoomId(Long classRoomId) {
+        return findAll().stream()
+                .filter(enrollment -> enrollment.getStudent() != null
+                        && enrollment.getStudent().getClassRoom() != null
+                        && enrollment.getStudent().getClassRoom().getId() != null
+                        && enrollment.getStudent().getClassRoom().getId().equals(classRoomId))
+                .toList();
+    }
+
+    public List<Enrollment> findByStudentId(Long studentId) {
+        return findAll().stream()
+                .filter(enrollment -> enrollment.getStudent() != null
+                        && enrollment.getStudent().getId() != null
+                        && enrollment.getStudent().getId().equals(studentId))
+                .toList();
     }
 
     public Enrollment save(Enrollment enrollment) {
@@ -48,9 +73,9 @@ public class EnrollmentService {
     public Enrollment registerCurrentStudent(Long courseSectionId) {
         permissionService.requirePermission(RolePermission.REGISTER_ENROLLMENT);
         Student student = studentDAO.findByUserId(SessionManager.requireCurrentUser().getId())
-                .orElseThrow(() -> new ValidationException("Khong tim thay sinh vien dang dang nhap."));
+                .orElseThrow(() -> new ValidationException("Không tìm thấy sinh viên đang đăng nhập."));
         CourseSection courseSection = courseSectionDAO.findById(courseSectionId)
-                .orElseThrow(() -> new ValidationException("Khong tim thay hoc phan can dang ky."));
+                .orElseThrow(() -> new ValidationException("Không tìm thấy học phần cần đăng ký."));
 
         Enrollment enrollment = new Enrollment();
         enrollment.setStudent(student);
@@ -70,11 +95,11 @@ public class EnrollmentService {
     public boolean cancelCurrentStudentEnrollment(Long enrollmentId) {
         permissionService.requirePermission(RolePermission.REGISTER_ENROLLMENT);
         Student student = studentDAO.findByUserId(SessionManager.requireCurrentUser().getId())
-                .orElseThrow(() -> new ValidationException("Khong tim thay sinh vien dang dang nhap."));
+                .orElseThrow(() -> new ValidationException("Không tìm thấy sinh viên đang đăng nhập."));
         Enrollment enrollment = enrollmentDAO.findById(enrollmentId)
-                .orElseThrow(() -> new ValidationException("Khong tim thay dang ky hoc phan."));
+                .orElseThrow(() -> new ValidationException("Không tìm thấy đăng ký học phần."));
         if (!student.getId().equals(enrollment.getStudent().getId())) {
-            throw new ValidationException("Sinh vien chi duoc huy hoc phan cua chinh minh.");
+            throw new ValidationException("Sinh viên chỉ được hủy học phần của chính mình.");
         }
         return enrollmentDAO.delete(enrollmentId);
     }
@@ -86,26 +111,26 @@ public class EnrollmentService {
 
     private void validate(Enrollment enrollment, boolean checkDuplicate) {
         if (enrollment.getStudent() == null || enrollment.getStudent().getId() == null) {
-            throw new ValidationException("Dang ky hoc phan phai co sinh vien.");
+            throw new ValidationException("Đăng ký học phần phải có sinh viên.");
         }
         if (enrollment.getCourseSection() == null || enrollment.getCourseSection().getId() == null) {
-            throw new ValidationException("Dang ky hoc phan phai co hoc phan.");
+            throw new ValidationException("Đăng ký học phần phải có học phần.");
         }
         if (checkDuplicate && enrollmentDAO.existsByStudentAndCourseSection(
                 enrollment.getStudent().getId(),
                 enrollment.getCourseSection().getId())) {
             // Chong dang ky trung hoc phan o muc service de de thay doi quy tac ve sau.
-            throw new ValidationException("Sinh vien da dang ky hoc phan nay.");
+            throw new ValidationException("Sinh viên đã đăng ký học phần này.");
         }
         if (checkDuplicate) {
             int currentSize = enrollmentDAO.countByCourseSectionId(enrollment.getCourseSection().getId());
             Integer maxStudents = enrollment.getCourseSection().getMaxStudents();
             if (maxStudents != null && currentSize >= maxStudents) {
-                throw new ValidationException("Hoc phan da day si so toi da.");
+                throw new ValidationException("Học phần đã đủ sĩ số tối đa.");
             }
             // Kiem tra trung lich dua tren bang schedules de chan dang ky sai luong nghiep vu.
             if (scheduleDAO.hasStudentScheduleConflict(enrollment.getStudent().getId(), enrollment.getCourseSection().getId(), null)) {
-                throw new ValidationException("Hoc phan moi bi trung lich voi hoc phan sinh vien da dang ky.");
+                throw new ValidationException("Học phần mới bị trùng lịch với học phần sinh viên đã đăng ký.");
             }
         }
     }

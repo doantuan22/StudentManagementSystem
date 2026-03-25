@@ -37,7 +37,7 @@ public class ScoreDAO {
             }
             return scores;
         } catch (SQLException exception) {
-            throw new AppException("Khong the tai danh sach diem.", exception);
+            throw new AppException("Không thể tải danh sách điểm.", exception);
         }
     }
 
@@ -54,7 +54,7 @@ public class ScoreDAO {
                 return resultSet.next() ? Optional.of(mapRow(resultSet)) : Optional.empty();
             }
         } catch (SQLException exception) {
-            throw new AppException("Khong the tim diem theo id.", exception);
+            throw new AppException("Không thể tìm điểm theo mã định danh.", exception);
         }
     }
 
@@ -71,7 +71,7 @@ public class ScoreDAO {
                 return resultSet.next() ? Optional.of(mapRow(resultSet)) : Optional.empty();
             }
         } catch (SQLException exception) {
-            throw new AppException("Khong the tim diem theo dang ky hoc phan.", exception);
+            throw new AppException("Không thể tìm điểm theo đăng ký học phần.", exception);
         }
     }
 
@@ -94,7 +94,7 @@ public class ScoreDAO {
                 return scores;
             }
         } catch (SQLException exception) {
-            throw new AppException("Khong the tai diem cua sinh vien.", exception);
+            throw new AppException("Không thể tải điểm của sinh viên.", exception);
         }
     }
 
@@ -118,7 +118,7 @@ public class ScoreDAO {
                 return scores;
             }
         } catch (SQLException exception) {
-            throw new AppException("Khong the tai diem cua giang vien phu trach.", exception);
+            throw new AppException("Không thể tải điểm của giảng viên phụ trách.", exception);
         }
     }
 
@@ -141,7 +141,7 @@ public class ScoreDAO {
                 return scores;
             }
         } catch (SQLException exception) {
-            throw new AppException("Khong the tai bang diem theo hoc phan.", exception);
+            throw new AppException("Không thể tải bảng điểm theo học phần.", exception);
         }
     }
 
@@ -161,7 +161,7 @@ public class ScoreDAO {
             }
             return score;
         } catch (SQLException exception) {
-            throw new AppException("Khong the them diem.", exception);
+            throw new AppException("Không thể thêm điểm.", exception);
         }
     }
 
@@ -177,7 +177,7 @@ public class ScoreDAO {
             statement.setLong(7, score.getId());
             return statement.executeUpdate() > 0;
         } catch (SQLException exception) {
-            throw new AppException("Khong the cap nhat diem.", exception);
+            throw new AppException("Không thể cập nhật điểm.", exception);
         }
     }
 
@@ -188,9 +188,9 @@ public class ScoreDAO {
             statement.setLong(1, id);
             return statement.executeUpdate() > 0;
         } catch (SQLIntegrityConstraintViolationException exception) {
-            throw new AppException("Khong the xoa diem do co rang buoc du lieu lien quan.", exception);
+            throw new AppException("Không thể xóa điểm do có ràng buộc dữ liệu liên quan.", exception);
         } catch (SQLException exception) {
-            throw new AppException("Khong the xoa diem.", exception);
+            throw new AppException("Không thể xóa điểm.", exception);
         }
     }
 

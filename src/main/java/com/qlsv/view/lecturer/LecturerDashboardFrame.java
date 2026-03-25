@@ -3,25 +3,27 @@ package com.qlsv.view.lecturer;
 import com.qlsv.controller.LoginController;
 import com.qlsv.model.User;
 import com.qlsv.view.auth.LoginFrame;
+import com.qlsv.view.common.AppColors;
 import com.qlsv.view.common.BaseFrame;
+import com.qlsv.view.common.SidebarMenu;
 
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
-import java.awt.GridLayout;
 
 public class LecturerDashboardFrame extends BaseFrame {
 
     private final LoginController loginController = new LoginController();
 
     public LecturerDashboardFrame(User user) {
-        super("Lecturer Dashboard");
+        super("Trang giảng viên");
         initComponents(user);
     }
 
     private void initComponents(User user) {
-        JButton logoutButton = new JButton("Dang xuat");
+        JButton logoutButton = new JButton("Đăng xuất");
         logoutButton.addActionListener(event -> {
             loginController.logout();
             new LoginFrame().setVisible(true);
@@ -38,26 +40,38 @@ public class LecturerDashboardFrame extends BaseFrame {
         contentPanel.add(new LecturerScorePanel(), "scores");
         contentPanel.add(new LecturerSchedulePanel(), "schedule");
 
-        JPanel menuPanel = new JPanel(new GridLayout(0, 1, 8, 8));
-        menuPanel.add(buildMenuButton("Thong tin ca nhan", cardLayout, contentPanel, "profile"));
-        menuPanel.add(buildMenuButton("Hoc phan phu trach", cardLayout, contentPanel, "sections"));
-        menuPanel.add(buildMenuButton("Sinh vien hoc phan", cardLayout, contentPanel, "students"));
-        menuPanel.add(buildMenuButton("Nhap / xem diem", cardLayout, contentPanel, "scores"));
-        menuPanel.add(buildMenuButton("Lich day", cardLayout, contentPanel, "schedule"));
+        SidebarMenu sidebarMenu = new SidebarMenu(
+                "Không gian giảng viên",
+                "Nhóm chức năng giảng dạy được đặt trong sidebar riêng để chuyển đổi nhanh mà không ảnh hưởng nội dung chính."
+        );
+        registerMenuItem(sidebarMenu, "profile", "Thông tin cá nhân", cardLayout, contentPanel, "profile");
+        registerMenuItem(sidebarMenu, "sections", "Học phần phụ trách", cardLayout, contentPanel, "sections");
+        registerMenuItem(sidebarMenu, "students", "Sinh viên theo học phần", cardLayout, contentPanel, "students");
+        registerMenuItem(sidebarMenu, "scores", "Nhập hoặc xem điểm", cardLayout, contentPanel, "scores");
+        registerMenuItem(sidebarMenu, "schedule", "Lịch dạy", cardLayout, contentPanel, "schedule");
+        sidebarMenu.setActiveItem("profile");
+        cardLayout.show(contentPanel, "profile");
 
-        JPanel bodyPanel = new JPanel(new BorderLayout(12, 12));
-        bodyPanel.add(menuPanel, BorderLayout.WEST);
+        JPanel bodyPanel = new JPanel(new BorderLayout(18, 12));
+        bodyPanel.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
+        bodyPanel.setBackground(AppColors.CONTENT_BACKGROUND);
+        bodyPanel.add(sidebarMenu, BorderLayout.WEST);
         bodyPanel.add(contentPanel, BorderLayout.CENTER);
 
         setLayout(new BorderLayout());
         add(headerPanel, BorderLayout.NORTH);
         add(bodyPanel, BorderLayout.CENTER);
-        add(createFooter("Trang thai: LECTURER dang dang nhap | Dang quan ly hoc phan duoc phan cong"), BorderLayout.SOUTH);
+        add(createFooter("Trạng thái: Giảng viên đang đăng nhập | Đang quản lý các học phần được phân công"), BorderLayout.SOUTH);
     }
 
-    private JButton buildMenuButton(String text, CardLayout cardLayout, JPanel contentPanel, String cardName) {
-        JButton button = createMenuButton(text);
-        button.addActionListener(event -> cardLayout.show(contentPanel, cardName));
-        return button;
+    private void registerMenuItem(
+            SidebarMenu sidebarMenu,
+            String itemKey,
+            String text,
+            CardLayout cardLayout,
+            JPanel contentPanel,
+            String cardName
+    ) {
+        sidebarMenu.addMenuItem(itemKey, text, () -> cardLayout.show(contentPanel, cardName));
     }
 }

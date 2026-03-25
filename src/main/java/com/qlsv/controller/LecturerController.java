@@ -17,6 +17,10 @@ public class LecturerController {
         return lecturerService.findAllForSelection();
     }
 
+    public List<Lecturer> getLecturersByFaculty(Long facultyId) {
+        return lecturerService.findByFacultyId(facultyId);
+    }
+
     public Lecturer getCurrentLecturer() {
         return lecturerService.findCurrentLecturer();
     }

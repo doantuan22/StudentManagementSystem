@@ -19,7 +19,7 @@ public class LoginFrame extends BaseFrame {
     private final LoginController loginController = new LoginController();
 
     public LoginFrame() {
-        super("Dang nhap");
+        super("Đăng nhập");
         initComponents();
     }
 
@@ -27,19 +27,21 @@ public class LoginFrame extends BaseFrame {
         JPanel wrapperPanel = new JPanel(new BorderLayout());
         wrapperPanel.setBorder(BorderFactory.createEmptyBorder(80, 260, 80, 260));
 
-        JLabel titleLabel = new JLabel("Dang nhap he thong");
+        JLabel titleLabel = new JLabel("Đăng nhập hệ thống");
         titleLabel.setFont(titleLabel.getFont().deriveFont(22f));
 
         JTextField usernameField = new JTextField();
         JPasswordField passwordField = new JPasswordField();
-        JButton loginButton = new JButton("Dang nhap");
+        usernameField.setToolTipText("Nhập tên đăng nhập của bạn.");
+        passwordField.setToolTipText("Nhập mật khẩu để tiếp tục.");
+        JButton loginButton = new JButton("Đăng nhập");
 
         JPanel formPanel = new JPanel(new GridLayout(0, 1, 10, 10));
         formPanel.setBorder(BorderFactory.createEmptyBorder(24, 24, 24, 24));
         formPanel.add(titleLabel);
-        formPanel.add(new JLabel("Username"));
+        formPanel.add(new JLabel("Tên đăng nhập"));
         formPanel.add(usernameField);
-        formPanel.add(new JLabel("Password"));
+        formPanel.add(new JLabel("Mật khẩu"));
         formPanel.add(passwordField);
         formPanel.add(loginButton);
 

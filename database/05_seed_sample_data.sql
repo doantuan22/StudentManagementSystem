@@ -13,7 +13,7 @@ ON DUPLICATE KEY UPDATE
 INSERT INTO class_rooms(class_code, class_name, academic_year, faculty_id)
 SELECT 'D17CQCN01-N',
        'Lop Cong nghe thong tin 1',
-       '2025-2026',
+       '2022 - 2026',
        f.id
 FROM faculties f
 WHERE f.faculty_code = 'CNTT'
@@ -88,16 +88,17 @@ ON DUPLICATE KEY UPDATE
     faculty_id = VALUES(faculty_id),
     status = VALUES(status);
 
-INSERT INTO students(user_id, student_code, full_name, gender, date_of_birth, email, phone, faculty_id, class_room_id, status)
+INSERT INTO students(user_id, student_code, full_name, gender, date_of_birth, email, phone, faculty_id, class_room_id, academic_year, status)
 SELECT u.id,
        'SV001',
        'Tran Thi Student',
-       'Nu',
+       'Nữ',
        '2005-05-20',
        'student01@sms.local',
        '0900000002',
        f.id,
        c.id,
+       '2022 - 2026',
        'ACTIVE'
 FROM users u
 JOIN faculties f ON f.faculty_code = 'CNTT'
@@ -111,6 +112,7 @@ ON DUPLICATE KEY UPDATE
     phone = VALUES(phone),
     faculty_id = VALUES(faculty_id),
     class_room_id = VALUES(class_room_id),
+    academic_year = VALUES(academic_year),
     status = VALUES(status);
 
 INSERT INTO subjects(subject_code, subject_name, credits, faculty_id, description)
@@ -133,23 +135,22 @@ FROM lecturers l
 JOIN subjects s ON s.subject_code = 'INT101'
 WHERE l.lecturer_code = 'GV001';
 
-INSERT INTO course_sections(section_code, subject_id, lecturer_id, class_room_id, semester, school_year, schedule_text, max_students)
+INSERT INTO course_sections(section_code, subject_id, lecturer_id, room, semester, school_year, schedule_text, max_students)
 SELECT 'INT101-01',
        s.id,
        l.id,
-       c.id,
+       'A101',
        'HK1',
        '2025-2026',
        'Thu 2 tiet 1-3 phong A101',
        60
 FROM subjects s
 JOIN lecturers l ON l.lecturer_code = 'GV001'
-JOIN class_rooms c ON c.class_code = 'D17CQCN01-N'
 WHERE s.subject_code = 'INT101'
 ON DUPLICATE KEY UPDATE
     subject_id = VALUES(subject_id),
     lecturer_id = VALUES(lecturer_id),
-    class_room_id = VALUES(class_room_id),
+    room = VALUES(room),
     semester = VALUES(semester),
     school_year = VALUES(school_year),
     schedule_text = VALUES(schedule_text),

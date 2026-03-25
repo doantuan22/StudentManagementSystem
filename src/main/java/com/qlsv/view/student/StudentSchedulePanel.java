@@ -2,6 +2,7 @@ package com.qlsv.view.student;
 
 import com.qlsv.controller.ScheduleController;
 import com.qlsv.model.Schedule;
+import com.qlsv.utils.DisplayTextUtil;
 import com.qlsv.utils.DialogUtil;
 import com.qlsv.view.common.BasePanel;
 
@@ -15,7 +16,7 @@ public class StudentSchedulePanel extends BasePanel {
 
     public StudentSchedulePanel() {
         DefaultTableModel tableModel = new DefaultTableModel(
-                new String[]{"Hoc phan", "Mon hoc", "Giang vien", "Thu", "Tiet", "Phong", "Ghi chu"}, 0) {
+                new String[]{"Học phần", "Môn học", "Giảng viên", "Thứ", "Tiết", "Phòng", "Ghi chú"}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -33,7 +34,7 @@ public class StudentSchedulePanel extends BasePanel {
                         schedule.getCourseSection() == null || schedule.getCourseSection().getLecturer() == null
                                 ? "" : schedule.getCourseSection().getLecturer().getFullName(),
                         schedule.getDayOfWeek(),
-                        schedule.getStartPeriod() + "-" + schedule.getEndPeriod(),
+                        DisplayTextUtil.formatPeriod(schedule.getStartPeriod(), schedule.getEndPeriod()),
                         schedule.getRoom(),
                         schedule.getNote()
                 });

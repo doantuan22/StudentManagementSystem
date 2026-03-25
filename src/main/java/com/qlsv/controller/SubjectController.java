@@ -17,6 +17,10 @@ public class SubjectController {
         return subjectService.findAllForSelection();
     }
 
+    public List<Subject> getSubjectsByFaculty(Long facultyId) {
+        return subjectService.findByFacultyId(facultyId);
+    }
+
     public Subject saveSubject(Subject subject) {
         return subjectService.save(subject);
     }

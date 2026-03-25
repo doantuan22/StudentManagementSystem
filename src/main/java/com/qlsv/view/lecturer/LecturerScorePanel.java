@@ -2,6 +2,7 @@ package com.qlsv.view.lecturer;
 
 import com.qlsv.controller.ScoreController;
 import com.qlsv.model.Score;
+import com.qlsv.utils.DisplayTextUtil;
 import com.qlsv.utils.DialogUtil;
 import com.qlsv.view.common.BasePanel;
 
@@ -23,7 +24,7 @@ public class LecturerScorePanel extends BasePanel {
 
     private final ScoreController scoreController = new ScoreController();
     private final DefaultTableModel tableModel = new DefaultTableModel(
-            new String[]{"ID", "Sinh vien", "Hoc phan", "QT", "GK", "CK", "Tong ket", "Ket qua"}, 0) {
+            new String[]{"ID", "Sinh viên", "Học phần", "QT", "GK", "CK", "Tổng kết", "Kết quả"}, 0) {
         @Override
         public boolean isCellEditable(int row, int column) {
             return false;
@@ -33,8 +34,8 @@ public class LecturerScorePanel extends BasePanel {
     private final JTable table = new JTable(tableModel);
 
     public LecturerScorePanel() {
-        JButton updateButton = new JButton("Cap nhat diem");
-        JButton reloadButton = new JButton("Tai lai");
+        JButton updateButton = new JButton("Cập nhật điểm");
+        JButton reloadButton = new JButton("Tải lại");
         updateButton.addActionListener(event -> updateSelectedScore());
         reloadButton.addActionListener(event -> reloadData());
 
@@ -63,7 +64,7 @@ public class LecturerScorePanel extends BasePanel {
                         score.getMidtermScore(),
                         score.getFinalScore(),
                         score.getTotalScore(),
-                        score.getResult()
+                        DisplayTextUtil.formatStatus(score.getResult())
                 });
             }
         } catch (Exception exception) {
@@ -74,7 +75,7 @@ public class LecturerScorePanel extends BasePanel {
     private void updateSelectedScore() {
         int selectedRow = table.getSelectedRow();
         if (selectedRow < 0 || selectedRow >= currentScores.size()) {
-            DialogUtil.showError(this, "Hay chon dong diem can cap nhat.");
+            DialogUtil.showError(this, "Hãy chọn dòng điểm cần cập nhật.");
             return;
         }
 
@@ -84,14 +85,14 @@ public class LecturerScorePanel extends BasePanel {
         JTextField finalField = new JTextField(String.valueOf(score.getFinalScore()));
 
         JPanel formPanel = new JPanel(new GridLayout(0, 2, 8, 8));
-        formPanel.add(new JLabel("Diem qua trinh"));
+        formPanel.add(new JLabel("Điểm quá trình"));
         formPanel.add(processField);
-        formPanel.add(new JLabel("Diem giua ky"));
+        formPanel.add(new JLabel("Điểm giữa kỳ"));
         formPanel.add(midtermField);
-        formPanel.add(new JLabel("Diem cuoi ky"));
+        formPanel.add(new JLabel("Điểm cuối kỳ"));
         formPanel.add(finalField);
 
-        int result = JOptionPane.showConfirmDialog(this, formPanel, "Cap nhat diem",
+        int result = JOptionPane.showConfirmDialog(this, formPanel, "Cập nhật điểm",
                 JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
         if (result != JOptionPane.OK_OPTION) {
             return;
@@ -102,7 +103,7 @@ public class LecturerScorePanel extends BasePanel {
             score.setMidtermScore(Double.parseDouble(midtermField.getText().trim()));
             score.setFinalScore(Double.parseDouble(finalField.getText().trim()));
             scoreController.saveScore(score);
-            DialogUtil.showInfo(this, "Cap nhat diem thanh cong.");
+            DialogUtil.showInfo(this, "Cập nhật điểm thành công.");
             reloadData();
         } catch (Exception exception) {
             DialogUtil.showError(this, exception.getMessage());

@@ -21,23 +21,23 @@ public class SystemStatisticsPanel extends BasePanel {
     private final JLabel enrollmentsValueLabel = new JLabel("-");
 
     public SystemStatisticsPanel() {
-        JButton reloadButton = new JButton("Tai lai thong ke");
+        JButton reloadButton = new JButton("Tải lại thống kê");
         reloadButton.addActionListener(event -> loadStatistics());
 
         JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.add(new JLabel("Thong ke he thong"), BorderLayout.WEST);
+        headerPanel.add(new JLabel("Thống kê hệ thống"), BorderLayout.WEST);
         headerPanel.add(reloadButton, BorderLayout.EAST);
 
         JPanel gridPanel = new JPanel(new GridLayout(0, 2, 12, 12));
-        gridPanel.add(new JLabel("Tong sinh vien"));
+        gridPanel.add(new JLabel("Tổng sinh viên"));
         gridPanel.add(studentsValueLabel);
-        gridPanel.add(new JLabel("Tong giang vien"));
+        gridPanel.add(new JLabel("Tổng giảng viên"));
         gridPanel.add(lecturersValueLabel);
-        gridPanel.add(new JLabel("Tong mon hoc"));
+        gridPanel.add(new JLabel("Tổng môn học"));
         gridPanel.add(subjectsValueLabel);
-        gridPanel.add(new JLabel("Tong hoc phan"));
+        gridPanel.add(new JLabel("Tổng học phần"));
         gridPanel.add(sectionsValueLabel);
-        gridPanel.add(new JLabel("Tong dang ky hoc phan"));
+        gridPanel.add(new JLabel("Tổng đăng ký học phần"));
         gridPanel.add(enrollmentsValueLabel);
 
         add(headerPanel, BorderLayout.NORTH);

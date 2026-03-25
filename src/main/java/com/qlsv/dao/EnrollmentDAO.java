@@ -40,7 +40,7 @@ public class EnrollmentDAO {
             }
             return enrollments;
         } catch (SQLException exception) {
-            throw new AppException("Khong the tai danh sach dang ky hoc phan.", exception);
+            throw new AppException("Không thể tải danh sách đăng ký học phần.", exception);
         }
     }
 
@@ -57,7 +57,7 @@ public class EnrollmentDAO {
                 return resultSet.next() ? Optional.of(mapRow(resultSet)) : Optional.empty();
             }
         } catch (SQLException exception) {
-            throw new AppException("Khong the tim dang ky hoc phan theo id.", exception);
+            throw new AppException("Không thể tìm đăng ký học phần theo mã định danh.", exception);
         }
     }
 
@@ -79,7 +79,7 @@ public class EnrollmentDAO {
                 return enrollments;
             }
         } catch (SQLException exception) {
-            throw new AppException("Khong the tai hoc phan da dang ky cua sinh vien.", exception);
+            throw new AppException("Không thể tải học phần đã đăng ký của sinh viên.", exception);
         }
     }
 
@@ -102,7 +102,7 @@ public class EnrollmentDAO {
                 return enrollments;
             }
         } catch (SQLException exception) {
-            throw new AppException("Khong the tai danh sach dang ky cua giang vien.", exception);
+            throw new AppException("Không thể tải danh sách đăng ký của giảng viên.", exception);
         }
     }
 
@@ -124,7 +124,7 @@ public class EnrollmentDAO {
                 return enrollments;
             }
         } catch (SQLException exception) {
-            throw new AppException("Khong the tai danh sach sinh vien cua hoc phan.", exception);
+            throw new AppException("Không thể tải danh sách sinh viên của học phần.", exception);
         }
     }
 
@@ -142,7 +142,7 @@ public class EnrollmentDAO {
                 return resultSet.next() ? Optional.of(mapRow(resultSet)) : Optional.empty();
             }
         } catch (SQLException exception) {
-            throw new AppException("Khong the tim dang ky theo sinh vien va hoc phan.", exception);
+            throw new AppException("Không thể tìm đăng ký theo sinh viên và học phần.", exception);
         }
     }
 
@@ -156,7 +156,7 @@ public class EnrollmentDAO {
                 return resultSet.next() && resultSet.getInt(1) > 0;
             }
         } catch (SQLException exception) {
-            throw new AppException("Khong the kiem tra dang ky trung hoc phan.", exception);
+            throw new AppException("Không thể kiểm tra đăng ký trùng học phần.", exception);
         }
     }
 
@@ -169,7 +169,7 @@ public class EnrollmentDAO {
                 return resultSet.next() ? resultSet.getInt(1) : 0;
             }
         } catch (SQLException exception) {
-            throw new AppException("Khong the dem so luong dang ky cua hoc phan.", exception);
+            throw new AppException("Không thể đếm số lượng đăng ký của học phần.", exception);
         }
     }
 
@@ -189,7 +189,7 @@ public class EnrollmentDAO {
             }
             return enrollment;
         } catch (SQLException exception) {
-            throw new AppException("Khong the them dang ky hoc phan.", exception);
+            throw new AppException("Không thể thêm đăng ký học phần.", exception);
         }
     }
 
@@ -205,7 +205,7 @@ public class EnrollmentDAO {
             statement.setLong(5, enrollment.getId());
             return statement.executeUpdate() > 0;
         } catch (SQLException exception) {
-            throw new AppException("Khong the cap nhat dang ky hoc phan.", exception);
+            throw new AppException("Không thể cập nhật đăng ký học phần.", exception);
         }
     }
 
@@ -216,9 +216,9 @@ public class EnrollmentDAO {
             statement.setLong(1, id);
             return statement.executeUpdate() > 0;
         } catch (SQLIntegrityConstraintViolationException exception) {
-            throw new AppException("Khong the xoa dang ky hoc phan vi da co du lieu diem lien quan.", exception);
+            throw new AppException("Không thể xóa đăng ký học phần vì đã có dữ liệu điểm liên quan.", exception);
         } catch (SQLException exception) {
-            throw new AppException("Khong the xoa dang ky hoc phan.", exception);
+            throw new AppException("Không thể xóa đăng ký học phần.", exception);
         }
     }
 

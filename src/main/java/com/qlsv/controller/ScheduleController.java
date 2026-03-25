@@ -21,6 +21,18 @@ public class ScheduleController {
         return scheduleService.findByCurrentLecturer();
     }
 
+    public List<Schedule> getSchedulesByCourseSection(Long courseSectionId) {
+        return scheduleService.findByCourseSectionId(courseSectionId);
+    }
+
+    public List<Schedule> getSchedulesByRoom(String room) {
+        return scheduleService.findByRoom(room);
+    }
+
+    public List<Schedule> getSchedulesByFaculty(Long facultyId) {
+        return scheduleService.findByFacultyId(facultyId);
+    }
+
     public Schedule saveSchedule(Schedule schedule) {
         return scheduleService.save(schedule);
     }

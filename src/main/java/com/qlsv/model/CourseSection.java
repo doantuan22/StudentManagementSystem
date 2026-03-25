@@ -8,7 +8,7 @@ public class CourseSection {
     private String sectionCode;
     private Subject subject;
     private Lecturer lecturer;
-    private ClassRoom classRoom;
+    private String room;
     private String semester;
     private String schoolYear;
     private String scheduleText;
@@ -17,13 +17,13 @@ public class CourseSection {
     public CourseSection() {
     }
 
-    public CourseSection(Long id, String sectionCode, Subject subject, Lecturer lecturer, ClassRoom classRoom,
+    public CourseSection(Long id, String sectionCode, Subject subject, Lecturer lecturer, String room,
                          String semester, String schoolYear, String scheduleText, Integer maxStudents) {
         this.id = id;
         this.sectionCode = sectionCode;
         this.subject = subject;
         this.lecturer = lecturer;
-        this.classRoom = classRoom;
+        this.room = room;
         this.semester = semester;
         this.schoolYear = schoolYear;
         this.scheduleText = scheduleText;
@@ -62,12 +62,12 @@ public class CourseSection {
         this.lecturer = lecturer;
     }
 
-    public ClassRoom getClassRoom() {
-        return classRoom;
+    public String getRoom() {
+        return room;
     }
 
-    public void setClassRoom(ClassRoom classRoom) {
-        this.classRoom = classRoom;
+    public void setRoom(String room) {
+        this.room = room;
     }
 
     public String getSemester() {
@@ -105,7 +105,8 @@ public class CourseSection {
     @Override
     public String toString() {
         String subjectName = subject == null ? "" : subject.getSubjectName();
-        return sectionCode + " - " + subjectName;
+        String normalizedRoom = room == null || room.isBlank() ? "" : " - " + room;
+        return sectionCode + " - " + subjectName + normalizedRoom;
     }
 
     @Override

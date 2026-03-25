@@ -18,7 +18,7 @@ public class LecturerClassPanel extends BasePanel {
 
     public LecturerClassPanel() {
         DefaultTableModel tableModel = new DefaultTableModel(
-                new String[]{"Ma hoc phan", "Mon hoc", "Lop", "Hoc ky", "Nam hoc", "Lich hoc"}, 0) {
+                new String[]{"Mã học phần", "Môn học", "Phòng học", "Học kỳ", "Năm học", "Lịch học"}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -33,7 +33,7 @@ public class LecturerClassPanel extends BasePanel {
                 tableModel.addRow(new Object[]{
                         courseSection.getSectionCode(),
                         courseSection.getSubject() == null ? "" : courseSection.getSubject().getSubjectName(),
-                        courseSection.getClassRoom() == null ? "" : courseSection.getClassRoom().getClassName(),
+                        courseSection.getRoom(),
                         courseSection.getSemester(),
                         courseSection.getSchoolYear(),
                         courseSection.getScheduleText()

@@ -25,7 +25,7 @@ public final class AppConfig {
                 return properties;
             }
         } catch (IOException exception) {
-            throw new AppException("Khong the doc file cau hinh ung dung.", exception);
+            throw new AppException("Không thể đọc file cấu hình ứng dụng.", exception);
         }
 
         // Fallback cho truong hop IDE/launcher chi build class ma chua copy resource vao classpath.
@@ -40,11 +40,11 @@ public final class AppConfig {
                 properties.load(inputStream);
                 return properties;
             } catch (IOException exception) {
-                throw new AppException("Khong the doc file cau hinh tai " + candidatePath.toAbsolutePath(), exception);
+                throw new AppException("Không thể đọc file cấu hình tại " + candidatePath.toAbsolutePath(), exception);
             }
         }
 
-        throw new AppException("Khong tim thay file cau hinh " + CONFIG_FILE);
+        throw new AppException("Không tìm thấy file cấu hình " + CONFIG_FILE);
     }
 
     public static String getProperty(String key) {
@@ -58,7 +58,7 @@ public final class AppConfig {
     public static String getRequiredProperty(String key) {
         String value = getProperty(key);
         if (value == null || value.isBlank()) {
-            throw new AppException("Thieu cau hinh bat buoc: " + key);
+            throw new AppException("Thiếu cấu hình bắt buộc: " + key);
         }
         return value.trim();
     }
@@ -76,6 +76,6 @@ public final class AppConfig {
     }
 
     public static String getAppName() {
-        return getProperty("app.name", "Student Management System");
+        return getProperty("app.name", "Hệ thống quản lý sinh viên");
     }
 }

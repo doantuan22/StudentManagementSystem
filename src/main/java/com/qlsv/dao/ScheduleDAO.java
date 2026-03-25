@@ -36,7 +36,7 @@ public class ScheduleDAO {
             }
             return schedules;
         } catch (SQLException exception) {
-            throw new AppException("Khong the tai danh sach lich hoc.", exception);
+            throw new AppException("Không thể tải danh sách lịch học.", exception);
         }
     }
 
@@ -53,7 +53,7 @@ public class ScheduleDAO {
                 return resultSet.next() ? Optional.of(mapRow(resultSet)) : Optional.empty();
             }
         } catch (SQLException exception) {
-            throw new AppException("Khong the tim lich hoc theo id.", exception);
+            throw new AppException("Không thể tìm lịch học theo mã định danh.", exception);
         }
     }
 
@@ -65,7 +65,7 @@ public class ScheduleDAO {
                 WHERE e.student_id = ?
                 ORDER BY s.day_of_week, s.start_period
                 """;
-        return findManyBySingleId(sql, studentId, "Khong the tai lich hoc cua sinh vien.");
+        return findManyBySingleId(sql, studentId, "Không thể tải lịch học của sinh viên.");
     }
 
     public List<Schedule> findByLecturerId(Long lecturerId) {
@@ -76,7 +76,7 @@ public class ScheduleDAO {
                 WHERE cs.lecturer_id = ?
                 ORDER BY s.day_of_week, s.start_period
                 """;
-        return findManyBySingleId(sql, lecturerId, "Khong the tai lich day cua giang vien.");
+        return findManyBySingleId(sql, lecturerId, "Không thể tải lịch dạy của giảng viên.");
     }
 
     public List<Schedule> findByCourseSectionId(Long courseSectionId) {
@@ -85,8 +85,30 @@ public class ScheduleDAO {
                 FROM schedules
                 WHERE course_section_id = ?
                 ORDER BY day_of_week, start_period
+        """;
+        return findManyBySingleId(sql, courseSectionId, "Không thể tải lịch học của học phần.");
+    }
+
+    public List<Schedule> findByRoom(String room) {
+        String sql = """
+                SELECT id, course_section_id, day_of_week, start_period, end_period, room, note
+                FROM schedules
+                WHERE room = ?
+                ORDER BY day_of_week, start_period
                 """;
-        return findManyBySingleId(sql, courseSectionId, "Khong the tai lich hoc cua hoc phan.");
+        List<Schedule> schedules = new ArrayList<>();
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, room);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    schedules.add(mapRow(resultSet));
+                }
+                return schedules;
+            }
+        } catch (SQLException exception) {
+            throw new AppException("Không thể tải lịch học theo phòng học.", exception);
+        }
     }
 
     public Schedule insert(Schedule schedule) {
@@ -105,7 +127,7 @@ public class ScheduleDAO {
             }
             return schedule;
         } catch (SQLException exception) {
-            throw new AppException("Khong the them lich hoc.", exception);
+            throw new AppException("Không thể thêm lịch học.", exception);
         }
     }
 
@@ -121,7 +143,7 @@ public class ScheduleDAO {
             statement.setLong(7, schedule.getId());
             return statement.executeUpdate() > 0;
         } catch (SQLException exception) {
-            throw new AppException("Khong the cap nhat lich hoc.", exception);
+            throw new AppException("Không thể cập nhật lịch học.", exception);
         }
     }
 
@@ -132,7 +154,7 @@ public class ScheduleDAO {
             statement.setLong(1, id);
             return statement.executeUpdate() > 0;
         } catch (SQLException exception) {
-            throw new AppException("Khong the xoa lich hoc.", exception);
+            throw new AppException("Không thể xóa lịch học.", exception);
         }
     }
 
@@ -147,21 +169,19 @@ public class ScheduleDAO {
                   AND NOT (s.end_period < ? OR s.start_period > ?)
                   AND (? IS NULL OR s.id <> ?)
                 """;
-        return hasConflict(sql, schedule, excludeScheduleId, "Khong the kiem tra trung lich cua giang vien.");
+        return hasConflict(sql, schedule, excludeScheduleId, "Không thể kiểm tra trùng lịch của giảng viên.");
     }
 
-    public boolean hasClassRoomScheduleConflict(Schedule schedule, Long excludeScheduleId) {
+    public boolean hasRoomScheduleConflict(Schedule schedule, Long excludeScheduleId) {
         String sql = """
                 SELECT COUNT(1)
                 FROM schedules s
-                JOIN course_sections current_section ON current_section.id = ?
-                JOIN course_sections other_section ON other_section.id = s.course_section_id
-                WHERE other_section.class_room_id = current_section.class_room_id
+                WHERE s.room = ?
                   AND s.day_of_week = ?
                   AND NOT (s.end_period < ? OR s.start_period > ?)
                   AND (? IS NULL OR s.id <> ?)
                 """;
-        return hasConflict(sql, schedule, excludeScheduleId, "Khong the kiem tra trung lich cua lop hoc.");
+        return hasConflict(sql, schedule, excludeScheduleId, "Không thể kiểm tra trùng lịch của phòng học.");
     }
 
     public boolean hasStudentScheduleConflict(Long studentId, Long courseSectionId, Long excludeEnrollmentId) {
@@ -186,7 +206,7 @@ public class ScheduleDAO {
                 return resultSet.next() && resultSet.getInt(1) > 0;
             }
         } catch (SQLException exception) {
-            throw new AppException("Khong the kiem tra trung lich cua sinh vien.", exception);
+            throw new AppException("Không thể kiểm tra trùng lịch của sinh viên.", exception);
         }
     }
 
@@ -209,7 +229,7 @@ public class ScheduleDAO {
     private boolean hasConflict(String sql, Schedule schedule, Long excludeScheduleId, String message) {
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setLong(1, schedule.getCourseSection().getId());
+            statement.setString(1, schedule.getRoom());
             statement.setString(2, schedule.getDayOfWeek());
             statement.setInt(3, schedule.getStartPeriod());
             statement.setInt(4, schedule.getEndPeriod());

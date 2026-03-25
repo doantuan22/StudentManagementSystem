@@ -112,7 +112,7 @@ totalScore = processScore * 0.3 + midtermScore * 0.2 + finalScore * 0.5
 - Admin quan ly lich hoc theo hoc phan
 - Student xem lich hoc cua minh
 - Lecturer xem lich day cua minh
-- Chan trung lich theo giang vien, lop hoc va sinh vien
+- Chan trung lich theo giang vien, phong hoc va sinh vien
 
 ### 9. Bao cao co ban
 
@@ -230,6 +230,11 @@ Sau do chay:
 2. `database/02_create_tables.sql`
 3. `database/03_insert_sample_data.sql`
 
+Neu may da co du lieu tu schema cu cua `course_sections.class_room_id`, chay them:
+
+1. `database/11_add_student_academic_year.sql`
+2. `database/12_rename_course_sections_class_room_to_room.sql`
+
 Co the chay them:
 
 1. `database/06_create_views.sql`
@@ -321,3 +326,10 @@ Project da o muc:
 - Bao cao co ban va xuat PDF da co
 
 Day la ban phat trien du de test he thong end-to-end tren cau truc project hien co ma khong pha vo kien truc ban dau.
+
+## Cap nhat UI admin va nien khoa sinh vien
+
+- Da bo sung cot `students.academic_year` va script nang cap `database/11_add_student_academic_year.sql` de bo sung du lieu nien khoa an toan tren database cu.
+- Da doi cot sai nghia `course_sections.class_room_id` thanh `course_sections.room` va bo sung script nang cap `database/12_rename_course_sections_class_room_to_room.sql`.
+- Da nang cap cac man hinh ADMIN theo bo cuc `bo loc -> bang danh sach -> chi tiet`, trong do cac man hinh sinh vien, giang vien, mon hoc va cac man hinh CRUD bang du lieu khac deu chi hien du lieu sau khi chon dieu kien loc phu hop.
+- Da Viet hoa giao dien theo tieng Viet co dau, bao gom tieu de frame, nut bam, cot bang, thong bao va cac panel thong tin chi tiet.

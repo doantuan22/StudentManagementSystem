@@ -17,6 +17,10 @@ public class FacultyController {
         return facultyService.findAllForSelection();
     }
 
+    public List<Faculty> getFacultiesByCode(String facultyCode) {
+        return facultyService.findByCode(facultyCode);
+    }
+
     public Faculty saveFaculty(Faculty faculty) {
         return facultyService.save(faculty);
     }

@@ -30,7 +30,7 @@ public class FacultyDAO {
             }
             return faculties;
         } catch (SQLException exception) {
-            throw new AppException("Khong the tai danh sach khoa.", exception);
+            throw new AppException("Không thể tải danh sách khoa.", exception);
         }
     }
 
@@ -43,7 +43,7 @@ public class FacultyDAO {
                 return resultSet.next() ? Optional.of(mapRow(resultSet)) : Optional.empty();
             }
         } catch (SQLException exception) {
-            throw new AppException("Khong the tim khoa theo id.", exception);
+            throw new AppException("Không thể tìm khoa theo mã định danh.", exception);
         }
     }
 
@@ -67,7 +67,7 @@ public class FacultyDAO {
                 return faculties;
             }
         } catch (SQLException exception) {
-            throw new AppException("Khong the tim kiem khoa.", exception);
+            throw new AppException("Không thể tìm kiếm khoa.", exception);
         }
     }
 
@@ -86,7 +86,7 @@ public class FacultyDAO {
             }
             return faculty;
         } catch (SQLException exception) {
-            throw new AppException("Khong the them khoa.", exception);
+            throw new AppException("Không thể thêm khoa.", exception);
         }
     }
 
@@ -100,7 +100,7 @@ public class FacultyDAO {
             statement.setLong(4, faculty.getId());
             return statement.executeUpdate() > 0;
         } catch (SQLException exception) {
-            throw new AppException("Khong the cap nhat khoa.", exception);
+            throw new AppException("Không thể cập nhật khoa.", exception);
         }
     }
 
@@ -111,9 +111,9 @@ public class FacultyDAO {
             statement.setLong(1, id);
             return statement.executeUpdate() > 0;
         } catch (SQLIntegrityConstraintViolationException exception) {
-            throw new AppException("Khong the xoa khoa vi van con lop, giang vien, sinh vien hoac mon hoc dang tham chieu.", exception);
+            throw new AppException("Không thể xóa khoa vì vẫn còn lớp, giảng viên, sinh viên hoặc môn học đang tham chiếu.", exception);
         } catch (SQLException exception) {
-            throw new AppException("Khong the xoa khoa.", exception);
+            throw new AppException("Không thể xóa khoa.", exception);
         }
     }
 

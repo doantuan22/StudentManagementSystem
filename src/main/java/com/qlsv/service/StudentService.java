@@ -24,10 +24,45 @@ public class StudentService {
         return studentDAO.findAll();
     }
 
+    public List<Student> findByFacultyId(Long facultyId) {
+        return findAll().stream()
+                .filter(student -> student.getFaculty() != null
+                        && student.getFaculty().getId() != null
+                        && student.getFaculty().getId().equals(facultyId))
+                .toList();
+    }
+
+    public List<Student> findByClassRoomId(Long classRoomId) {
+        return findAll().stream()
+                .filter(student -> student.getClassRoom() != null
+                        && student.getClassRoom().getId() != null
+                        && student.getClassRoom().getId().equals(classRoomId))
+                .toList();
+    }
+
+    public List<Student> findByAcademicYear(String academicYear) {
+        return findAll().stream()
+                .filter(student -> student.getAcademicYear() != null
+                        && student.getAcademicYear().trim()
+                        .equalsIgnoreCase(academicYear == null ? "" : academicYear.trim()))
+                .toList();
+    }
+
+    public List<String> findAcademicYears() {
+        permissionService.requireLogin();
+        return studentDAO.findAll().stream()
+                .map(Student::getAcademicYear)
+                .filter(value -> value != null && !value.isBlank())
+                .map(String::trim)
+                .distinct()
+                .sorted(String::compareToIgnoreCase)
+                .toList();
+    }
+
     public Student findCurrentStudent() {
         permissionService.requirePermission(RolePermission.VIEW_OWN_PROFILE);
         return studentDAO.findByUserId(SessionManager.requireCurrentUser().getId())
-                .orElseThrow(() -> new ValidationException("Khong tim thay ho so sinh vien cua tai khoan dang nhap."));
+                .orElseThrow(() -> new ValidationException("Không tìm thấy hồ sơ sinh viên của tài khoản đang đăng nhập."));
     }
 
     public Student save(Student student) {
@@ -47,15 +82,16 @@ public class StudentService {
     }
 
     private void validate(Student student) {
-        ValidationUtil.requireWithinLength(student.getStudentCode(), 50, "Ma sinh vien");
-        ValidationUtil.requireNotBlank(student.getFullName(), "Ho ten sinh vien khong duoc de trong.");
-        ValidationUtil.requireEmail(student.getEmail(), "Email sinh vien");
-        ValidationUtil.requirePhone(student.getPhone(), "So dien thoai sinh vien");
+        ValidationUtil.requireWithinLength(student.getStudentCode(), 50, "Mã sinh viên");
+        ValidationUtil.requireNotBlank(student.getFullName(), "Họ tên sinh viên không được để trống.");
+        ValidationUtil.requireEmail(student.getEmail(), "Email sinh viên");
+        ValidationUtil.requirePhone(student.getPhone(), "Số điện thoại sinh viên");
+        ValidationUtil.requireNotBlank(student.getAcademicYear(), "Niên khóa không được để trống.");
         if (student.getFaculty() == null || student.getFaculty().getId() == null) {
-            throw new ValidationException("Sinh vien phai thuoc mot khoa.");
+            throw new ValidationException("Sinh viên phải thuộc một khoa.");
         }
         if (student.getClassRoom() == null || student.getClassRoom().getId() == null) {
-            throw new ValidationException("Sinh vien phai thuoc mot lop.");
+            throw new ValidationException("Sinh viên phải thuộc một lớp.");
         }
     }
 }

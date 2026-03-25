@@ -31,6 +31,7 @@ public class StudentDAO {
                    s.date_of_birth,
                    s.email,
                    s.phone,
+                   s.academic_year AS student_academic_year,
                    s.status,
                    f.id AS faculty_id,
                    f.faculty_code,
@@ -39,7 +40,7 @@ public class StudentDAO {
                    c.id AS class_room_id,
                    c.class_code,
                    c.class_name,
-                   c.academic_year
+                   c.academic_year AS class_room_academic_year
             FROM students s
             JOIN faculties f ON f.id = s.faculty_id
             JOIN class_rooms c ON c.id = s.class_room_id
@@ -56,7 +57,7 @@ public class StudentDAO {
             }
             return students;
         } catch (SQLException exception) {
-            throw new AppException("Khong the tai danh sach sinh vien.", exception);
+            throw new AppException("Không thể tải danh sách sinh viên.", exception);
         }
     }
 
@@ -69,7 +70,7 @@ public class StudentDAO {
                 return resultSet.next() ? Optional.of(mapRow(resultSet)) : Optional.empty();
             }
         } catch (SQLException exception) {
-            throw new AppException("Khong the tim sinh vien theo id.", exception);
+            throw new AppException("Không thể tìm sinh viên theo mã định danh.", exception);
         }
     }
 
@@ -82,7 +83,7 @@ public class StudentDAO {
                 return resultSet.next() ? Optional.of(mapRow(resultSet)) : Optional.empty();
             }
         } catch (SQLException exception) {
-            throw new AppException("Khong the tim sinh vien theo user.", exception);
+            throw new AppException("Không thể tìm sinh viên theo tài khoản người dùng.", exception);
         }
     }
 
@@ -107,14 +108,15 @@ public class StudentDAO {
                 return students;
             }
         } catch (SQLException exception) {
-            throw new AppException("Khong the tim kiem sinh vien.", exception);
+            throw new AppException("Không thể tìm kiếm sinh viên.", exception);
         }
     }
 
     public Student insert(Student student) {
         String sql = """
-                INSERT INTO students(user_id, student_code, full_name, gender, date_of_birth, email, phone, faculty_id, class_room_id, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO students(user_id, student_code, full_name, gender, date_of_birth, email, phone,
+                                     faculty_id, class_room_id, academic_year, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """;
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -127,7 +129,7 @@ public class StudentDAO {
             }
             return student;
         } catch (SQLException exception) {
-            throw new AppException("Khong the them sinh vien.", exception);
+            throw new AppException("Không thể thêm sinh viên.", exception);
         }
     }
 
@@ -135,16 +137,16 @@ public class StudentDAO {
         String sql = """
                 UPDATE students
                 SET user_id = ?, student_code = ?, full_name = ?, gender = ?, date_of_birth = ?, email = ?,
-                    phone = ?, faculty_id = ?, class_room_id = ?, status = ?
+                    phone = ?, faculty_id = ?, class_room_id = ?, academic_year = ?, status = ?
                 WHERE id = ?
                 """;
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             fillStatement(statement, student);
-            statement.setLong(11, student.getId());
+            statement.setLong(12, student.getId());
             return statement.executeUpdate() > 0;
         } catch (SQLException exception) {
-            throw new AppException("Khong the cap nhat sinh vien.", exception);
+            throw new AppException("Không thể cập nhật sinh viên.", exception);
         }
     }
 
@@ -155,9 +157,9 @@ public class StudentDAO {
             statement.setLong(1, id);
             return statement.executeUpdate() > 0;
         } catch (SQLIntegrityConstraintViolationException exception) {
-            throw new AppException("Khong the xoa sinh vien vi van con dang ky hoc phan hoac du lieu diem lien quan.", exception);
+            throw new AppException("Không thể xóa sinh viên vì vẫn còn đăng ký học phần hoặc dữ liệu điểm liên quan.", exception);
         } catch (SQLException exception) {
-            throw new AppException("Khong the xoa sinh vien.", exception);
+            throw new AppException("Không thể xóa sinh viên.", exception);
         }
     }
 
@@ -175,7 +177,8 @@ public class StudentDAO {
         statement.setString(7, student.getPhone());
         statement.setLong(8, student.getFaculty().getId());
         statement.setLong(9, student.getClassRoom().getId());
-        statement.setString(10, student.getStatus());
+        statement.setString(10, student.getAcademicYear());
+        statement.setString(11, student.getStatus());
     }
 
     private Student mapRow(ResultSet resultSet) throws SQLException {
@@ -189,7 +192,7 @@ public class StudentDAO {
                 resultSet.getLong("class_room_id"),
                 resultSet.getString("class_code"),
                 resultSet.getString("class_name"),
-                resultSet.getString("academic_year"),
+                resultSet.getString("class_room_academic_year"),
                 faculty
         );
         Date dateOfBirth = resultSet.getDate("date_of_birth");
@@ -204,6 +207,7 @@ public class StudentDAO {
                 resultSet.getString("phone"),
                 faculty,
                 classRoom,
+                resultSet.getString("student_academic_year"),
                 resultSet.getString("status")
         );
     }

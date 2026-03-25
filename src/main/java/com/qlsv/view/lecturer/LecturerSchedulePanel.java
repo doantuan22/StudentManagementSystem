@@ -3,6 +3,7 @@ package com.qlsv.view.lecturer;
 import com.qlsv.controller.ScheduleController;
 import com.qlsv.model.Schedule;
 import com.qlsv.utils.DialogUtil;
+import com.qlsv.utils.DisplayTextUtil;
 import com.qlsv.view.common.BasePanel;
 
 import javax.swing.JScrollPane;
@@ -15,7 +16,7 @@ public class LecturerSchedulePanel extends BasePanel {
 
     public LecturerSchedulePanel() {
         DefaultTableModel tableModel = new DefaultTableModel(
-                new String[]{"Hoc phan", "Mon hoc", "Lop", "Thu", "Tiet", "Phong", "Ghi chu"}, 0) {
+                new String[]{"Học phần", "Môn học", "Thứ", "Tiết", "Phòng", "Ghi chú"}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -30,10 +31,8 @@ public class LecturerSchedulePanel extends BasePanel {
                         schedule.getCourseSection() == null ? "" : schedule.getCourseSection().getSectionCode(),
                         schedule.getCourseSection() == null || schedule.getCourseSection().getSubject() == null
                                 ? "" : schedule.getCourseSection().getSubject().getSubjectName(),
-                        schedule.getCourseSection() == null || schedule.getCourseSection().getClassRoom() == null
-                                ? "" : schedule.getCourseSection().getClassRoom().getClassName(),
                         schedule.getDayOfWeek(),
-                        schedule.getStartPeriod() + "-" + schedule.getEndPeriod(),
+                        DisplayTextUtil.formatPeriod(schedule.getStartPeriod(), schedule.getEndPeriod()),
                         schedule.getRoom(),
                         schedule.getNote()
                 });

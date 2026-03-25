@@ -44,7 +44,7 @@ public class ClassRoomDAO {
             }
             return classRooms;
         } catch (SQLException exception) {
-            throw new AppException("Khong the tai danh sach lop.", exception);
+            throw new AppException("Không thể tải danh sách lớp.", exception);
         }
     }
 
@@ -57,7 +57,7 @@ public class ClassRoomDAO {
                 return resultSet.next() ? Optional.of(mapRow(resultSet)) : Optional.empty();
             }
         } catch (SQLException exception) {
-            throw new AppException("Khong the tim lop theo id.", exception);
+            throw new AppException("Không thể tìm lớp theo mã định danh.", exception);
         }
     }
 
@@ -82,7 +82,7 @@ public class ClassRoomDAO {
                 return classRooms;
             }
         } catch (SQLException exception) {
-            throw new AppException("Khong the tim kiem lop.", exception);
+            throw new AppException("Không thể tìm kiếm lớp.", exception);
         }
     }
 
@@ -102,7 +102,7 @@ public class ClassRoomDAO {
             }
             return classRoom;
         } catch (SQLException exception) {
-            throw new AppException("Khong the them lop.", exception);
+            throw new AppException("Không thể thêm lớp.", exception);
         }
     }
 
@@ -121,7 +121,7 @@ public class ClassRoomDAO {
             statement.setLong(5, classRoom.getId());
             return statement.executeUpdate() > 0;
         } catch (SQLException exception) {
-            throw new AppException("Khong the cap nhat lop.", exception);
+            throw new AppException("Không thể cập nhật lớp.", exception);
         }
     }
 
@@ -132,9 +132,9 @@ public class ClassRoomDAO {
             statement.setLong(1, id);
             return statement.executeUpdate() > 0;
         } catch (SQLIntegrityConstraintViolationException exception) {
-            throw new AppException("Khong the xoa lop vi van con sinh vien hoac hoc phan dang su dung.", exception);
+            throw new AppException("Không thể xóa lớp vì vẫn còn sinh viên hoặc học phần đang sử dụng.", exception);
         } catch (SQLException exception) {
-            throw new AppException("Khong the xoa lop.", exception);
+            throw new AppException("Không thể xóa lớp.", exception);
         }
     }
 

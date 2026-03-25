@@ -17,6 +17,22 @@ public class StudentController {
         return studentService.findAllForSelection();
     }
 
+    public List<Student> getStudentsByFaculty(Long facultyId) {
+        return studentService.findByFacultyId(facultyId);
+    }
+
+    public List<Student> getStudentsByClassRoom(Long classRoomId) {
+        return studentService.findByClassRoomId(classRoomId);
+    }
+
+    public List<Student> getStudentsByAcademicYear(String academicYear) {
+        return studentService.findByAcademicYear(academicYear);
+    }
+
+    public List<String> getAcademicYearsForSelection() {
+        return studentService.findAcademicYears();
+    }
+
     public Student getCurrentStudent() {
         return studentService.findCurrentStudent();
     }

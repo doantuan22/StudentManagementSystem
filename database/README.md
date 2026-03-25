@@ -11,6 +11,8 @@
 - `08_create_triggers.sql`: de trong de bo sung sau.
 - `09_create_procedures.sql`: de trong de bo sung sau.
 - `10_test_queries.sql`: truy van mau de kiem tra nhanh du lieu.
+- `11_add_student_academic_year.sql`: bo sung nien khoa cho bang `students` khi nang cap schema cu.
+- `12_rename_course_sections_class_room_to_room.sql`: chuyen cot sai nghia cua `course_sections` sang `room` de dung logic phong hoc.
 
 ## Thu tu khuyen nghi
 
@@ -21,6 +23,11 @@ Neu ban da tung tao `student_management` tu schema cu, hay reset truoc:
 2. Chay `02_create_tables.sql`
 3. Chay `03_insert_sample_data.sql`
 4. Co the chay them `06_create_views.sql`, `07_create_indexes.sql`, `10_test_queries.sql`
+
+Neu dang nang cap tu database cu, chay them:
+
+5. `11_add_student_academic_year.sql`
+6. `12_rename_course_sections_class_room_to_room.sql`
 
 ## Du lieu mau da co san
 

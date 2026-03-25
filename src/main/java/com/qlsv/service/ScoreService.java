@@ -32,14 +32,14 @@ public class ScoreService {
     public List<Score> findByCurrentStudent() {
         permissionService.requirePermission(RolePermission.VIEW_OWN_SCORES);
         Student student = studentDAO.findByUserId(SessionManager.requireCurrentUser().getId())
-                .orElseThrow(() -> new ValidationException("Khong tim thay sinh vien dang dang nhap."));
+                .orElseThrow(() -> new ValidationException("Không tìm thấy sinh viên đang đăng nhập."));
         return scoreDAO.findByStudentId(student.getId());
     }
 
     public List<Score> findByCurrentLecturer() {
         permissionService.requirePermission(RolePermission.MANAGE_SCORES);
         Lecturer lecturer = lecturerDAO.findByUserId(SessionManager.requireCurrentUser().getId())
-                .orElseThrow(() -> new ValidationException("Khong tim thay giang vien dang dang nhap."));
+                .orElseThrow(() -> new ValidationException("Không tìm thấy giảng viên đang đăng nhập."));
         List<Enrollment> enrollments = enrollmentDAO.findByLecturerId(lecturer.getId());
         List<Score> scores = new java.util.ArrayList<>();
         for (Enrollment enrollment : enrollments) {
@@ -57,6 +57,25 @@ public class ScoreService {
             scores.add(score);
         }
         return scores;
+    }
+
+    public List<Score> findByCourseSectionId(Long courseSectionId) {
+        return findAll().stream()
+                .filter(score -> score.getEnrollment() != null
+                        && score.getEnrollment().getCourseSection() != null
+                        && score.getEnrollment().getCourseSection().getId() != null
+                        && score.getEnrollment().getCourseSection().getId().equals(courseSectionId))
+                .toList();
+    }
+
+    public List<Score> findByClassRoomId(Long classRoomId) {
+        return findAll().stream()
+                .filter(score -> score.getEnrollment() != null
+                        && score.getEnrollment().getStudent() != null
+                        && score.getEnrollment().getStudent().getClassRoom() != null
+                        && score.getEnrollment().getStudent().getClassRoom().getId() != null
+                        && score.getEnrollment().getStudent().getClassRoom().getId().equals(classRoomId))
+                .toList();
     }
 
     public Score save(Score score) {
@@ -96,12 +115,12 @@ public class ScoreService {
 
     private void validate(Score score) {
         if (score.getEnrollment() == null || score.getEnrollment().getId() == null) {
-            throw new ValidationException("Diem phai gan voi mot dang ky hoc phan.");
+            throw new ValidationException("Điểm phải gắn với một đăng ký học phần.");
         }
         // Kiem tra du lieu diem truoc khi luu xuong DB.
-        ValidationUtil.requireScoreRange(score.getProcessScore(), "Diem qua trinh");
-        ValidationUtil.requireScoreRange(score.getMidtermScore(), "Diem giua ky");
-        ValidationUtil.requireScoreRange(score.getFinalScore(), "Diem cuoi ky");
+        ValidationUtil.requireScoreRange(score.getProcessScore(), "Điểm quá trình");
+        ValidationUtil.requireScoreRange(score.getMidtermScore(), "Điểm giữa kỳ");
+        ValidationUtil.requireScoreRange(score.getFinalScore(), "Điểm cuối kỳ");
     }
 
     private void enforceLecturerScope(Score score) {
@@ -109,10 +128,10 @@ public class ScoreService {
             return;
         }
         Lecturer lecturer = lecturerDAO.findByUserId(SessionManager.requireCurrentUser().getId())
-                .orElseThrow(() -> new ValidationException("Khong tim thay giang vien dang dang nhap."));
+                .orElseThrow(() -> new ValidationException("Không tìm thấy giảng viên đang đăng nhập."));
         Long assignedLecturerId = score.getEnrollment().getCourseSection().getLecturer().getId();
         if (!lecturer.getId().equals(assignedLecturerId)) {
-            throw new ValidationException("Giang vien chi duoc nhap diem cho hoc phan duoc phan cong.");
+            throw new ValidationException("Giảng viên chỉ được nhập điểm cho học phần được phân công.");
         }
     }
 }

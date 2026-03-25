@@ -1,9 +1,9 @@
 package com.qlsv.model;
 
 public enum Role {
-    ADMIN("ADMIN", "Quan tri vien"),
-    LECTURER("LECTURER", "Giang vien"),
-    STUDENT("STUDENT", "Sinh vien");
+    ADMIN("ADMIN", "Quản trị viên"),
+    LECTURER("LECTURER", "Giảng viên"),
+    STUDENT("STUDENT", "Sinh viên");
 
     private final String code;
     private final String displayName;
@@ -30,6 +30,6 @@ public enum Role {
                 return role;
             }
         }
-        throw new IllegalArgumentException("Role khong hop le: " + code);
+        throw new IllegalArgumentException("Vai trò không hợp lệ: " + code);
     }
 }

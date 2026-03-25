@@ -27,6 +27,29 @@ public class CourseSectionService {
         return courseSectionDAO.findByLecturerId(lecturerId);
     }
 
+    public List<CourseSection> findByFacultyId(Long facultyId) {
+        return findAllForAdmin().stream()
+                .filter(courseSection -> courseSection.getSubject() != null
+                        && courseSection.getSubject().getFaculty() != null
+                        && courseSection.getSubject().getFaculty().getId() != null
+                        && courseSection.getSubject().getFaculty().getId().equals(facultyId))
+                .toList();
+    }
+
+    public List<CourseSection> findByRoom(String room) {
+        return findAllForAdmin().stream()
+                .filter(courseSection -> courseSection.getRoom() != null
+                        && courseSection.getRoom().equalsIgnoreCase(room == null ? "" : room.trim()))
+                .toList();
+    }
+
+    public List<CourseSection> findBySectionCode(String sectionCode) {
+        return findAllForAdmin().stream()
+                .filter(courseSection -> courseSection.getSectionCode() != null
+                        && courseSection.getSectionCode().equalsIgnoreCase(sectionCode == null ? "" : sectionCode.trim()))
+                .toList();
+    }
+
     public CourseSection save(CourseSection courseSection) {
         permissionService.requirePermission(RolePermission.MANAGE_COURSE_SECTIONS);
         validate(courseSection);
@@ -44,18 +67,16 @@ public class CourseSectionService {
     }
 
     private void validate(CourseSection courseSection) {
-        ValidationUtil.requireWithinLength(courseSection.getSectionCode(), 50, "Ma hoc phan");
-        ValidationUtil.requireNotBlank(courseSection.getSemester(), "Hoc ky khong duoc de trong.");
-        ValidationUtil.requireNotBlank(courseSection.getSchoolYear(), "Nam hoc khong duoc de trong.");
-        ValidationUtil.requirePositive(courseSection.getMaxStudents(), "Si so toi da phai lon hon 0.");
+        ValidationUtil.requireWithinLength(courseSection.getSectionCode(), 50, "Mã học phần");
+        ValidationUtil.requireWithinLength(courseSection.getRoom(), 50, "Phòng học");
+        ValidationUtil.requireNotBlank(courseSection.getSemester(), "Học kỳ không được để trống.");
+        ValidationUtil.requireNotBlank(courseSection.getSchoolYear(), "Năm học không được để trống.");
+        ValidationUtil.requirePositive(courseSection.getMaxStudents(), "Sĩ số tối đa phải lớn hơn 0.");
         if (courseSection.getSubject() == null || courseSection.getSubject().getId() == null) {
-            throw new IllegalArgumentException("Hoc phan phai gan voi mon hoc.");
+            throw new IllegalArgumentException("Học phần phải gắn với môn học.");
         }
         if (courseSection.getLecturer() == null || courseSection.getLecturer().getId() == null) {
-            throw new IllegalArgumentException("Hoc phan phai co giang vien phu trach.");
-        }
-        if (courseSection.getClassRoom() == null || courseSection.getClassRoom().getId() == null) {
-            throw new IllegalArgumentException("Hoc phan phai thuoc mot lop hoc.");
+            throw new IllegalArgumentException("Học phần phải có giảng viên phụ trách.");
         }
     }
 }

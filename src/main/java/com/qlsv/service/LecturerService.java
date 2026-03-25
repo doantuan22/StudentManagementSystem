@@ -24,10 +24,18 @@ public class LecturerService {
         return lecturerDAO.findAll();
     }
 
+    public List<Lecturer> findByFacultyId(Long facultyId) {
+        return findAll().stream()
+                .filter(lecturer -> lecturer.getFaculty() != null
+                        && lecturer.getFaculty().getId() != null
+                        && lecturer.getFaculty().getId().equals(facultyId))
+                .toList();
+    }
+
     public Lecturer findCurrentLecturer() {
         permissionService.requirePermission(RolePermission.VIEW_OWN_PROFILE);
         return lecturerDAO.findByUserId(SessionManager.requireCurrentUser().getId())
-                .orElseThrow(() -> new ValidationException("Khong tim thay ho so giang vien cua tai khoan dang nhap."));
+                .orElseThrow(() -> new ValidationException("Không tìm thấy hồ sơ giảng viên của tài khoản đang đăng nhập."));
     }
 
     public Lecturer save(Lecturer lecturer) {
@@ -47,12 +55,12 @@ public class LecturerService {
     }
 
     private void validate(Lecturer lecturer) {
-        ValidationUtil.requireWithinLength(lecturer.getLecturerCode(), 50, "Ma giang vien");
-        ValidationUtil.requireNotBlank(lecturer.getFullName(), "Ho ten giang vien khong duoc de trong.");
-        ValidationUtil.requireEmail(lecturer.getEmail(), "Email giang vien");
-        ValidationUtil.requirePhone(lecturer.getPhone(), "So dien thoai giang vien");
+        ValidationUtil.requireWithinLength(lecturer.getLecturerCode(), 50, "Mã giảng viên");
+        ValidationUtil.requireNotBlank(lecturer.getFullName(), "Họ tên giảng viên không được để trống.");
+        ValidationUtil.requireEmail(lecturer.getEmail(), "Email giảng viên");
+        ValidationUtil.requirePhone(lecturer.getPhone(), "Số điện thoại giảng viên");
         if (lecturer.getFaculty() == null || lecturer.getFaculty().getId() == null) {
-            throw new ValidationException("Giang vien phai thuoc mot khoa.");
+            throw new ValidationException("Giảng viên phải thuộc một khoa.");
         }
     }
 }

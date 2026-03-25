@@ -13,18 +13,18 @@ public class AuthService {
 
     public User login(String username, String password) {
         // Xu ly dang nhap tap trung tai service de UI chi lo hien thi.
-        String normalizedUsername = ValidationUtil.requireNotBlank(username, "Username khong duoc de trong.");
-        String normalizedPassword = ValidationUtil.requireNotBlank(password, "Password khong duoc de trong.");
+        String normalizedUsername = ValidationUtil.requireNotBlank(username, "Tên đăng nhập không được để trống.");
+        String normalizedPassword = ValidationUtil.requireNotBlank(password, "Mật khẩu không được để trống.");
 
         User user = userDAO.findByUsername(normalizedUsername)
-                .orElseThrow(() -> new AuthenticationException("Sai username hoac password."));
+                .orElseThrow(() -> new AuthenticationException("Sai tên đăng nhập hoặc mật khẩu."));
 
         if (!user.isActive()) {
-            throw new AuthenticationException("Tai khoan da bi khoa.");
+            throw new AuthenticationException("Tài khoản đã bị khóa.");
         }
 
         if (!PasswordHasher.matches(normalizedPassword, user.getPasswordHash())) {
-            throw new AuthenticationException("Sai username hoac password.");
+            throw new AuthenticationException("Sai tên đăng nhập hoặc mật khẩu.");
         }
 
         AuthManager.login(user);

@@ -22,6 +22,21 @@ public class ClassRoomService {
         return classRoomDAO.findAll();
     }
 
+    public List<ClassRoom> findByFacultyId(Long facultyId) {
+        return findAll().stream()
+                .filter(classRoom -> classRoom.getFaculty() != null
+                        && classRoom.getFaculty().getId() != null
+                        && classRoom.getFaculty().getId().equals(facultyId))
+                .toList();
+    }
+
+    public List<ClassRoom> findByAcademicYear(String academicYear) {
+        return findAll().stream()
+                .filter(classRoom -> classRoom.getAcademicYear() != null
+                        && classRoom.getAcademicYear().equalsIgnoreCase(academicYear == null ? "" : academicYear.trim()))
+                .toList();
+    }
+
     public ClassRoom save(ClassRoom classRoom) {
         permissionService.requirePermission(RolePermission.MANAGE_CLASSES);
         validate(classRoom);
@@ -39,11 +54,11 @@ public class ClassRoomService {
     }
 
     private void validate(ClassRoom classRoom) {
-        ValidationUtil.requireWithinLength(classRoom.getClassCode(), 50, "Ma lop");
-        ValidationUtil.requireNotBlank(classRoom.getClassName(), "Ten lop khong duoc de trong.");
-        ValidationUtil.requireNotBlank(classRoom.getAcademicYear(), "Nien khoa khong duoc de trong.");
+        ValidationUtil.requireWithinLength(classRoom.getClassCode(), 50, "Mã lớp");
+        ValidationUtil.requireNotBlank(classRoom.getClassName(), "Tên lớp không được để trống.");
+        ValidationUtil.requireNotBlank(classRoom.getAcademicYear(), "Niên khóa không được để trống.");
         if (classRoom.getFaculty() == null || classRoom.getFaculty().getId() == null) {
-            throw new IllegalArgumentException("Lop hoc phai thuoc mot khoa.");
+            throw new IllegalArgumentException("Lớp học phải thuộc một khoa.");
         }
     }
 }

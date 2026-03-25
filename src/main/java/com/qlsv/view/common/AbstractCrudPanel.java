@@ -3,13 +3,22 @@ package com.qlsv.view.common;
 import com.qlsv.utils.DialogUtil;
 
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
+import javax.swing.SwingConstants;
+import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.Dimension;
+import java.awt.Font;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -19,35 +28,52 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
     private final DefaultTableModel tableModel;
     private final JTable table;
     private final JTextField searchField;
+    private final JPanel extraTopPanel = new JPanel(new BorderLayout());
+    private final JPanel mainContentPanel = new JPanel(new BorderLayout(0, 12));
+    private final JPanel tableCardPanel = new JPanel(new CardLayout());
+    private final JLabel emptyStateLabel = new JLabel("", SwingConstants.CENTER);
+
+    private final CardLayout tableCardLayout = (CardLayout) tableCardPanel.getLayout();
+    private final JScrollPane tableScrollPane;
+
+    private JSplitPane splitPane;
+    private JComponent detailPanel;
     private List<T> allItems = new ArrayList<>();
     private List<T> currentItems = new ArrayList<>();
 
     protected AbstractCrudPanel(String title) {
         JLabel titleLabel = new JLabel(title);
-        titleLabel.setFont(titleLabel.getFont().deriveFont(18f));
+        titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 20f));
 
         JPanel searchPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 8, 0));
         searchField = new JTextField(24);
-        JButton searchButton = new JButton("Tim");
-        searchPanel.add(new JLabel("Tu khoa"));
+        searchField.setToolTipText("Nhập từ khóa để tìm nhanh trong dữ liệu đang hiển thị.");
+        JButton searchButton = new JButton("Tìm");
+        searchPanel.add(new JLabel("Từ khóa"));
         searchPanel.add(searchField);
         searchPanel.add(searchButton);
 
         JPanel actionPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 0));
-        JButton addButton = new JButton("Them");
-        JButton editButton = new JButton("Sua");
-        JButton deleteButton = new JButton("Xoa");
-        JButton reloadButton = new JButton("Tai lai");
+        JButton addButton = new JButton("Thêm");
+        JButton editButton = new JButton("Sửa");
+        JButton deleteButton = new JButton("Xóa");
+        JButton reloadButton = new JButton("Tải lại");
         actionPanel.add(addButton);
         actionPanel.add(editButton);
         actionPanel.add(deleteButton);
         actionPanel.add(reloadButton);
 
-        JPanel topPanel = new JPanel(new BorderLayout());
-        topPanel.add(titleLabel, BorderLayout.WEST);
-        topPanel.add(searchPanel, BorderLayout.CENTER);
-        topPanel.add(actionPanel, BorderLayout.EAST);
-        add(topPanel, BorderLayout.NORTH);
+        JPanel topHeaderPanel = new JPanel(new BorderLayout(12, 8));
+        topHeaderPanel.add(titleLabel, BorderLayout.WEST);
+        topHeaderPanel.add(searchPanel, BorderLayout.CENTER);
+        topHeaderPanel.add(actionPanel, BorderLayout.EAST);
+
+        extraTopPanel.setOpaque(false);
+        JPanel northPanel = new JPanel(new BorderLayout(0, 8));
+        northPanel.setOpaque(false);
+        northPanel.add(topHeaderPanel, BorderLayout.NORTH);
+        northPanel.add(extraTopPanel, BorderLayout.CENTER);
+        add(northPanel, BorderLayout.NORTH);
 
         tableModel = new DefaultTableModel(getColumnNames(), 0) {
             @Override
@@ -56,7 +82,24 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
             }
         };
         table = new JTable(tableModel);
-        add(new JScrollPane(table), BorderLayout.CENTER);
+        table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        table.getSelectionModel().addListSelectionListener(event -> {
+            if (!event.getValueIsAdjusting()) {
+                onSelectionChanged(getSelectedItem());
+            }
+        });
+        tableScrollPane = new JScrollPane(table);
+
+        JPanel emptyStatePanel = new JPanel(new BorderLayout());
+        emptyStatePanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(32, 24, 32, 24));
+        emptyStateLabel.setFont(emptyStateLabel.getFont().deriveFont(Font.ITALIC, 15f));
+        emptyStateLabel.setForeground(UIManager.getColor("Label.disabledForeground"));
+        emptyStatePanel.add(emptyStateLabel, BorderLayout.CENTER);
+
+        tableCardPanel.add(tableScrollPane, "table");
+        tableCardPanel.add(emptyStatePanel, "empty");
+        mainContentPanel.add(tableCardPanel, BorderLayout.CENTER);
+        add(mainContentPanel, BorderLayout.CENTER);
 
         addButton.addActionListener(event -> handleAdd());
         editButton.addActionListener(event -> handleEdit());
@@ -88,10 +131,39 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
         return false;
     }
 
+    protected String getEmptyStateMessage() {
+        return "Không có dữ liệu để hiển thị.";
+    }
+
+    protected void onSelectionChanged(T selectedItem) {
+    }
+
+    protected final void setFilterPanel(JComponent filterPanel) {
+        extraTopPanel.removeAll();
+        if (filterPanel != null) {
+            extraTopPanel.add(filterPanel, BorderLayout.CENTER);
+        }
+        revalidate();
+        repaint();
+    }
+
+    protected final void setDetailPanel(JComponent detailPanel) {
+        this.detailPanel = detailPanel;
+        rebuildContentLayout();
+    }
+
+    protected final JTable getTable() {
+        return table;
+    }
+
+    protected final List<T> getCurrentItems() {
+        return new ArrayList<>(currentItems);
+    }
+
     protected final void refreshData() {
         try {
             allItems = new ArrayList<>(loadItems());
-            bindRows(allItems);
+            applySearch();
         } catch (Exception exception) {
             DialogUtil.showError(this, exception.getMessage());
         }
@@ -123,10 +195,21 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
     private void bindRows(List<T> items) {
         currentItems = new ArrayList<>(items);
         tableModel.setRowCount(0);
-        // Load du lieu tu service/DAO len JTable tai mot diem duy nhat de de debug va bao tri.
+
         for (T item : currentItems) {
             tableModel.addRow(toRow(item));
         }
+
+        table.clearSelection();
+        onSelectionChanged(null);
+
+        if (currentItems.isEmpty()) {
+            emptyStateLabel.setText("<html><div style='text-align:center;'>" + getEmptyStateMessage() + "</div></html>");
+            tableCardLayout.show(tableCardPanel, "empty");
+            return;
+        }
+
+        tableCardLayout.show(tableCardPanel, "table");
     }
 
     private void handleAdd() {
@@ -135,7 +218,7 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
             if (item != null) {
                 saveEntity(item);
                 refreshData();
-                DialogUtil.showInfo(this, "Luu du lieu thanh cong.");
+                DialogUtil.showInfo(this, "Lưu dữ liệu thành công.");
             }
         } catch (Exception exception) {
             DialogUtil.showError(this, exception.getMessage());
@@ -145,7 +228,7 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
     private void handleEdit() {
         T selectedItem = getSelectedItem();
         if (selectedItem == null) {
-            DialogUtil.showError(this, "Hay chon dong can sua.");
+            DialogUtil.showError(this, "Hãy chọn dòng cần sửa.");
             return;
         }
         try {
@@ -153,7 +236,7 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
             if (item != null) {
                 saveEntity(item);
                 refreshData();
-                DialogUtil.showInfo(this, "Cap nhat du lieu thanh cong.");
+                DialogUtil.showInfo(this, "Cập nhật dữ liệu thành công.");
             }
         } catch (Exception exception) {
             DialogUtil.showError(this, exception.getMessage());
@@ -163,18 +246,55 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
     private void handleDelete() {
         T selectedItem = getSelectedItem();
         if (selectedItem == null) {
-            DialogUtil.showError(this, "Hay chon dong can xoa.");
+            DialogUtil.showError(this, "Hãy chọn dòng cần xóa.");
             return;
         }
-        if (!DialogUtil.confirm(this, "Ban co chac chan muon xoa ban ghi nay?")) {
+        if (!DialogUtil.confirm(this, "Bạn có chắc chắn muốn xóa bản ghi này không?")) {
             return;
         }
         try {
             deleteEntity(selectedItem);
             refreshData();
-            DialogUtil.showInfo(this, "Xoa du lieu thanh cong.");
+            DialogUtil.showInfo(this, "Xóa dữ liệu thành công.");
         } catch (Exception exception) {
             DialogUtil.showError(this, exception.getMessage());
         }
+    }
+
+    private void rebuildContentLayout() {
+        mainContentPanel.removeAll();
+        if (detailPanel == null) {
+            mainContentPanel.add(tableCardPanel, BorderLayout.CENTER);
+        } else {
+            JScrollPane detailScrollPane = buildDetailScrollPane(detailPanel);
+
+            splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, tableCardPanel, detailScrollPane);
+            splitPane.setResizeWeight(0.7);
+            splitPane.setBorder(null);
+            splitPane.setContinuousLayout(true);
+            splitPane.setOneTouchExpandable(true);
+            splitPane.setDividerSize(10);
+
+            tableCardPanel.setMinimumSize(new Dimension(0, 240));
+            detailScrollPane.setMinimumSize(new Dimension(0, 180));
+            mainContentPanel.add(splitPane, BorderLayout.CENTER);
+
+            SwingUtilities.invokeLater(() -> splitPane.setDividerLocation(0.7));
+        }
+        revalidate();
+        repaint();
+    }
+
+    private JScrollPane buildDetailScrollPane(JComponent content) {
+        // Them JScrollPane cho khu vuc chi tiet de van nam ben duoi bang danh sach
+        // nhung nguoi dung co the cuon doc de xem het noi dung khi du lieu dai.
+        JScrollPane scrollPane = new JScrollPane(content);
+        scrollPane.setBorder(null);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        scrollPane.getHorizontalScrollBar().setUnitIncrement(16);
+        scrollPane.getViewport().setBackground(content.getBackground());
+        return scrollPane;
     }
 }

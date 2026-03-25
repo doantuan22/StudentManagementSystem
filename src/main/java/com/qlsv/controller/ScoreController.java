@@ -21,6 +21,14 @@ public class ScoreController {
         return scoreService.findByCurrentLecturer();
     }
 
+    public List<Score> getScoresByCourseSection(Long courseSectionId) {
+        return scoreService.findByCourseSectionId(courseSectionId);
+    }
+
+    public List<Score> getScoresByClassRoom(Long classRoomId) {
+        return scoreService.findByClassRoomId(classRoomId);
+    }
+
     public Score saveScore(Score score) {
         return scoreService.save(score);
     }

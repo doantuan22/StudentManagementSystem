@@ -1,5 +1,13 @@
--- 02_create_tables.sql
--- Tao cac bang chinh phuc vu dang nhap, phan quyen, CRUD, dang ky hoc phan, diem va lich hoc.
+-- Bo script rut gon tao moi toan bo schema hien tai cua Student Management System.
+-- Da hap thu trang thai schema cuoi cung, bao gom:
+-- - students.academic_year
+-- - course_sections.room
+
+SET NAMES utf8mb4;
+
+CREATE DATABASE IF NOT EXISTS student_management
+    CHARACTER SET utf8mb4
+    COLLATE utf8mb4_unicode_ci;
 
 USE student_management;
 
@@ -148,3 +156,46 @@ CREATE TABLE IF NOT EXISTS scores (
     CONSTRAINT chk_scores_final CHECK (final_score BETWEEN 0 AND 10),
     CONSTRAINT chk_scores_total CHECK (total_score BETWEEN 0 AND 10)
 );
+
+CREATE OR REPLACE VIEW vw_student_schedules AS
+SELECT st.student_code,
+       st.full_name AS student_name,
+       cs.section_code,
+       sb.subject_code,
+       sb.subject_name,
+       sc.day_of_week,
+       sc.start_period,
+       sc.end_period,
+       sc.room
+FROM enrollments e
+JOIN students st ON st.id = e.student_id
+JOIN course_sections cs ON cs.id = e.course_section_id
+JOIN subjects sb ON sb.id = cs.subject_id
+JOIN schedules sc ON sc.course_section_id = cs.id;
+
+CREATE OR REPLACE VIEW vw_section_scores AS
+SELECT cs.section_code,
+       st.student_code,
+       st.full_name AS student_name,
+       COALESCE(s.process_score, 0) AS process_score,
+       COALESCE(s.midterm_score, 0) AS midterm_score,
+       COALESCE(s.final_score, 0) AS final_score,
+       COALESCE(s.total_score, 0) AS total_score,
+       COALESCE(s.result, 'FAIL') AS result
+FROM enrollments e
+JOIN students st ON st.id = e.student_id
+JOIN course_sections cs ON cs.id = e.course_section_id
+LEFT JOIN scores s ON s.enrollment_id = e.id;
+
+CREATE INDEX idx_students_class_room ON students(class_room_id);
+CREATE INDEX idx_students_faculty ON students(faculty_id);
+CREATE INDEX idx_lecturers_faculty ON lecturers(faculty_id);
+CREATE INDEX idx_subjects_faculty ON subjects(faculty_id);
+CREATE INDEX idx_course_sections_lecturer ON course_sections(lecturer_id);
+CREATE INDEX idx_course_sections_room ON course_sections(room);
+CREATE INDEX idx_enrollments_section ON enrollments(course_section_id);
+CREATE INDEX idx_enrollments_student ON enrollments(student_id);
+CREATE INDEX idx_scores_enrollment ON scores(enrollment_id);
+CREATE INDEX idx_schedules_section_day ON schedules(course_section_id, day_of_week, start_period, end_period);
+
+-- Khong tao trigger/procedure rieng trong bo rut gon nay vi hai file 08 va 09 hien tai chi la placeholder.

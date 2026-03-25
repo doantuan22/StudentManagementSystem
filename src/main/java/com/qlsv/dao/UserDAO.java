@@ -41,7 +41,7 @@ public class UserDAO {
             }
             return users;
         } catch (SQLException exception) {
-            throw new AppException("Khong the tai danh sach nguoi dung.", exception);
+            throw new AppException("Không thể tải danh sách người dùng.", exception);
         }
     }
 
@@ -57,7 +57,7 @@ public class UserDAO {
                 return Optional.empty();
             }
         } catch (SQLException exception) {
-            throw new AppException("Khong the tim nguoi dung theo id.", exception);
+            throw new AppException("Không thể tìm người dùng theo mã định danh.", exception);
         }
     }
 
@@ -73,7 +73,7 @@ public class UserDAO {
                 return Optional.empty();
             }
         } catch (SQLException exception) {
-            throw new AppException("Khong the tim nguoi dung theo username.", exception);
+            throw new AppException("Không thể tìm người dùng theo tên đăng nhập.", exception);
         }
     }
 
@@ -98,7 +98,7 @@ public class UserDAO {
                 return users;
             }
         } catch (SQLException exception) {
-            throw new AppException("Khong the tim kiem nguoi dung.", exception);
+            throw new AppException("Không thể tìm kiếm người dùng.", exception);
         }
     }
 
@@ -124,7 +124,7 @@ public class UserDAO {
             }
             return user;
         } catch (SQLException exception) {
-            throw new AppException("Khong the them nguoi dung.", exception);
+            throw new AppException("Không thể thêm người dùng.", exception);
         }
     }
 
@@ -150,7 +150,7 @@ public class UserDAO {
             statement.setLong(7, user.getId());
             return statement.executeUpdate() > 0;
         } catch (SQLException exception) {
-            throw new AppException("Khong the cap nhat nguoi dung.", exception);
+            throw new AppException("Không thể cập nhật người dùng.", exception);
         }
     }
 
@@ -161,7 +161,7 @@ public class UserDAO {
             statement.setLong(1, id);
             return statement.executeUpdate() > 0;
         } catch (SQLException exception) {
-            throw new AppException("Khong the xoa nguoi dung.", exception);
+            throw new AppException("Không thể xóa người dùng.", exception);
         }
     }
 

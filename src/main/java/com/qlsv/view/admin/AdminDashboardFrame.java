@@ -3,25 +3,27 @@ package com.qlsv.view.admin;
 import com.qlsv.controller.LoginController;
 import com.qlsv.model.User;
 import com.qlsv.view.auth.LoginFrame;
+import com.qlsv.view.common.AppColors;
 import com.qlsv.view.common.BaseFrame;
+import com.qlsv.view.common.SidebarMenu;
 
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
-import java.awt.GridLayout;
 
 public class AdminDashboardFrame extends BaseFrame {
 
     private final LoginController loginController = new LoginController();
 
     public AdminDashboardFrame(User user) {
-        super("Admin Dashboard");
+        super("Trang quản trị");
         initComponents(user);
     }
 
     private void initComponents(User user) {
-        JButton logoutButton = new JButton("Dang xuat");
+        JButton logoutButton = new JButton("Đăng xuất");
         logoutButton.addActionListener(event -> {
             loginController.logout();
             new LoginFrame().setVisible(true);
@@ -45,33 +47,45 @@ public class AdminDashboardFrame extends BaseFrame {
         contentPanel.add(new ReportManagementPanel(), "reports");
         contentPanel.add(new SystemStatisticsPanel(), "statistics");
 
-        JPanel menuPanel = new JPanel(new GridLayout(0, 1, 8, 8));
-        menuPanel.add(buildMenuButton("Tong quan", cardLayout, contentPanel, "home"));
-        menuPanel.add(buildMenuButton("Quan ly sinh vien", cardLayout, contentPanel, "students"));
-        menuPanel.add(buildMenuButton("Quan ly giang vien", cardLayout, contentPanel, "lecturers"));
-        menuPanel.add(buildMenuButton("Quan ly khoa", cardLayout, contentPanel, "faculties"));
-        menuPanel.add(buildMenuButton("Quan ly lop", cardLayout, contentPanel, "classes"));
-        menuPanel.add(buildMenuButton("Quan ly mon hoc", cardLayout, contentPanel, "subjects"));
-        menuPanel.add(buildMenuButton("Quan ly hoc phan", cardLayout, contentPanel, "sections"));
-        menuPanel.add(buildMenuButton("Quan ly dang ky", cardLayout, contentPanel, "enrollments"));
-        menuPanel.add(buildMenuButton("Quan ly diem", cardLayout, contentPanel, "scores"));
-        menuPanel.add(buildMenuButton("Quan ly lich hoc", cardLayout, contentPanel, "schedules"));
-        menuPanel.add(buildMenuButton("Bao cao", cardLayout, contentPanel, "reports"));
-        menuPanel.add(buildMenuButton("Thong ke", cardLayout, contentPanel, "statistics"));
+        SidebarMenu sidebarMenu = new SidebarMenu(
+                "Quản trị hệ thống",
+                ""
+        );
+        registerMenuItem(sidebarMenu, "home", "Tổng quan", cardLayout, contentPanel, "home");
+        registerMenuItem(sidebarMenu, "students", "Quản lý sinh viên", cardLayout, contentPanel, "students");
+        registerMenuItem(sidebarMenu, "lecturers", "Quản lý giảng viên", cardLayout, contentPanel, "lecturers");
+        registerMenuItem(sidebarMenu, "faculties", "Quản lý khoa", cardLayout, contentPanel, "faculties");
+        registerMenuItem(sidebarMenu, "classes", "Quản lý lớp", cardLayout, contentPanel, "classes");
+        registerMenuItem(sidebarMenu, "subjects", "Quản lý môn học", cardLayout, contentPanel, "subjects");
+        registerMenuItem(sidebarMenu, "sections", "Quản lý học phần", cardLayout, contentPanel, "sections");
+        registerMenuItem(sidebarMenu, "enrollments", "Quản lý đăng ký", cardLayout, contentPanel, "enrollments");
+        registerMenuItem(sidebarMenu, "scores", "Quản lý điểm", cardLayout, contentPanel, "scores");
+        registerMenuItem(sidebarMenu, "schedules", "Quản lý lịch học", cardLayout, contentPanel, "schedules");
+        registerMenuItem(sidebarMenu, "reports", "Báo cáo", cardLayout, contentPanel, "reports");
+        registerMenuItem(sidebarMenu, "statistics", "Thống kê", cardLayout, contentPanel, "statistics");
+        sidebarMenu.setActiveItem("home");
+        cardLayout.show(contentPanel, "home");
 
-        JPanel bodyPanel = new JPanel(new BorderLayout(12, 12));
-        bodyPanel.add(menuPanel, BorderLayout.WEST);
+        JPanel bodyPanel = new JPanel(new BorderLayout(18, 12));
+        bodyPanel.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
+        bodyPanel.setBackground(AppColors.CONTENT_BACKGROUND);
+        bodyPanel.add(sidebarMenu, BorderLayout.WEST);
         bodyPanel.add(contentPanel, BorderLayout.CENTER);
 
         setLayout(new BorderLayout());
         add(headerPanel, BorderLayout.NORTH);
         add(bodyPanel, BorderLayout.CENTER);
-        add(createFooter("Trang thai: ADMIN dang dang nhap | Dashboard san sang"), BorderLayout.SOUTH);
+        add(createFooter("Trạng thái: Quản trị viên đang đăng nhập | Bảng điều khiển đã sẵn sàng"), BorderLayout.SOUTH);
     }
 
-    private JButton buildMenuButton(String text, CardLayout cardLayout, JPanel contentPanel, String cardName) {
-        JButton button = createMenuButton(text);
-        button.addActionListener(event -> cardLayout.show(contentPanel, cardName));
-        return button;
+    private void registerMenuItem(
+            SidebarMenu sidebarMenu,
+            String itemKey,
+            String text,
+            CardLayout cardLayout,
+            JPanel contentPanel,
+            String cardName
+    ) {
+        sidebarMenu.addMenuItem(itemKey, text, () -> cardLayout.show(contentPanel, cardName));
     }
 }

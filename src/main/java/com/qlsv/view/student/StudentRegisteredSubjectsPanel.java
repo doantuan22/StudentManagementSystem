@@ -2,6 +2,7 @@ package com.qlsv.view.student;
 
 import com.qlsv.controller.EnrollmentController;
 import com.qlsv.model.Enrollment;
+import com.qlsv.utils.DisplayTextUtil;
 import com.qlsv.utils.DialogUtil;
 import com.qlsv.view.common.BasePanel;
 
@@ -15,7 +16,7 @@ public class StudentRegisteredSubjectsPanel extends BasePanel {
 
     public StudentRegisteredSubjectsPanel() {
         DefaultTableModel tableModel = new DefaultTableModel(
-                new String[]{"Hoc phan", "Mon hoc", "Giang vien", "Trang thai", "Lich hoc"}, 0) {
+                new String[]{"Học phần", "Môn học", "Giảng viên", "Trạng thái", "Lịch học"}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -32,7 +33,7 @@ public class StudentRegisteredSubjectsPanel extends BasePanel {
                                 ? "" : enrollment.getCourseSection().getSubject().getSubjectName(),
                         enrollment.getCourseSection() == null || enrollment.getCourseSection().getLecturer() == null
                                 ? "" : enrollment.getCourseSection().getLecturer().getFullName(),
-                        enrollment.getStatus(),
+                        DisplayTextUtil.formatStatus(enrollment.getStatus()),
                         enrollment.getCourseSection() == null ? "" : enrollment.getCourseSection().getScheduleText()
                 });
             }

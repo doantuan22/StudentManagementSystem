@@ -104,7 +104,7 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
                 .map(courseSection -> courseSection.getSubject() == null ? null : courseSection.getSubject().getSubjectName())
                 .collect(Collectors.toList()));
         String rooms = DisplayTextUtil.joinUniqueTexts(assignedCourseSections.stream()
-                .map(CourseSection::getRoom)
+                .map(courseSection -> courseSection.getRoom() == null ? null : courseSection.getRoom().getRoomName())
                 .collect(Collectors.toList()));
 
         detailSectionPanel.showFields(new String[][]{

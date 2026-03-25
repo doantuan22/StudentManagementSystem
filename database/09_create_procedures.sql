@@ -1,3 +1,0 @@
--- 09_create_procedures.sql
--- File du phong cho stored procedure mo rong ve sau.
--- Phien ban hien tai tap trung vao JDBC + service layer.

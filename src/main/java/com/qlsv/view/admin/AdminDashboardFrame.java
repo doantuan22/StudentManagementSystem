@@ -41,6 +41,7 @@ public class AdminDashboardFrame extends BaseFrame {
         contentPanel.add(new LecturerManagementPanel(), "lecturers");
         contentPanel.add(new FacultyManagementPanel(), "faculties");
         contentPanel.add(new ClassRoomManagementPanel(), "classes");
+        contentPanel.add(new RoomManagementPanel(), "rooms");
         contentPanel.add(new SubjectManagementPanel(), "subjects");
         contentPanel.add(new CourseSectionManagementPanel(), "sections");
         contentPanel.add(new EnrollmentManagementPanel(), "enrollments");
@@ -58,6 +59,7 @@ public class AdminDashboardFrame extends BaseFrame {
         registerMenuItem(sidebarMenu, "lecturers", "Quản lý giảng viên", cardLayout, contentPanel, "lecturers");
         registerMenuItem(sidebarMenu, "faculties", "Quản lý khoa", cardLayout, contentPanel, "faculties");
         registerMenuItem(sidebarMenu, "classes", "Quản lý lớp", cardLayout, contentPanel, "classes");
+        registerMenuItem(sidebarMenu, "rooms", "Quản lý phòng", cardLayout, contentPanel, "rooms");
         registerMenuItem(sidebarMenu, "subjects", "Quản lý môn học", cardLayout, contentPanel, "subjects");
         registerMenuItem(sidebarMenu, "sections", "Quản lý học phần", cardLayout, contentPanel, "sections");
         registerMenuItem(sidebarMenu, "enrollments", "Quản lý đăng ký", cardLayout, contentPanel, "enrollments");

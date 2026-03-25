@@ -9,14 +9,14 @@ public class Schedule {
     private String dayOfWeek;
     private Integer startPeriod;
     private Integer endPeriod;
-    private String room;
+    private Room room;
     private String note;
 
     public Schedule() {
     }
 
     public Schedule(Long id, CourseSection courseSection, String dayOfWeek, Integer startPeriod,
-                    Integer endPeriod, String room, String note) {
+                    Integer endPeriod, Room room, String note) {
         this.id = id;
         this.courseSection = courseSection;
         this.dayOfWeek = dayOfWeek;
@@ -66,11 +66,11 @@ public class Schedule {
         this.endPeriod = endPeriod;
     }
 
-    public String getRoom() {
+    public Room getRoom() {
         return room;
     }
 
-    public void setRoom(String room) {
+    public void setRoom(Room room) {
         this.room = room;
     }
 
@@ -83,7 +83,7 @@ public class Schedule {
     }
 
     public String toDisplayText() {
-        return dayOfWeek + " tiết " + startPeriod + "-" + endPeriod + " phòng " + room;
+        return dayOfWeek + " tiết " + startPeriod + "-" + endPeriod + " phòng " + (room != null ? room.getRoomName() : "Trống");
     }
 
     @Override

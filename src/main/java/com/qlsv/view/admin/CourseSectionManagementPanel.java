@@ -3,10 +3,12 @@ package com.qlsv.view.admin;
 import com.qlsv.controller.CourseSectionController;
 import com.qlsv.controller.FacultyController;
 import com.qlsv.controller.LecturerController;
+import com.qlsv.controller.RoomController;
 import com.qlsv.controller.SubjectController;
 import com.qlsv.model.CourseSection;
 import com.qlsv.model.Faculty;
 import com.qlsv.model.Lecturer;
+import com.qlsv.model.Room;
 import com.qlsv.model.Subject;
 import com.qlsv.utils.DisplayTextUtil;
 import com.qlsv.view.common.AbstractCrudPanel;
@@ -36,6 +38,7 @@ public class CourseSectionManagementPanel extends AbstractCrudPanel<CourseSectio
     private final SubjectController subjectController = new SubjectController();
     private final LecturerController lecturerController = new LecturerController();
     private final FacultyController facultyController = new FacultyController();
+    private final RoomController roomController = new RoomController();
 
     private final JComboBox<String> filterTypeComboBox = new JComboBox<>(
             new String[]{FILTER_NONE, FILTER_ALL, FILTER_SECTION_CODE, FILTER_ROOM, FILTER_FACULTY}
@@ -75,8 +78,8 @@ public class CourseSectionManagementPanel extends AbstractCrudPanel<CourseSectio
                 yield sectionCode == null ? List.of() : courseSectionController.getCourseSectionsBySectionCode(sectionCode);
             }
             case FILTER_ROOM -> {
-                String room = getSelectedFilterValue(String.class);
-                yield room == null ? List.of() : courseSectionController.getCourseSectionsByRoom(room);
+                Room room = getSelectedFilterValue(Room.class);
+                yield room == null ? List.of() : courseSectionController.getCourseSectionsByRoom(room.getId());
             }
             case FILTER_FACULTY -> {
                 Faculty faculty = getSelectedFilterValue(Faculty.class);
@@ -93,7 +96,7 @@ public class CourseSectionManagementPanel extends AbstractCrudPanel<CourseSectio
                 item.getSectionCode(),
                 item.getSubject() == null ? "" : item.getSubject().getSubjectName(),
                 item.getLecturer() == null ? "" : item.getLecturer().getFullName(),
-                item.getRoom(),
+                item.getRoom() == null ? "" : item.getRoom().getRoomName(),
                 item.getSemester(),
                 item.getSchoolYear()
         };
@@ -117,7 +120,7 @@ public class CourseSectionManagementPanel extends AbstractCrudPanel<CourseSectio
                 {"Mã học phần", DisplayTextUtil.defaultText(selectedItem.getSectionCode())},
                 {"Môn học", selectedItem.getSubject() == null ? "Chưa cập nhật" : DisplayTextUtil.defaultText(selectedItem.getSubject().getSubjectName())},
                 {"Giảng viên", selectedItem.getLecturer() == null ? "Chưa cập nhật" : DisplayTextUtil.defaultText(selectedItem.getLecturer().getFullName())},
-                {"Phòng học", DisplayTextUtil.defaultText(selectedItem.getRoom())},
+                {"Phòng học", selectedItem.getRoom() == null ? "Chưa cập nhật" : DisplayTextUtil.defaultText(selectedItem.getRoom().getRoomName())},
                 {"Học kỳ", DisplayTextUtil.defaultText(selectedItem.getSemester())},
                 {"Năm học", DisplayTextUtil.defaultText(selectedItem.getSchoolYear())},
                 {"Lịch học", DisplayTextUtil.defaultText(selectedItem.getScheduleText())},
@@ -130,7 +133,7 @@ public class CourseSectionManagementPanel extends AbstractCrudPanel<CourseSectio
         JTextField codeField = new JTextField(existingItem == null ? "" : existingItem.getSectionCode());
         JTextField semesterField = new JTextField(existingItem == null ? "HK1" : existingItem.getSemester());
         JTextField schoolYearField = new JTextField(existingItem == null ? "2025 - 2026" : existingItem.getSchoolYear());
-        JTextField roomField = new JTextField(existingItem == null ? "" : existingItem.getRoom());
+        JComboBox<Room> roomComboBox = new JComboBox<>(roomController.getRoomsForSelection().toArray(new Room[0]));
         JTextField scheduleField = new JTextField(existingItem == null ? "" : existingItem.getScheduleText());
         JTextField maxStudentsField = new JTextField(existingItem == null ? "50" : String.valueOf(existingItem.getMaxStudents()));
 
@@ -144,7 +147,17 @@ public class CourseSectionManagementPanel extends AbstractCrudPanel<CourseSectio
             if (existingItem.getLecturer() != null) {
                 lecturerComboBox.setSelectedItem(existingItem.getLecturer());
             }
+            if (existingItem.getRoom() != null) {
+                roomComboBox.setSelectedItem(existingItem.getRoom());
+            }
         }
+
+        JPanel schedulePanel = new JPanel(new java.awt.BorderLayout());
+        schedulePanel.add(scheduleField, java.awt.BorderLayout.CENTER);
+        JLabel hintLabel = new JLabel("VD format: T2 1-3, T4 4-6 (Có thể để trống)");
+        hintLabel.setFont(hintLabel.getFont().deriveFont(java.awt.Font.ITALIC, 11f));
+        hintLabel.setForeground(java.awt.Color.GRAY);
+        schedulePanel.add(hintLabel, java.awt.BorderLayout.SOUTH);
 
         JPanel formPanel = new JPanel(new GridLayout(0, 2, 10, 10));
         formPanel.add(new JLabel("Mã học phần"));
@@ -154,13 +167,13 @@ public class CourseSectionManagementPanel extends AbstractCrudPanel<CourseSectio
         formPanel.add(new JLabel("Giảng viên"));
         formPanel.add(lecturerComboBox);
         formPanel.add(new JLabel("Phòng học"));
-        formPanel.add(roomField);
+        formPanel.add(roomComboBox);
         formPanel.add(new JLabel("Học kỳ"));
         formPanel.add(semesterField);
         formPanel.add(new JLabel("Năm học"));
         formPanel.add(schoolYearField);
         formPanel.add(new JLabel("Lịch học"));
-        formPanel.add(scheduleField);
+        formPanel.add(schedulePanel);
         formPanel.add(new JLabel("Sĩ số tối đa"));
         formPanel.add(maxStudentsField);
 
@@ -179,7 +192,7 @@ public class CourseSectionManagementPanel extends AbstractCrudPanel<CourseSectio
         courseSection.setSectionCode(codeField.getText().trim());
         courseSection.setSubject((Subject) subjectComboBox.getSelectedItem());
         courseSection.setLecturer((Lecturer) lecturerComboBox.getSelectedItem());
-        courseSection.setRoom(roomField.getText().trim());
+        courseSection.setRoom((Room) roomComboBox.getSelectedItem());
         courseSection.setSemester(semesterField.getText().trim());
         courseSection.setSchoolYear(schoolYearField.getText().trim());
         courseSection.setScheduleText(scheduleField.getText().trim());
@@ -239,11 +252,9 @@ public class CourseSectionManagementPanel extends AbstractCrudPanel<CourseSectio
         if (FILTER_ROOM.equals(filterType)) {
             filterValueComboBox.setEnabled(true);
             filterValueComboBox.addItem(new FilterOption<>("Chọn phòng học", null));
-            courseSectionController.getAllCourseSectionsForSelection().stream()
-                    .map(CourseSection::getRoom)
-                    .filter(room -> room != null && !room.isBlank())
-                    .distinct()
-                    .forEach(room -> filterValueComboBox.addItem(new FilterOption<>(room, room)));
+            for (Room room : roomController.getRoomsForSelection()) {
+                filterValueComboBox.addItem(new FilterOption<>(room.getRoomName(), room));
+            }
             return;
         }
 

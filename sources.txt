@@ -9,6 +9,8 @@ src/main/java\com\qlsv\config\SessionManager.java
 src/main/java\com\qlsv\model\Enrollment.java
 src/main/java\com\qlsv\model\CourseSection.java
 src/main/java\com\qlsv\model\ClassRoom.java
+src/main/java\com\qlsv\model\Room.java
+
 src/main/java\com\qlsv\model\Assignment.java
 src/main/java\com\qlsv\model\Lecturer.java
 src/main/java\com\qlsv\model\Faculty.java
@@ -30,6 +32,8 @@ src/main/java\com\qlsv\service\EnrollmentService.java
 src/main/java\com\qlsv\service\CourseSectionService.java
 src/main/java\com\qlsv\model\User.java
 src/main/java\com\qlsv\service\ClassRoomService.java
+src/main/java\com\qlsv\service\RoomService.java
+
 src/main/java\com\qlsv\service\AuthService.java
 src/main/java\com\qlsv\controller\SubjectController.java
 src/main/java\com\qlsv\controller\StudentController.java
@@ -43,6 +47,8 @@ src/main/java\com\qlsv\controller\EnrollmentController.java
 src/main/java\com\qlsv\controller\DashboardController.java
 src/main/java\com\qlsv\controller\CourseSectionController.java
 src/main/java\com\qlsv\controller\ClassRoomController.java
+src/main/java\com\qlsv\controller\RoomController.java
+
 src/main/java\com\qlsv\view\auth\LoginFrame.java
 src/main/java\com\qlsv\view\auth\ForgotPasswordDialog.java
 src/main/java\com\qlsv\view\auth\ChangePasswordDialog.java
@@ -57,6 +63,8 @@ src/main/java\com\qlsv\dao\FacultyDAO.java
 src/main/java\com\qlsv\dao\EnrollmentDAO.java
 src/main/java\com\qlsv\dao\CourseSectionDAO.java
 src/main/java\com\qlsv\dao\ClassRoomDAO.java
+src/main/java\com\qlsv\dao\RoomDAO.java
+
 src/main/java\com\qlsv\dao\AssignmentDAO.java
 src/main/java\com\qlsv\security\RolePermission.java
 src/main/java\com\qlsv\security\PasswordHasher.java
@@ -106,6 +114,8 @@ src/main/java\com\qlsv\view\admin\FacultyManagementPanel.java
 src/main/java\com\qlsv\view\admin\EnrollmentManagementPanel.java
 src/main/java\com\qlsv\view\admin\CourseSectionManagementPanel.java
 src/main/java\com\qlsv\view\admin\ClassRoomManagementPanel.java
+src/main/java\com\qlsv\view\admin\RoomManagementPanel.java
+
 src/main/java\com\qlsv\view\admin\AssignmentManagementPanel.java
 src/main/java\com\qlsv\view\admin\StudentManagementPanel.java
 src/main/java\com\qlsv\view\admin\ScoreManagementPanel.java

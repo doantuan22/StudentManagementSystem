@@ -25,8 +25,8 @@ public class ScheduleController {
         return scheduleService.findByCourseSectionId(courseSectionId);
     }
 
-    public List<Schedule> getSchedulesByRoom(String room) {
-        return scheduleService.findByRoom(room);
+    public List<Schedule> getSchedulesByRoom(Long roomId) {
+        return scheduleService.findByRoom(roomId);
     }
 
     public List<Schedule> getSchedulesByFaculty(Long facultyId) {

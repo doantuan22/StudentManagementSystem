@@ -4,6 +4,7 @@ import com.qlsv.config.DBConnection;
 import com.qlsv.exception.AppException;
 import com.qlsv.model.CourseSection;
 import com.qlsv.model.Lecturer;
+import com.qlsv.model.Room;
 import com.qlsv.model.Subject;
 
 import java.sql.Connection;
@@ -23,17 +24,18 @@ public class CourseSectionDAO {
 
     private final SubjectDAO subjectDAO = new SubjectDAO();
     private final LecturerDAO lecturerDAO = new LecturerDAO();
+    private final RoomDAO roomDAO = new RoomDAO();
 
     public List<CourseSection> findAll() {
         String sql = """
-                SELECT id, section_code, subject_id, lecturer_id, room, semester, school_year, schedule_text, max_students
+                SELECT id, section_code, subject_id, lecturer_id, room_id, semester, school_year, schedule_text, max_students
                 FROM course_sections
                 ORDER BY id
                 """;
         List<CourseSection> courseSections = new ArrayList<>();
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql);
-             ResultSet resultSet = statement.executeQuery()) {
+                PreparedStatement statement = connection.prepareStatement(sql);
+                ResultSet resultSet = statement.executeQuery()) {
             while (resultSet.next()) {
                 courseSections.add(mapRow(resultSet));
             }
@@ -45,12 +47,12 @@ public class CourseSectionDAO {
 
     public Optional<CourseSection> findById(Long id) {
         String sql = """
-                SELECT id, section_code, subject_id, lecturer_id, room, semester, school_year, schedule_text, max_students
+                SELECT id, section_code, subject_id, lecturer_id, room_id, semester, school_year, schedule_text, max_students
                 FROM course_sections
                 WHERE id = ?
                 """;
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+                PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setLong(1, id);
             try (ResultSet resultSet = statement.executeQuery()) {
                 return resultSet.next() ? Optional.of(mapRow(resultSet)) : Optional.empty();
@@ -62,14 +64,14 @@ public class CourseSectionDAO {
 
     public List<CourseSection> findByLecturerId(Long lecturerId) {
         String sql = """
-                SELECT id, section_code, subject_id, lecturer_id, room, semester, school_year, schedule_text, max_students
+                SELECT id, section_code, subject_id, lecturer_id, room_id, semester, school_year, schedule_text, max_students
                 FROM course_sections
                 WHERE lecturer_id = ?
                 ORDER BY id
                 """;
         List<CourseSection> courseSections = new ArrayList<>();
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+                PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setLong(1, lecturerId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
@@ -84,19 +86,18 @@ public class CourseSectionDAO {
 
     public List<CourseSection> searchByKeyword(String keyword) {
         String sql = """
-                SELECT id, section_code, subject_id, lecturer_id, room, semester, school_year, schedule_text, max_students
+                SELECT id, section_code, subject_id, lecturer_id, room_id, semester, school_year, schedule_text, max_students
                 FROM course_sections
-                WHERE section_code LIKE ? OR room LIKE ? OR semester LIKE ? OR school_year LIKE ?
+                WHERE section_code LIKE ? OR semester LIKE ? OR school_year LIKE ?
                 ORDER BY id
                 """;
         String searchValue = "%" + keyword + "%";
         List<CourseSection> courseSections = new ArrayList<>();
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+                PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, searchValue);
             statement.setString(2, searchValue);
             statement.setString(3, searchValue);
-            statement.setString(4, searchValue);
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
                     courseSections.add(mapRow(resultSet));
@@ -110,11 +111,11 @@ public class CourseSectionDAO {
 
     public CourseSection insert(CourseSection courseSection) {
         String sql = """
-                INSERT INTO course_sections(section_code, subject_id, lecturer_id, room, semester, school_year, schedule_text, max_students)
+                INSERT INTO course_sections(section_code, subject_id, lecturer_id, room_id, semester, school_year, schedule_text, max_students)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """;
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             fillStatement(statement, courseSection);
             statement.executeUpdate();
             try (ResultSet resultSet = statement.getGeneratedKeys()) {
@@ -131,11 +132,11 @@ public class CourseSectionDAO {
     public boolean update(CourseSection courseSection) {
         String sql = """
                 UPDATE course_sections
-                SET section_code = ?, subject_id = ?, lecturer_id = ?, room = ?, semester = ?, school_year = ?, schedule_text = ?, max_students = ?
+                SET section_code = ?, subject_id = ?, lecturer_id = ?, room_id = ?, semester = ?, school_year = ?, schedule_text = ?, max_students = ?
                 WHERE id = ?
                 """;
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+                PreparedStatement statement = connection.prepareStatement(sql)) {
             fillStatement(statement, courseSection);
             statement.setLong(9, courseSection.getId());
             return statement.executeUpdate() > 0;
@@ -147,11 +148,12 @@ public class CourseSectionDAO {
     public boolean delete(Long id) {
         String sql = "DELETE FROM course_sections WHERE id = ?";
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+                PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setLong(1, id);
             return statement.executeUpdate() > 0;
         } catch (SQLIntegrityConstraintViolationException exception) {
-            throw new AppException("Không thể xóa học phần vì vẫn còn lịch học, đăng ký học phần hoặc điểm liên quan.", exception);
+            throw new AppException("Không thể xóa học phần vì vẫn còn lịch học, đăng ký học phần hoặc điểm liên quan.",
+                    exception);
         } catch (SQLException exception) {
             throw new AppException("Không thể xóa học phần.", exception);
         }
@@ -160,7 +162,7 @@ public class CourseSectionDAO {
     public int countEnrollments(Long courseSectionId) {
         String sql = "SELECT COUNT(1) FROM enrollments WHERE course_section_id = ?";
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+                PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setLong(1, courseSectionId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 return resultSet.next() ? resultSet.getInt(1) : 0;
@@ -170,12 +172,12 @@ public class CourseSectionDAO {
         }
     }
 
-    public void updateScheduleSummary(Long courseSectionId, String scheduleText, String room) {
-        String sql = "UPDATE course_sections SET schedule_text = ?, room = ? WHERE id = ?";
+    public void updateScheduleSummary(Long courseSectionId, String scheduleText, Room room) {
+        String sql = "UPDATE course_sections SET schedule_text = ?, room_id = ? WHERE id = ?";
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+                PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, scheduleText);
-            statement.setString(2, room);
+            statement.setLong(2, room.getId());
             statement.setLong(3, courseSectionId);
             statement.executeUpdate();
         } catch (SQLException exception) {
@@ -187,7 +189,7 @@ public class CourseSectionDAO {
         statement.setString(1, courseSection.getSectionCode());
         statement.setLong(2, courseSection.getSubject().getId());
         statement.setLong(3, courseSection.getLecturer().getId());
-        statement.setString(4, courseSection.getRoom());
+        statement.setLong(4, courseSection.getRoom().getId());
         statement.setString(5, courseSection.getSemester());
         statement.setString(6, courseSection.getSchoolYear());
         statement.setString(7, courseSection.getScheduleText());
@@ -197,16 +199,16 @@ public class CourseSectionDAO {
     private CourseSection mapRow(ResultSet resultSet) throws SQLException {
         Subject subject = subjectDAO.findById(resultSet.getLong("subject_id")).orElse(null);
         Lecturer lecturer = lecturerDAO.findById(resultSet.getLong("lecturer_id")).orElse(null);
+        Room room = roomDAO.findById(resultSet.getLong("room_id")).orElse(null);
         return new CourseSection(
                 resultSet.getLong("id"),
                 resultSet.getString("section_code"),
                 subject,
                 lecturer,
-                resultSet.getString("room"),
+                room,
                 resultSet.getString("semester"),
                 resultSet.getString("school_year"),
                 resultSet.getString("schedule_text"),
-                resultSet.getInt("max_students")
-        );
+                resultSet.getInt("max_students"));
     }
 }

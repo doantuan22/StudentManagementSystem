@@ -42,7 +42,7 @@ public class LecturerDashboardFrame extends BaseFrame {
 
         SidebarMenu sidebarMenu = new SidebarMenu(
                 "Không gian giảng viên",
-                "Nhóm chức năng giảng dạy được đặt trong sidebar riêng để chuyển đổi nhanh mà không ảnh hưởng nội dung chính."
+                ""
         );
         registerMenuItem(sidebarMenu, "profile", "Thông tin cá nhân", cardLayout, contentPanel, "profile");
         registerMenuItem(sidebarMenu, "sections", "Học phần phụ trách", cardLayout, contentPanel, "sections");

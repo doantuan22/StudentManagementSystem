@@ -3,6 +3,7 @@ package com.qlsv.dao;
 import com.qlsv.config.DBConnection;
 import com.qlsv.exception.AppException;
 import com.qlsv.model.CourseSection;
+import com.qlsv.model.Room;
 import com.qlsv.model.Schedule;
 
 import java.sql.Connection;
@@ -20,10 +21,11 @@ import java.util.Optional;
 public class ScheduleDAO {
 
     private final CourseSectionDAO courseSectionDAO = new CourseSectionDAO();
+    private final RoomDAO roomDAO = new RoomDAO();
 
     public List<Schedule> findAll() {
         String sql = """
-                SELECT id, course_section_id, day_of_week, start_period, end_period, room, note
+                SELECT id, course_section_id, day_of_week, start_period, end_period, room_id, note
                 FROM schedules
                 ORDER BY day_of_week, start_period, course_section_id
                 """;
@@ -42,7 +44,7 @@ public class ScheduleDAO {
 
     public Optional<Schedule> findById(Long id) {
         String sql = """
-                SELECT id, course_section_id, day_of_week, start_period, end_period, room, note
+                SELECT id, course_section_id, day_of_week, start_period, end_period, room_id, note
                 FROM schedules
                 WHERE id = ?
                 """;
@@ -59,7 +61,7 @@ public class ScheduleDAO {
 
     public List<Schedule> findByStudentId(Long studentId) {
         String sql = """
-                SELECT s.id, s.course_section_id, s.day_of_week, s.start_period, s.end_period, s.room, s.note
+                SELECT s.id, s.course_section_id, s.day_of_week, s.start_period, s.end_period, s.room_id, s.note
                 FROM schedules s
                 JOIN enrollments e ON e.course_section_id = s.course_section_id
                 WHERE e.student_id = ?
@@ -70,7 +72,7 @@ public class ScheduleDAO {
 
     public List<Schedule> findByLecturerId(Long lecturerId) {
         String sql = """
-                SELECT s.id, s.course_section_id, s.day_of_week, s.start_period, s.end_period, s.room, s.note
+                SELECT s.id, s.course_section_id, s.day_of_week, s.start_period, s.end_period, s.room_id, s.note
                 FROM schedules s
                 JOIN course_sections cs ON cs.id = s.course_section_id
                 WHERE cs.lecturer_id = ?
@@ -81,7 +83,7 @@ public class ScheduleDAO {
 
     public List<Schedule> findByCourseSectionId(Long courseSectionId) {
         String sql = """
-                SELECT id, course_section_id, day_of_week, start_period, end_period, room, note
+                SELECT id, course_section_id, day_of_week, start_period, end_period, room_id, note
                 FROM schedules
                 WHERE course_section_id = ?
                 ORDER BY day_of_week, start_period
@@ -89,17 +91,17 @@ public class ScheduleDAO {
         return findManyBySingleId(sql, courseSectionId, "Không thể tải lịch học của học phần.");
     }
 
-    public List<Schedule> findByRoom(String room) {
+    public List<Schedule> findByRoom(Long roomId) {
         String sql = """
-                SELECT id, course_section_id, day_of_week, start_period, end_period, room, note
+                SELECT id, course_section_id, day_of_week, start_period, end_period, room_id, note
                 FROM schedules
-                WHERE room = ?
+                WHERE room_id = ?
                 ORDER BY day_of_week, start_period
                 """;
         List<Schedule> schedules = new ArrayList<>();
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, room);
+            statement.setLong(1, roomId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
                     schedules.add(mapRow(resultSet));
@@ -113,7 +115,7 @@ public class ScheduleDAO {
 
     public Schedule insert(Schedule schedule) {
         String sql = """
-                INSERT INTO schedules(course_section_id, day_of_week, start_period, end_period, room, note)
+                INSERT INTO schedules(course_section_id, day_of_week, start_period, end_period, room_id, note)
                 VALUES (?, ?, ?, ?, ?, ?)
                 """;
         try (Connection connection = DBConnection.getConnection();
@@ -134,7 +136,7 @@ public class ScheduleDAO {
     public boolean update(Schedule schedule) {
         String sql = """
                 UPDATE schedules
-                SET course_section_id = ?, day_of_week = ?, start_period = ?, end_period = ?, room = ?, note = ?
+                SET course_section_id = ?, day_of_week = ?, start_period = ?, end_period = ?, room_id = ?, note = ?
                 WHERE id = ?
                 """;
         try (Connection connection = DBConnection.getConnection();
@@ -176,7 +178,7 @@ public class ScheduleDAO {
         String sql = """
                 SELECT COUNT(1)
                 FROM schedules s
-                WHERE s.room = ?
+                WHERE s.room_id = ?
                   AND s.day_of_week = ?
                   AND NOT (s.end_period < ? OR s.start_period > ?)
                   AND (? IS NULL OR s.id <> ?)
@@ -229,7 +231,7 @@ public class ScheduleDAO {
     private boolean hasConflict(String sql, Schedule schedule, Long excludeScheduleId, String message) {
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, schedule.getRoom());
+            statement.setLong(1, schedule.getRoom().getId());
             statement.setString(2, schedule.getDayOfWeek());
             statement.setInt(3, schedule.getStartPeriod());
             statement.setInt(4, schedule.getEndPeriod());
@@ -248,19 +250,20 @@ public class ScheduleDAO {
         statement.setString(2, schedule.getDayOfWeek());
         statement.setInt(3, schedule.getStartPeriod());
         statement.setInt(4, schedule.getEndPeriod());
-        statement.setString(5, schedule.getRoom());
+        statement.setLong(5, schedule.getRoom().getId());
         statement.setString(6, schedule.getNote());
     }
 
     private Schedule mapRow(ResultSet resultSet) throws SQLException {
         CourseSection courseSection = courseSectionDAO.findById(resultSet.getLong("course_section_id")).orElse(null);
+        Room room = roomDAO.findById(resultSet.getLong("room_id")).orElse(null);
         return new Schedule(
                 resultSet.getLong("id"),
                 courseSection,
                 resultSet.getString("day_of_week"),
                 resultSet.getInt("start_period"),
                 resultSet.getInt("end_period"),
-                resultSet.getString("room"),
+                room,
                 resultSet.getString("note")
         );
     }

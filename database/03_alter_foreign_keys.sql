@@ -1,3 +1,0 @@
--- 03_alter_foreign_keys.sql
--- Script du phong cho truong hop can dieu chinh them khoa ngoai tren schema cu.
--- Hien tai toan bo foreign key chinh da duoc tao trong 02_create_tables.sql.

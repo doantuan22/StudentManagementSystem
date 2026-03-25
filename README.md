@@ -178,17 +178,21 @@ totalScore = processScore * 0.3 + midtermScore * 0.2 + finalScore * 0.5
 - `src/main/java/com/qlsv/view/student/StudentRegisteredSubjectsPanel.java`
 - `src/main/java/com/qlsv/view/student/StudentResultPanel.java`
 - `src/main/java/com/qlsv/view/student/StudentSchedulePanel.java`
-- `database/02_create_tables.sql`
-- `database/03_insert_sample_data.sql`
-- `database/06_create_views.sql`
-- `database/07_create_indexes.sql`
-- `database/10_test_queries.sql`
+- `database/00_drop_old_database.sql`
+- `database/01_create_schema.sql`
+- `database/02_seed_full_data.sql`
+- `database/03_verify_data.sql`
 - `database/README.md`
 
 ### Da them file / module moi
 
 - `src/main/java/com/qlsv/dao/ReportDAO.java`
 - `src/main/java/com/qlsv/model/SystemStatistics.java`
+- `src/main/java/com/qlsv/controller/RoomController.java`
+- `src/main/java/com/qlsv/dao/RoomDAO.java`
+- `src/main/java/com/qlsv/model/Room.java`
+- `src/main/java/com/qlsv/service/RoomService.java`
+- `src/main/java/com/qlsv/view/admin/RoomManagementPanel.java`
 
 ### Da bo sung module
 
@@ -220,26 +224,14 @@ Can sua lai `db.username` / `db.password` neu MySQL cua ban dung tai khoan khac.
 
 ### Thu tu chay SQL khuyen nghi
 
-Neu may da tung co schema cu:
+Các script tạo DB hiện đang được gộp theo luồng sau (chuẩn bị MySQL trước):
 
-1. `database/00_reset_database.sql`
+1. (Tùy chọn) Nếu muốn reset dữ liệu cũ: `database/00_drop_old_database.sql`
+2. Tạo schema (tạo bảng + view + index): `database/01_create_schema.sql`
+3. Nạp dữ liệu mẫu: `database/02_seed_full_data.sql`
+4. Kiểm tra nhanh sau khi nạp: `database/03_verify_data.sql`
 
-Sau do chay:
-
-1. `database/01_create_database.sql`
-2. `database/02_create_tables.sql`
-3. `database/03_insert_sample_data.sql`
-
-Neu may da co du lieu tu schema cu cua `course_sections.class_room_id`, chay them:
-
-1. `database/11_add_student_academic_year.sql`
-2. `database/12_rename_course_sections_class_room_to_room.sql`
-
-Co the chay them:
-
-1. `database/06_create_views.sql`
-2. `database/07_create_indexes.sql`
-3. `database/10_test_queries.sql`
+Lưu ý: `02_seed_full_data.sql` là script `INSERT INTO` (không dùng `ON DUPLICATE KEY`), nên nếu DB đã có dữ liệu bạn nên reset bằng `00_drop_old_database.sql` trước khi chạy lại để tránh trùng khóa.
 
 ### Cac bang chinh
 
@@ -247,6 +239,7 @@ Co the chay them:
 - `users`
 - `faculties`
 - `class_rooms`
+- `rooms`
 - `students`
 - `lecturers`
 - `subjects`
@@ -275,24 +268,36 @@ Danh sach:
 
 ### Cach 1: Chay bang IDE
 
-1. Import project Maven vao IntelliJ IDEA / Eclipse / NetBeans
-2. Dam bao MySQL dang chay va database da import xong
-3. Mo file `src/main/java/com/qlsv/Main.java`
-4. Run ham `main`
+1. Clone repo
+2. Import project Maven vao IntelliJ IDEA / Eclipse / NetBeans
+3. Dam bao MySQL dang chay va database da import xong (chạy các script trong `database/`)
+4. Cap nhat `src/main/resources/application.properties` (đặc biệt `db.url`, `db.username`, `db.password`)
+5. Mo file `src/main/java/com/qlsv/Main.java` và Run `main`
 
 ### Cach 2: Compile / run thu cong tren Windows PowerShell
 
 ```powershell
-rg --files src/main/java -g "*.java" | Set-Content sources.txt
-javac -encoding UTF-8 -cp "lib/*" -d target/classes @sources.txt
-java -cp "target/classes;src/main/resources;lib/*" com.qlsv.Main
+mvn clean compile
 ```
 
-Neu may da cai Maven va muon chi compile nhanh:
+Sau khi compile xong, bạn có thể Run `com.qlsv.Main` từ IDE (hoặc tự thiết lập classpath theo Maven).
+
+Neu may da cai Maven va muon chi compile nhanh (không bao gồm run):
 
 ```powershell
 mvn clean compile
 ```
+
+## Cấu hình để chạy ổn định trên nhiều IDE
+
+- Java: yêu cầu JDK `17` trở lên (project dùng các tính năng Java mới như text block/pattern matching/stream `toList()`).
+- Maven build: `pom.xml` đã được cấu hình để `maven-compiler-plugin` build theo `release 17` nhằm tránh tình trạng IDE dùng JDK thấp hơn làm fail compile.
+- Config `application.properties`:
+  - Ứng dụng tải cấu hình bắt buộc từ `classpath` (nằm trong `src/main/resources` khi build bằng Maven).
+  - Đã loại bỏ fallback đọc file theo đường dẫn filesystem (`src/main/resources/...`) để giảm phụ thuộc vào `working directory` của IDE.
+- Khởi động ứng dụng & DB:
+  - `Main` luôn mở `LoginFrame` ngay cả khi DB không kết nối được/thiếu schema, thay vì “silent fail” hoặc dừng luồng app.
+  - `DBConnection` bổ sung log chi tiết khi không connect được MySQL hoặc thiếu table/cột schema, để dễ debug từ IDE khác.
 
 ## Ghi chu ky thuat quan trong
 

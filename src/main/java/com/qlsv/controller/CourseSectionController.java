@@ -25,8 +25,8 @@ public class CourseSectionController {
         return courseSectionService.findByFacultyId(facultyId);
     }
 
-    public List<CourseSection> getCourseSectionsByRoom(String room) {
-        return courseSectionService.findByRoom(room);
+    public List<CourseSection> getCourseSectionsByRoom(Long roomId) {
+        return courseSectionService.findByRoom(roomId);
     }
 
     public List<CourseSection> getCourseSectionsBySectionCode(String sectionCode) {

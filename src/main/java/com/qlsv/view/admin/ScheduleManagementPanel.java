@@ -2,9 +2,11 @@ package com.qlsv.view.admin;
 
 import com.qlsv.controller.CourseSectionController;
 import com.qlsv.controller.FacultyController;
+import com.qlsv.controller.RoomController;
 import com.qlsv.controller.ScheduleController;
 import com.qlsv.model.CourseSection;
 import com.qlsv.model.Faculty;
+import com.qlsv.model.Room;
 import com.qlsv.model.Schedule;
 import com.qlsv.utils.DisplayTextUtil;
 import com.qlsv.view.common.AbstractCrudPanel;
@@ -33,6 +35,7 @@ public class ScheduleManagementPanel extends AbstractCrudPanel<Schedule> {
     private final ScheduleController scheduleController = new ScheduleController();
     private final CourseSectionController courseSectionController = new CourseSectionController();
     private final FacultyController facultyController = new FacultyController();
+    private final RoomController roomController = new RoomController();
 
     private final JComboBox<String> filterTypeComboBox = new JComboBox<>(
             new String[]{FILTER_NONE, FILTER_ALL, FILTER_SECTION_CODE, FILTER_ROOM, FILTER_FACULTY}
@@ -65,35 +68,64 @@ public class ScheduleManagementPanel extends AbstractCrudPanel<Schedule> {
         }
 
         String filterType = (String) filterTypeComboBox.getSelectedItem();
-        return switch (filterType == null ? FILTER_NONE : filterType) {
+        List<Schedule> schedules = new java.util.ArrayList<>(switch (filterType == null ? FILTER_NONE : filterType) {
             case FILTER_ALL -> scheduleController.getAllSchedules();
             case FILTER_SECTION_CODE -> {
                 CourseSection courseSection = getSelectedFilterValue(CourseSection.class);
                 yield courseSection == null ? List.of() : scheduleController.getSchedulesByCourseSection(courseSection.getId());
             }
             case FILTER_ROOM -> {
-                String room = getSelectedFilterValue(String.class);
-                yield room == null ? List.of() : scheduleController.getSchedulesByRoom(room);
+                Room room = getSelectedFilterValue(Room.class);
+                yield room == null ? List.of() : scheduleController.getSchedulesByRoom(room.getId());
             }
             case FILTER_FACULTY -> {
                 Faculty faculty = getSelectedFilterValue(Faculty.class);
                 yield faculty == null ? List.of() : scheduleController.getSchedulesByFaculty(faculty.getId());
             }
             default -> List.of();
-        };
+        });
+
+        java.util.Set<Long> scheduledCourseSectionIds = schedules.stream()
+                .map(s -> s.getCourseSection() != null ? s.getCourseSection().getId() : null)
+                .filter(java.util.Objects::nonNull)
+                .collect(java.util.stream.Collectors.toSet());
+
+        List<CourseSection> allSections;
+        if (FILTER_SECTION_CODE.equals(filterType)) {
+            CourseSection courseSection = getSelectedFilterValue(CourseSection.class);
+            allSections = courseSection == null ? List.of() : List.of(courseSection);
+        } else if (FILTER_ROOM.equals(filterType)) {
+            Room room = getSelectedFilterValue(Room.class);
+            allSections = room == null ? List.of() : courseSectionController.getCourseSectionsByRoom(room.getId());
+        } else if (FILTER_FACULTY.equals(filterType)) {
+            Faculty faculty = getSelectedFilterValue(Faculty.class);
+            allSections = faculty == null ? List.of() : courseSectionController.getCourseSectionsByFaculty(faculty.getId());
+        } else {
+            allSections = courseSectionController.getAllCourseSectionsForSelection();
+        }
+
+        for (CourseSection section : allSections) {
+             if (!scheduledCourseSectionIds.contains(section.getId())) {
+                  Schedule dummy = new Schedule();
+                  dummy.setCourseSection(section);
+                  schedules.add(dummy);
+             }
+        }
+        return schedules;
     }
 
     @Override
     protected Object[] toRow(Schedule item) {
         CourseSection courseSection = item.getCourseSection();
+        boolean isDummy = item.getId() == null;
         return new Object[]{
-                item.getId(),
+                isDummy ? "" : item.getId(),
                 courseSection == null ? "" : courseSection.getSectionCode(),
                 courseSection == null || courseSection.getSubject() == null ? "" : courseSection.getSubject().getSubjectName(),
                 courseSection == null || courseSection.getLecturer() == null ? "" : courseSection.getLecturer().getFullName(),
-                item.getDayOfWeek(),
-                DisplayTextUtil.formatPeriod(item.getStartPeriod(), item.getEndPeriod()),
-                item.getRoom(),
+                isDummy ? "Chưa có lịch" : item.getDayOfWeek(),
+                isDummy ? "" : DisplayTextUtil.formatPeriod(item.getStartPeriod(), item.getEndPeriod()),
+                item.getRoom() == null ? "" : item.getRoom().getRoomName(),
                 item.getNote()
         };
     }
@@ -113,29 +145,34 @@ public class ScheduleManagementPanel extends AbstractCrudPanel<Schedule> {
         }
 
         CourseSection courseSection = selectedItem.getCourseSection();
+        boolean isDummy = selectedItem.getId() == null;
         detailSectionPanel.showFields(new String[][]{
                 {"Mã học phần", courseSection == null ? "Chưa cập nhật" : DisplayTextUtil.defaultText(courseSection.getSectionCode())},
                 {"Môn học", courseSection == null || courseSection.getSubject() == null ? "Chưa cập nhật" : DisplayTextUtil.defaultText(courseSection.getSubject().getSubjectName())},
                 {"Giảng viên", courseSection == null || courseSection.getLecturer() == null ? "Chưa cập nhật" : DisplayTextUtil.defaultText(courseSection.getLecturer().getFullName())},
-                {"Thứ học", DisplayTextUtil.defaultText(selectedItem.getDayOfWeek())},
-                {"Tiết học", DisplayTextUtil.formatPeriod(selectedItem.getStartPeriod(), selectedItem.getEndPeriod())},
-                {"Phòng học", DisplayTextUtil.defaultText(selectedItem.getRoom())},
+                {"Thứ học", isDummy ? "Chưa có lịch" : DisplayTextUtil.defaultText(selectedItem.getDayOfWeek())},
+                {"Tiết học", isDummy ? "" : DisplayTextUtil.formatPeriod(selectedItem.getStartPeriod(), selectedItem.getEndPeriod())},
+                {"Phòng học", selectedItem.getRoom() == null ? "Chưa cập nhật" : DisplayTextUtil.defaultText(selectedItem.getRoom().getRoomName())},
                 {"Ghi chú", DisplayTextUtil.defaultText(selectedItem.getNote())}
         });
     }
 
     @Override
     protected Schedule promptForEntity(Schedule existingItem) {
+        boolean isDummy = existingItem != null && existingItem.getId() == null;
         JComboBox<CourseSection> sectionComboBox = new JComboBox<>(
                 courseSectionController.getAllCourseSectionsForSelection().toArray(new CourseSection[0]));
-        JTextField dayField = new JTextField(existingItem == null ? "Thứ 2" : existingItem.getDayOfWeek());
-        JTextField startPeriodField = new JTextField(existingItem == null ? "1" : String.valueOf(existingItem.getStartPeriod()));
-        JTextField endPeriodField = new JTextField(existingItem == null ? "3" : String.valueOf(existingItem.getEndPeriod()));
-        JTextField roomField = new JTextField(existingItem == null ? "" : existingItem.getRoom());
-        JTextField noteField = new JTextField(existingItem == null ? "" : existingItem.getNote());
+        JTextField dayField = new JTextField(existingItem == null || isDummy ? "Thứ 2" : existingItem.getDayOfWeek());
+        JTextField startPeriodField = new JTextField(existingItem == null || isDummy ? "1" : String.valueOf(existingItem.getStartPeriod()));
+        JTextField endPeriodField = new JTextField(existingItem == null || isDummy ? "3" : String.valueOf(existingItem.getEndPeriod()));
+        JComboBox<Room> roomComboBox = new JComboBox<>(roomController.getRoomsForSelection().toArray(new Room[0]));
+        JTextField noteField = new JTextField(existingItem == null || isDummy ? "" : existingItem.getNote());
 
         if (existingItem != null && existingItem.getCourseSection() != null) {
             sectionComboBox.setSelectedItem(existingItem.getCourseSection());
+        }
+        if (existingItem != null && existingItem.getRoom() != null && !isDummy) {
+            roomComboBox.setSelectedItem(existingItem.getRoom());
         }
 
         JPanel formPanel = new JPanel(new GridLayout(0, 2, 10, 10));
@@ -148,7 +185,7 @@ public class ScheduleManagementPanel extends AbstractCrudPanel<Schedule> {
         formPanel.add(new JLabel("Tiết kết thúc"));
         formPanel.add(endPeriodField);
         formPanel.add(new JLabel("Phòng học"));
-        formPanel.add(roomField);
+        formPanel.add(roomComboBox);
         formPanel.add(new JLabel("Ghi chú"));
         formPanel.add(noteField);
 
@@ -163,12 +200,12 @@ public class ScheduleManagementPanel extends AbstractCrudPanel<Schedule> {
             return null;
         }
 
-        Schedule schedule = existingItem == null ? new Schedule() : existingItem;
+        Schedule schedule = existingItem == null || (existingItem != null && existingItem.getId() == null) ? new Schedule() : existingItem;
         schedule.setCourseSection((CourseSection) sectionComboBox.getSelectedItem());
         schedule.setDayOfWeek(dayField.getText().trim());
         schedule.setStartPeriod(Integer.parseInt(startPeriodField.getText().trim()));
         schedule.setEndPeriod(Integer.parseInt(endPeriodField.getText().trim()));
-        schedule.setRoom(roomField.getText().trim());
+        schedule.setRoom((Room) roomComboBox.getSelectedItem());
         schedule.setNote(noteField.getText().trim());
         return schedule;
     }
@@ -180,6 +217,10 @@ public class ScheduleManagementPanel extends AbstractCrudPanel<Schedule> {
 
     @Override
     protected void deleteEntity(Schedule item) {
+        if (item.getId() == null) {
+            JOptionPane.showMessageDialog(this, "Học phần này chưa có lịch học để xóa.", "Lỗi xóa", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
         scheduleController.deleteSchedule(item.getId());
     }
 
@@ -225,11 +266,9 @@ public class ScheduleManagementPanel extends AbstractCrudPanel<Schedule> {
         if (FILTER_ROOM.equals(filterType)) {
             filterValueComboBox.setEnabled(true);
             filterValueComboBox.addItem(new FilterOption<>("Chọn phòng học", null));
-            scheduleController.getAllSchedules().stream()
-                    .map(Schedule::getRoom)
-                    .filter(room -> room != null && !room.isBlank())
-                    .distinct()
-                    .forEach(room -> filterValueComboBox.addItem(new FilterOption<>(room, room)));
+            for (Room room : roomController.getRoomsForSelection()) {
+                filterValueComboBox.addItem(new FilterOption<>(room.getRoomName(), room));
+            }
             return;
         }
 

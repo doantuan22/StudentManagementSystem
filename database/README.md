@@ -1,43 +1,41 @@
 # Database Scripts
 
-- `00_reset_database.sql`: xoa schema cu neu can reset lai tu dau.
-- `01_create_database.sql`: khoi tao database `student_management`.
-- `02_create_tables.sql`: tao day du bang, khoa ngoai, unique key va bang `schedules`.
-- `03_insert_sample_data.sql`: nap role, user, khoa, lop, giang vien, sinh vien, mon hoc, hoc phan, lich hoc, enrollment va score.
-- `04_insert_roles.sql`: script tuong thich neu muon chen role rieng.
-- `05_seed_sample_data.sql`: script tuong thich de nap du lieu mau theo cach cu.
-- `06_create_views.sql`: tao view ho tro lich hoc va bang diem theo hoc phan.
-- `07_create_indexes.sql`: tao index phuc vu tim kiem va bao cao.
-- `08_create_triggers.sql`: de trong de bo sung sau.
-- `09_create_procedures.sql`: de trong de bo sung sau.
-- `10_test_queries.sql`: truy van mau de kiem tra nhanh du lieu.
-- `11_add_student_academic_year.sql`: bo sung nien khoa cho bang `students` khi nang cap schema cu.
-- `12_rename_course_sections_class_room_to_room.sql`: chuyen cot sai nghia cua `course_sections` sang `room` de dung logic phong hoc.
+Thư mục `database/` chứa các file SQL phục vụ việc tạo schema và chèn dữ liệu demo/test cho đồ án (MySQL 8).
 
-## Thu tu khuyen nghi
+## Các file script hiện tại
 
-Neu ban da tung tao `student_management` tu schema cu, hay reset truoc:
+1. `00_drop_old_database.sql`
+   - Xóa database cũ `student_management` (nếu tồn tại). Dùng khi muốn reset sạch dữ liệu.
+2. `01_create_schema.sql`
+   - Tạo database `student_management` (nếu chưa có).
+   - Tạo toàn bộ bảng, khóa ngoại, view (`vw_student_schedules`, `vw_section_scores`) và index phục vụ tra cứu.
+3. `02_seed_full_data.sql`
+   - Chèn dữ liệu mẫu đầy đủ: roles/users, faculties/classes/rooms, lecturers/students, subjects/course_sections, schedules, enrollments và scores.
+   - Mật khẩu demo mặc định cho các tài khoản: `123456` (đã được lưu dạng SHA-256 trong script).
+4. `03_verify_data.sql`
+   - Chạy các câu lệnh kiểm tra nhanh: số lượng bản ghi các bảng, kiểm tra view trả dữ liệu.
 
-0. Chay `00_reset_database.sql`
-1. Chay `01_create_database.sql`
-2. Chay `02_create_tables.sql`
-3. Chay `03_insert_sample_data.sql`
-4. Co the chay them `06_create_views.sql`, `07_create_indexes.sql`, `10_test_queries.sql`
+## Thứ tự chạy script (khuyến nghị)
 
-Neu dang nang cap tu database cu, chay them:
+Nếu setup lần đầu (hoặc muốn reset sạch dữ liệu):
 
-5. `11_add_student_academic_year.sql`
-6. `12_rename_course_sections_class_room_to_room.sql`
+1. (Tùy chọn) `00_drop_old_database.sql`
+2. `01_create_schema.sql`
+3. `02_seed_full_data.sql`
+4. `03_verify_data.sql` (để kiểm tra nhanh)
 
-## Du lieu mau da co san
+Lưu ý: `02_seed_full_data.sql` dùng lệnh `INSERT INTO` (không xử lý trùng). Vì vậy nếu DB đã có dữ liệu và bạn chạy lại seed, bạn nên reset bằng `00_drop_old_database.sql` trước để tránh lỗi khóa/không trùng dữ liệu.
 
-- 3 role: `ADMIN`, `LECTURER`, `STUDENT`
-- 6 user mau: `admin`, `lecturer01`, `lecturer02`, `student01`, `student02`, `student03`
-- 2 khoa, 3 lop, 2 giang vien, 3 sinh vien
-- 3 mon hoc, 4 hoc phan, 4 lich hoc
-- enrollment va score mau de test luong dang ky, nhap diem va bao cao
+## Cấu hình MySQL mặc định của đồ án (demo)
 
-## Tai khoan mau
+Mặc định trong project:
+- `db.username=root`
+- `db.password=123456`
+- `db.url=jdbc:mysql://localhost:3306/student_management`
+
+Thành viên nhóm có thể cần chỉnh `src/main/resources/application.properties` theo MySQL của máy mình.
+
+## Tài khoản demo để test
 
 - `admin` / `123456`
 - `lecturer01` / `123456`

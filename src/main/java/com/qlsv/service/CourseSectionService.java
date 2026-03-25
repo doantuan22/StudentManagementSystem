@@ -36,10 +36,11 @@ public class CourseSectionService {
                 .toList();
     }
 
-    public List<CourseSection> findByRoom(String room) {
+    public List<CourseSection> findByRoom(Long roomId) {
         return findAllForAdmin().stream()
                 .filter(courseSection -> courseSection.getRoom() != null
-                        && courseSection.getRoom().equalsIgnoreCase(room == null ? "" : room.trim()))
+                        && courseSection.getRoom().getId() != null
+                        && courseSection.getRoom().getId().equals(roomId))
                 .toList();
     }
 
@@ -68,7 +69,9 @@ public class CourseSectionService {
 
     private void validate(CourseSection courseSection) {
         ValidationUtil.requireWithinLength(courseSection.getSectionCode(), 50, "Mã học phần");
-        ValidationUtil.requireWithinLength(courseSection.getRoom(), 50, "Phòng học");
+        if (courseSection.getRoom() == null || courseSection.getRoom().getId() == null) {
+            throw new IllegalArgumentException("Học phần phải gắn với phòng học.");
+        }
         ValidationUtil.requireNotBlank(courseSection.getSemester(), "Học kỳ không được để trống.");
         ValidationUtil.requireNotBlank(courseSection.getSchoolYear(), "Năm học không được để trống.");
         ValidationUtil.requirePositive(courseSection.getMaxStudents(), "Sĩ số tối đa phải lớn hơn 0.");

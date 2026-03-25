@@ -7,6 +7,7 @@ import com.qlsv.dao.ScheduleDAO;
 import com.qlsv.dao.StudentDAO;
 import com.qlsv.exception.ValidationException;
 import com.qlsv.model.Lecturer;
+import com.qlsv.model.Room;
 import com.qlsv.model.Schedule;
 import com.qlsv.model.Student;
 import com.qlsv.security.RolePermission;
@@ -49,9 +50,9 @@ public class ScheduleService {
                 .toList();
     }
 
-    public List<Schedule> findByRoom(String room) {
+    public List<Schedule> findByRoom(Long roomId) {
         permissionService.requirePermission(RolePermission.MANAGE_SCHEDULES);
-        return scheduleDAO.findByRoom(room == null ? "" : room.trim());
+        return scheduleDAO.findByRoom(roomId);
     }
 
     public List<Schedule> findByFacultyId(Long facultyId) {
@@ -122,7 +123,9 @@ public class ScheduleService {
         ValidationUtil.requireNotBlank(schedule.getDayOfWeek(), "Thứ học không được để trống.");
         ValidationUtil.requirePositive(schedule.getStartPeriod(), "Tiết bắt đầu phải lớn hơn 0.");
         ValidationUtil.requirePositive(schedule.getEndPeriod(), "Tiết kết thúc phải lớn hơn 0.");
-        ValidationUtil.requireNotBlank(schedule.getRoom(), "Phòng học không được để trống.");
+        if (schedule.getRoom() == null || schedule.getRoom().getId() == null) {
+            throw new ValidationException("Phòng học không được để trống.");
+        }
         if (schedule.getStartPeriod() > schedule.getEndPeriod()) {
             throw new ValidationException("Tiết bắt đầu không được lớn hơn tiết kết thúc.");
         }

@@ -6,8 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Properties;
 
 public final class AppConfig {
@@ -20,7 +18,7 @@ public final class AppConfig {
 
     private static Properties loadProperties() {
         Properties properties = new Properties();
-        // Doc file cau hinh duy nhat mot lan de dung cho toan bo ung dung.
+        // Đọc file cấu hình duy nhất một lần để dùng cho toàn bộ ứng dụng.
         try (InputStream inputStream = AppConfig.class.getClassLoader().getResourceAsStream(CONFIG_FILE)) {
             if (inputStream != null) {
                 properties.load(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
@@ -29,24 +27,8 @@ public final class AppConfig {
         } catch (IOException exception) {
             throw new AppException("Không thể đọc file cấu hình ứng dụng.", exception);
         }
-
-        // Fallback cho truong hop IDE/launcher chi build class ma chua copy resource vao classpath.
-        for (Path candidatePath : new Path[]{
-                Path.of("src", "main", "resources", CONFIG_FILE),
-                Path.of(CONFIG_FILE)
-        }) {
-            if (!Files.exists(candidatePath)) {
-                continue;
-            }
-            try (InputStream inputStream = Files.newInputStream(candidatePath)) {
-                properties.load(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
-                return properties;
-            } catch (IOException exception) {
-                throw new AppException("Không thể đọc file cấu hình tại " + candidatePath.toAbsolutePath(), exception);
-            }
-        }
-
-        throw new AppException("Không tìm thấy file cấu hình " + CONFIG_FILE);
+        // Bắt buộc phải có trên classpath (src/main/resources khi build bằng Maven).
+        throw new AppException("Không tìm thấy file cấu hình trên classpath: " + CONFIG_FILE);
     }
 
     public static String getProperty(String key) {

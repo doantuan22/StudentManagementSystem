@@ -1,3 +1,0 @@
--- 08_create_triggers.sql
--- File du phong cho trigger mo rong ve sau.
--- Phien ban hien tai xu ly nghiep vu chinh o tang service Java.

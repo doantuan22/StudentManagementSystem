@@ -48,7 +48,8 @@ public class LecturerScorePanel extends BasePanel {
         reloadData();
     }
 
-    private void reloadData() {
+    @Override
+    public void reloadData() {
         try {
             currentScores.clear();
             currentScores.addAll(scoreController.getCurrentLecturerScores());

@@ -40,28 +40,23 @@ public class EnrollmentService {
     }
 
     public List<Enrollment> findByCourseSectionId(Long courseSectionId) {
-        return findAll().stream()
-                .filter(enrollment -> enrollment.getCourseSection() != null
-                        && enrollment.getCourseSection().getId() != null
-                        && enrollment.getCourseSection().getId().equals(courseSectionId))
-                .toList();
+        permissionService.requireLogin();
+        return enrollmentDAO.findByCourseSectionId(courseSectionId);
+    }
+
+    public int countByCourseSectionId(Long courseSectionId) {
+        permissionService.requireLogin();
+        return enrollmentDAO.countByCourseSectionId(courseSectionId);
     }
 
     public List<Enrollment> findByClassRoomId(Long classRoomId) {
-        return findAll().stream()
-                .filter(enrollment -> enrollment.getStudent() != null
-                        && enrollment.getStudent().getClassRoom() != null
-                        && enrollment.getStudent().getClassRoom().getId() != null
-                        && enrollment.getStudent().getClassRoom().getId().equals(classRoomId))
-                .toList();
+        permissionService.requirePermission(RolePermission.MANAGE_ENROLLMENTS);
+        return enrollmentDAO.findByClassRoomId(classRoomId);
     }
 
     public List<Enrollment> findByStudentId(Long studentId) {
-        return findAll().stream()
-                .filter(enrollment -> enrollment.getStudent() != null
-                        && enrollment.getStudent().getId() != null
-                        && enrollment.getStudent().getId().equals(studentId))
-                .toList();
+        permissionService.requirePermission(RolePermission.MANAGE_ENROLLMENTS);
+        return enrollmentDAO.findByStudentId(studentId);
     }
 
     public Enrollment save(Enrollment enrollment) {
@@ -115,6 +110,11 @@ public class EnrollmentService {
         }
         if (enrollment.getCourseSection() == null || enrollment.getCourseSection().getId() == null) {
             throw new ValidationException("Đăng ký học phần phải có học phần.");
+        }
+        if (checkDuplicate && enrollmentDAO.existsByStudentAndSubject(
+                enrollment.getStudent().getId(),
+                enrollment.getCourseSection().getSubject().getId())) {
+            throw new ValidationException("Sinh viên đã đăng ký học phần khác của cùng môn học này.");
         }
         if (checkDuplicate && enrollmentDAO.existsByStudentAndCourseSection(
                 enrollment.getStudent().getId(),

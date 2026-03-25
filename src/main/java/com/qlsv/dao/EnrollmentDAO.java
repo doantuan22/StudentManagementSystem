@@ -106,6 +106,29 @@ public class EnrollmentDAO {
         }
     }
 
+    public List<Enrollment> findByClassRoomId(Long classRoomId) {
+        String sql = """
+                SELECT e.id, e.student_id, e.course_section_id, e.status, e.enrolled_at
+                FROM enrollments e
+                JOIN students s ON s.id = e.student_id
+                WHERE s.class_room_id = ?
+                ORDER BY e.id
+                """;
+        List<Enrollment> enrollments = new ArrayList<>();
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setLong(1, classRoomId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    enrollments.add(mapRow(resultSet));
+                }
+                return enrollments;
+            }
+        } catch (SQLException exception) {
+            throw new AppException("Không thể tải danh sách đăng ký theo lớp học.", exception);
+        }
+    }
+
     public List<Enrollment> findByCourseSectionId(Long courseSectionId) {
         String sql = """
                 SELECT id, student_id, course_section_id, status, enrolled_at
@@ -143,6 +166,24 @@ public class EnrollmentDAO {
             }
         } catch (SQLException exception) {
             throw new AppException("Không thể tìm đăng ký theo sinh viên và học phần.", exception);
+        }
+    }
+
+    public boolean existsByStudentAndSubject(Long studentId, Long subjectId) {
+        String sql = """
+                SELECT COUNT(1) FROM enrollments e
+                JOIN course_sections cs ON cs.id = e.course_section_id
+                WHERE e.student_id = ? AND cs.subject_id = ?
+                """;
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setLong(1, studentId);
+            statement.setLong(2, subjectId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return resultSet.next() && resultSet.getInt(1) > 0;
+            }
+        } catch (SQLException exception) {
+            throw new AppException("Không thể kiểm tra đăng ký trùng môn học.", exception);
         }
     }
 

@@ -5,6 +5,7 @@ import com.qlsv.model.User;
 import com.qlsv.view.auth.LoginFrame;
 import com.qlsv.view.common.AppColors;
 import com.qlsv.view.common.BaseFrame;
+import com.qlsv.view.common.BasePanel;
 import com.qlsv.view.common.SidebarMenu;
 
 import javax.swing.BorderFactory;
@@ -34,23 +35,34 @@ public class StudentDashboardFrame extends BaseFrame {
 
         CardLayout cardLayout = new CardLayout();
         JPanel contentPanel = new JPanel(cardLayout);
-        contentPanel.add(new StudentProfilePanel(), "profile");
-        contentPanel.add(new StudentEnrollmentPanel(), "enrollment");
-        contentPanel.add(new StudentRegisteredSubjectsPanel(), "registered");
-        contentPanel.add(new StudentScorePanel(), "scores");
-        contentPanel.add(new StudentSchedulePanel(), "schedule");
+
+        StudentHomePanel homePanel = new StudentHomePanel();
+        StudentProfilePanel profilePanel = new StudentProfilePanel();
+        StudentEnrollmentPanel enrollmentPanel = new StudentEnrollmentPanel();
+        StudentRegisteredSubjectsPanel registeredPanel = new StudentRegisteredSubjectsPanel();
+        StudentScorePanel scorePanel = new StudentScorePanel();
+        StudentSchedulePanel schedulePanel = new StudentSchedulePanel();
+
+        contentPanel.add(homePanel, "home");
+        contentPanel.add(profilePanel, "profile");
+        contentPanel.add(enrollmentPanel, "enrollment");
+        contentPanel.add(registeredPanel, "registered");
+        contentPanel.add(scorePanel, "scores");
+        contentPanel.add(schedulePanel, "schedule");
 
         SidebarMenu sidebarMenu = new SidebarMenu(
                 "Không gian sinh viên",
-                "Các tác vụ học tập được đặt gọn trong một sidebar bên trái để theo dõi và chuyển màn hình thuận tiện."
+                ""
         );
-        registerMenuItem(sidebarMenu, "profile", "Thông tin cá nhân", cardLayout, contentPanel, "profile");
-        registerMenuItem(sidebarMenu, "enrollment", "Đăng ký học phần", cardLayout, contentPanel, "enrollment");
-        registerMenuItem(sidebarMenu, "registered", "Học phần đã đăng ký", cardLayout, contentPanel, "registered");
-        registerMenuItem(sidebarMenu, "scores", "Xem điểm", cardLayout, contentPanel, "scores");
-        registerMenuItem(sidebarMenu, "schedule", "Lịch học", cardLayout, contentPanel, "schedule");
-        sidebarMenu.setActiveItem("profile");
-        cardLayout.show(contentPanel, "profile");
+        registerMenuItem(sidebarMenu, "home", "Tổng quan", cardLayout, contentPanel, "home", homePanel);
+        registerMenuItem(sidebarMenu, "profile", "Thông tin cá nhân", cardLayout, contentPanel, "profile", profilePanel);
+        registerMenuItem(sidebarMenu, "enrollment", "Đăng ký học phần", cardLayout, contentPanel, "enrollment", enrollmentPanel);
+        registerMenuItem(sidebarMenu, "registered", "Học phần đã đăng ký", cardLayout, contentPanel, "registered", registeredPanel);
+        registerMenuItem(sidebarMenu, "scores", "Xem điểm", cardLayout, contentPanel, "scores", scorePanel);
+        registerMenuItem(sidebarMenu, "schedule", "Lịch học", cardLayout, contentPanel, "schedule", schedulePanel);
+        
+        sidebarMenu.setActiveItem("home");
+        cardLayout.show(contentPanel, "home");
 
         JPanel bodyPanel = new JPanel(new BorderLayout(18, 12));
         bodyPanel.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
@@ -70,8 +82,12 @@ public class StudentDashboardFrame extends BaseFrame {
             String text,
             CardLayout cardLayout,
             JPanel contentPanel,
-            String cardName
+            String cardName,
+            BasePanel panel
     ) {
-        sidebarMenu.addMenuItem(itemKey, text, () -> cardLayout.show(contentPanel, cardName));
+        sidebarMenu.addMenuItem(itemKey, text, () -> {
+            panel.reloadData();
+            cardLayout.show(contentPanel, cardName);
+        });
     }
 }

@@ -25,6 +25,10 @@ public class EnrollmentController {
         return enrollmentService.findByCourseSectionId(courseSectionId);
     }
 
+    public int countEnrollmentsByCourseSection(Long courseSectionId) {
+        return enrollmentService.countByCourseSectionId(courseSectionId);
+    }
+
     public List<Enrollment> getEnrollmentsByClassRoom(Long classRoomId) {
         return enrollmentService.findByClassRoomId(classRoomId);
     }

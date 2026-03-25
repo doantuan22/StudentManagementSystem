@@ -10,4 +10,8 @@ public class BasePanel extends JPanel {
         super(new BorderLayout(12, 12));
         setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
     }
+
+    public void reloadData() {
+        // Mac dinh khong lam gi, cac lop con se override neu can tai lai du lieu
+    }
 }

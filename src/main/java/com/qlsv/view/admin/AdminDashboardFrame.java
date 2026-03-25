@@ -12,6 +12,7 @@ import javax.swing.JButton;
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
+import java.awt.Cursor;
 
 public class AdminDashboardFrame extends BaseFrame {
 
@@ -24,6 +25,7 @@ public class AdminDashboardFrame extends BaseFrame {
 
     private void initComponents(User user) {
         JButton logoutButton = new JButton("Đăng xuất");
+        configureHeaderButton(logoutButton);
         logoutButton.addActionListener(event -> {
             loginController.logout();
             new LoginFrame().setVisible(true);
@@ -45,11 +47,11 @@ public class AdminDashboardFrame extends BaseFrame {
         contentPanel.add(new ScoreManagementPanel(), "scores");
         contentPanel.add(new ScheduleManagementPanel(), "schedules");
         contentPanel.add(new ReportManagementPanel(), "reports");
-        contentPanel.add(new SystemStatisticsPanel(), "statistics");
+        contentPanel.setBackground(AppColors.CONTENT_BACKGROUND);
 
         SidebarMenu sidebarMenu = new SidebarMenu(
                 "Quản trị hệ thống",
-                ""
+                "Truy cập nhanh các màn hình quản lý dành cho quản trị viên."
         );
         registerMenuItem(sidebarMenu, "home", "Tổng quan", cardLayout, contentPanel, "home");
         registerMenuItem(sidebarMenu, "students", "Quản lý sinh viên", cardLayout, contentPanel, "students");
@@ -62,7 +64,6 @@ public class AdminDashboardFrame extends BaseFrame {
         registerMenuItem(sidebarMenu, "scores", "Quản lý điểm", cardLayout, contentPanel, "scores");
         registerMenuItem(sidebarMenu, "schedules", "Quản lý lịch học", cardLayout, contentPanel, "schedules");
         registerMenuItem(sidebarMenu, "reports", "Báo cáo", cardLayout, contentPanel, "reports");
-        registerMenuItem(sidebarMenu, "statistics", "Thống kê", cardLayout, contentPanel, "statistics");
         sidebarMenu.setActiveItem("home");
         cardLayout.show(contentPanel, "home");
 
@@ -87,5 +88,15 @@ public class AdminDashboardFrame extends BaseFrame {
             String cardName
     ) {
         sidebarMenu.addMenuItem(itemKey, text, () -> cardLayout.show(contentPanel, cardName));
+    }
+
+    private void configureHeaderButton(JButton button) {
+        button.setFocusPainted(false);
+        button.setBorderPainted(false);
+        button.setOpaque(true);
+        button.setBackground(AppColors.SIDEBAR_BUTTON_HOVER);
+        button.setForeground(AppColors.BUTTON_TEXT);
+        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        button.setBorder(BorderFactory.createEmptyBorder(8, 14, 8, 14));
     }
 }

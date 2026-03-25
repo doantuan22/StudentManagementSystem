@@ -2,6 +2,7 @@ package com.qlsv.view.common;
 
 import com.qlsv.utils.DialogUtil;
 
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -17,8 +18,13 @@ import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.LayoutManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -42,35 +48,51 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
     private List<T> currentItems = new ArrayList<>();
 
     protected AbstractCrudPanel(String title) {
+        setOpaque(true);
+        setBackground(AppColors.CONTENT_BACKGROUND);
+
         JLabel titleLabel = new JLabel(title);
         titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 20f));
+        titleLabel.setForeground(AppColors.CARD_VALUE_TEXT);
 
         JPanel searchPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 8, 0));
+        searchPanel.setOpaque(false);
         searchField = new JTextField(24);
         searchField.setToolTipText("Nhập từ khóa để tìm nhanh trong dữ liệu đang hiển thị.");
+        searchField.setPreferredSize(new Dimension(240, 36));
+        searchField.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(AppColors.INPUT_BORDER),
+                BorderFactory.createEmptyBorder(7, 10, 7, 10)
+        ));
         JButton searchButton = new JButton("Tìm");
+        styleFilledButton(searchButton, AppColors.BUTTON_PRIMARY);
         searchPanel.add(new JLabel("Từ khóa"));
         searchPanel.add(searchField);
         searchPanel.add(searchButton);
 
         JPanel actionPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 0));
+        actionPanel.setOpaque(false);
         JButton addButton = new JButton("Thêm");
         JButton editButton = new JButton("Sửa");
         JButton deleteButton = new JButton("Xóa");
         JButton reloadButton = new JButton("Tải lại");
+        styleFilledButton(addButton, AppColors.BUTTON_SUCCESS);
+        styleFilledButton(editButton, AppColors.BUTTON_WARNING);
+        styleFilledButton(deleteButton, AppColors.BUTTON_DANGER);
+        styleFilledButton(reloadButton, AppColors.BUTTON_NEUTRAL);
         actionPanel.add(addButton);
         actionPanel.add(editButton);
         actionPanel.add(deleteButton);
         actionPanel.add(reloadButton);
 
         JPanel topHeaderPanel = new JPanel(new BorderLayout(12, 8));
+        topHeaderPanel.setOpaque(false);
         topHeaderPanel.add(titleLabel, BorderLayout.WEST);
         topHeaderPanel.add(searchPanel, BorderLayout.CENTER);
         topHeaderPanel.add(actionPanel, BorderLayout.EAST);
 
         extraTopPanel.setOpaque(false);
-        JPanel northPanel = new JPanel(new BorderLayout(0, 8));
-        northPanel.setOpaque(false);
+        JPanel northPanel = createSectionCard(new BorderLayout(0, 10));
         northPanel.add(topHeaderPanel, BorderLayout.NORTH);
         northPanel.add(extraTopPanel, BorderLayout.CENTER);
         add(northPanel, BorderLayout.NORTH);
@@ -82,6 +104,7 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
             }
         };
         table = new JTable(tableModel);
+        configureTable();
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         table.getSelectionModel().addListSelectionListener(event -> {
             if (!event.getValueIsAdjusting()) {
@@ -89,13 +112,22 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
             }
         });
         tableScrollPane = new JScrollPane(table);
+        tableScrollPane.setBorder(BorderFactory.createLineBorder(AppColors.CARD_BORDER));
+        tableScrollPane.getViewport().setBackground(AppColors.CARD_BACKGROUND);
 
         JPanel emptyStatePanel = new JPanel(new BorderLayout());
-        emptyStatePanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(32, 24, 32, 24));
+        emptyStatePanel.setOpaque(true);
+        emptyStatePanel.setBackground(AppColors.CARD_BACKGROUND);
+        emptyStatePanel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(AppColors.CARD_BORDER),
+                BorderFactory.createEmptyBorder(48, 24, 48, 24)
+        ));
         emptyStateLabel.setFont(emptyStateLabel.getFont().deriveFont(Font.ITALIC, 15f));
-        emptyStateLabel.setForeground(UIManager.getColor("Label.disabledForeground"));
+        emptyStateLabel.setForeground(AppColors.CARD_MUTED_TEXT);
         emptyStatePanel.add(emptyStateLabel, BorderLayout.CENTER);
 
+        tableCardPanel.setOpaque(false);
+        mainContentPanel.setOpaque(false);
         tableCardPanel.add(tableScrollPane, "table");
         tableCardPanel.add(emptyStatePanel, "empty");
         mainContentPanel.add(tableCardPanel, BorderLayout.CENTER);
@@ -141,6 +173,8 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
     protected final void setFilterPanel(JComponent filterPanel) {
         extraTopPanel.removeAll();
         if (filterPanel != null) {
+            filterPanel.setOpaque(false);
+            styleNestedButtons(filterPanel);
             extraTopPanel.add(filterPanel, BorderLayout.CENTER);
         }
         revalidate();
@@ -274,6 +308,8 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
             splitPane.setContinuousLayout(true);
             splitPane.setOneTouchExpandable(true);
             splitPane.setDividerSize(10);
+            splitPane.setOpaque(false);
+            splitPane.setBackground(AppColors.CONTENT_BACKGROUND);
 
             tableCardPanel.setMinimumSize(new Dimension(0, 240));
             detailScrollPane.setMinimumSize(new Dimension(0, 180));
@@ -289,12 +325,57 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
         // Them JScrollPane cho khu vuc chi tiet de van nam ben duoi bang danh sach
         // nhung nguoi dung co the cuon doc de xem het noi dung khi du lieu dai.
         JScrollPane scrollPane = new JScrollPane(content);
-        scrollPane.setBorder(null);
+        scrollPane.setBorder(BorderFactory.createLineBorder(AppColors.CARD_BORDER));
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         scrollPane.getHorizontalScrollBar().setUnitIncrement(16);
         scrollPane.getViewport().setBackground(content.getBackground());
         return scrollPane;
+    }
+
+    private void configureTable() {
+        table.setRowHeight(28);
+        table.setFillsViewportHeight(true);
+        table.setGridColor(AppColors.CARD_BORDER);
+        table.setBackground(Color.WHITE);
+        table.setSelectionBackground(AppColors.TABLE_SELECTION_BACKGROUND);
+        table.setSelectionForeground(AppColors.CARD_VALUE_TEXT);
+        table.getTableHeader().setReorderingAllowed(false);
+        table.getTableHeader().setBackground(AppColors.TABLE_HEADER_BACKGROUND);
+        table.getTableHeader().setForeground(AppColors.CARD_VALUE_TEXT);
+        table.getTableHeader().setFont(table.getTableHeader().getFont().deriveFont(Font.BOLD, 13f));
+    }
+
+    private JPanel createSectionCard(LayoutManager layoutManager) {
+        JPanel panel = new JPanel(layoutManager);
+        panel.setOpaque(true);
+        panel.setBackground(AppColors.CARD_BACKGROUND);
+        panel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(AppColors.CARD_BORDER),
+                BorderFactory.createEmptyBorder(16, 18, 16, 18)
+        ));
+        return panel;
+    }
+
+    private void styleFilledButton(JButton button, Color background) {
+        button.setFocusPainted(false);
+        button.setBorderPainted(false);
+        button.setOpaque(true);
+        button.setBackground(background);
+        button.setForeground(AppColors.BUTTON_TEXT);
+        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        button.setBorder(BorderFactory.createEmptyBorder(9, 16, 9, 16));
+    }
+
+    private void styleNestedButtons(Component component) {
+        if (component instanceof JButton button) {
+            styleFilledButton(button, AppColors.BUTTON_NEUTRAL);
+        }
+        if (component instanceof Container container) {
+            for (Component child : container.getComponents()) {
+                styleNestedButtons(child);
+            }
+        }
     }
 }

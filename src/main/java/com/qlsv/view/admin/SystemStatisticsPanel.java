@@ -3,10 +3,11 @@ package com.qlsv.view.admin;
 import com.qlsv.controller.ReportController;
 import com.qlsv.model.SystemStatistics;
 import com.qlsv.utils.DialogUtil;
+import com.qlsv.view.common.AppColors;
 import com.qlsv.view.common.BasePanel;
+import com.qlsv.view.common.DashboardCard;
 
-import javax.swing.JButton;
-import javax.swing.JLabel;
+import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
@@ -14,45 +15,36 @@ import java.awt.GridLayout;
 public class SystemStatisticsPanel extends BasePanel {
 
     private final ReportController reportController = new ReportController();
-    private final JLabel studentsValueLabel = new JLabel("-");
-    private final JLabel lecturersValueLabel = new JLabel("-");
-    private final JLabel subjectsValueLabel = new JLabel("-");
-    private final JLabel sectionsValueLabel = new JLabel("-");
-    private final JLabel enrollmentsValueLabel = new JLabel("-");
+    private final DashboardCard studentsCard = new DashboardCard("Tổng sinh viên", AppColors.STAT_CARD_STUDENTS);
+    private final DashboardCard lecturersCard = new DashboardCard("Tổng giảng viên", AppColors.STAT_CARD_LECTURERS);
+    private final DashboardCard subjectsCard = new DashboardCard("Tổng môn học", AppColors.STAT_CARD_SUBJECTS);
+    private final DashboardCard sectionsCard = new DashboardCard("Tổng học phần", AppColors.STAT_CARD_SECTIONS);
+    private final DashboardCard enrollmentsCard = new DashboardCard("Tổng đăng ký học phần", AppColors.STAT_CARD_ENROLLMENTS);
 
     public SystemStatisticsPanel() {
-        JButton reloadButton = new JButton("Tải lại thống kê");
-        reloadButton.addActionListener(event -> loadStatistics());
+        setOpaque(false);
+        setBorder(BorderFactory.createEmptyBorder(4, 0, 0, 0));
 
-        JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.add(new JLabel("Thống kê hệ thống"), BorderLayout.WEST);
-        headerPanel.add(reloadButton, BorderLayout.EAST);
+        JPanel gridPanel = new JPanel(new GridLayout(0, 3, 16, 16));
+        gridPanel.setOpaque(false);
+        gridPanel.add(studentsCard);
+        gridPanel.add(lecturersCard);
+        gridPanel.add(subjectsCard);
+        gridPanel.add(sectionsCard);
+        gridPanel.add(enrollmentsCard);
 
-        JPanel gridPanel = new JPanel(new GridLayout(0, 2, 12, 12));
-        gridPanel.add(new JLabel("Tổng sinh viên"));
-        gridPanel.add(studentsValueLabel);
-        gridPanel.add(new JLabel("Tổng giảng viên"));
-        gridPanel.add(lecturersValueLabel);
-        gridPanel.add(new JLabel("Tổng môn học"));
-        gridPanel.add(subjectsValueLabel);
-        gridPanel.add(new JLabel("Tổng học phần"));
-        gridPanel.add(sectionsValueLabel);
-        gridPanel.add(new JLabel("Tổng đăng ký học phần"));
-        gridPanel.add(enrollmentsValueLabel);
-
-        add(headerPanel, BorderLayout.NORTH);
         add(gridPanel, BorderLayout.CENTER);
-        loadStatistics();
+        reloadStatistics();
     }
 
-    protected final void loadStatistics() {
+    public final void reloadStatistics() {
         try {
             SystemStatistics systemStatistics = reportController.getSystemStatistics();
-            studentsValueLabel.setText(String.valueOf(systemStatistics.getTotalStudents()));
-            lecturersValueLabel.setText(String.valueOf(systemStatistics.getTotalLecturers()));
-            subjectsValueLabel.setText(String.valueOf(systemStatistics.getTotalSubjects()));
-            sectionsValueLabel.setText(String.valueOf(systemStatistics.getTotalCourseSections()));
-            enrollmentsValueLabel.setText(String.valueOf(systemStatistics.getTotalEnrollments()));
+            studentsCard.setValue(String.valueOf(systemStatistics.getTotalStudents()));
+            lecturersCard.setValue(String.valueOf(systemStatistics.getTotalLecturers()));
+            subjectsCard.setValue(String.valueOf(systemStatistics.getTotalSubjects()));
+            sectionsCard.setValue(String.valueOf(systemStatistics.getTotalCourseSections()));
+            enrollmentsCard.setValue(String.valueOf(systemStatistics.getTotalEnrollments()));
         } catch (Exception exception) {
             DialogUtil.showError(this, exception.getMessage());
         }

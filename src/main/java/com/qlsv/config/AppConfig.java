@@ -4,6 +4,8 @@ import com.qlsv.exception.AppException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Properties;
@@ -21,7 +23,7 @@ public final class AppConfig {
         // Doc file cau hinh duy nhat mot lan de dung cho toan bo ung dung.
         try (InputStream inputStream = AppConfig.class.getClassLoader().getResourceAsStream(CONFIG_FILE)) {
             if (inputStream != null) {
-                properties.load(inputStream);
+                properties.load(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
                 return properties;
             }
         } catch (IOException exception) {
@@ -37,7 +39,7 @@ public final class AppConfig {
                 continue;
             }
             try (InputStream inputStream = Files.newInputStream(candidatePath)) {
-                properties.load(inputStream);
+                properties.load(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
                 return properties;
             } catch (IOException exception) {
                 throw new AppException("Không thể đọc file cấu hình tại " + candidatePath.toAbsolutePath(), exception);
@@ -76,6 +78,6 @@ public final class AppConfig {
     }
 
     public static String getAppName() {
-        return getProperty("app.name", "Hệ thống quản lý sinh viên");
+        return getProperty("app.name", "Hệ thống quản lý thông tin");
     }
 }

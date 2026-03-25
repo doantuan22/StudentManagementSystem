@@ -31,12 +31,12 @@ public class SidebarMenu extends JPanel {
 
     public SidebarMenu(String title, String description) {
         setOpaque(false);
-        setLayout(new BorderLayout(0, 18));
-        setPreferredSize(new Dimension(280, 0));
-        setMinimumSize(new Dimension(240, 0));
+        setLayout(new BorderLayout(0, 16));
+        setPreferredSize(new Dimension(252, 0));
+        setMinimumSize(new Dimension(228, 0));
         setBorder(BorderFactory.createCompoundBorder(
-                new LineBorder(AppColors.SIDEBAR_BORDER, 1, true),
-                BorderFactory.createEmptyBorder(22, 18, 22, 18)
+                new LineBorder(AppColors.SIDEBAR_BORDER, 1, false),
+                BorderFactory.createEmptyBorder(20, 16, 20, 16)
         ));
 
         JPanel headerPanel = new JPanel(new BorderLayout(0, 6));
@@ -46,13 +46,14 @@ public class SidebarMenu extends JPanel {
         titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 20f));
         titleLabel.setForeground(AppColors.SIDEBAR_TEXT);
 
-        JLabel descriptionLabel = new JLabel(toHtml(description));
-        descriptionLabel.setFont(descriptionLabel.getFont().deriveFont(Font.PLAIN, 12.5f));
-        descriptionLabel.setForeground(AppColors.SIDEBAR_MUTED_TEXT);
-        descriptionLabel.setVerticalAlignment(SwingConstants.TOP);
-
         headerPanel.add(titleLabel, BorderLayout.NORTH);
-        headerPanel.add(descriptionLabel, BorderLayout.CENTER);
+        if (description != null && !description.isBlank()) {
+            JLabel descriptionLabel = new JLabel(toHtml(description));
+            descriptionLabel.setFont(descriptionLabel.getFont().deriveFont(Font.PLAIN, 12.5f));
+            descriptionLabel.setForeground(AppColors.SIDEBAR_MUTED_TEXT);
+            descriptionLabel.setVerticalAlignment(SwingConstants.TOP);
+            headerPanel.add(descriptionLabel, BorderLayout.CENTER);
+        }
 
         menuItemsPanel.setOpaque(false);
         menuItemsPanel.setLayout(new BoxLayout(menuItemsPanel, BoxLayout.Y_AXIS));
@@ -71,15 +72,16 @@ public class SidebarMenu extends JPanel {
     public JButton addMenuItem(String key, String text, Runnable action) {
         JButton button = new JButton(text);
         button.setAlignmentX(Component.LEFT_ALIGNMENT);
-        button.setMaximumSize(new Dimension(Integer.MAX_VALUE, 46));
-        button.setMinimumSize(new Dimension(220, 46));
-        button.setPreferredSize(new Dimension(220, 46));
-        button.setBorder(BorderFactory.createEmptyBorder(12, 16, 12, 16));
+        button.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
+        button.setMinimumSize(new Dimension(210, 44));
+        button.setPreferredSize(new Dimension(210, 44));
+        button.setBorder(BorderFactory.createEmptyBorder(10, 14, 10, 14));
         button.setFocusPainted(false);
         button.setBorderPainted(false);
         button.setHorizontalAlignment(SwingConstants.LEFT);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         button.setForeground(AppColors.SIDEBAR_TEXT);
+        button.setFont(button.getFont().deriveFont(Font.PLAIN, 13.5f));
 
         // Sidebar gom toan bo nut chuc nang vao mot khoi rieng, co hover va active
         // nhung van giu nguyen action dieu huong cu cua tung man hinh.
@@ -103,7 +105,7 @@ public class SidebarMenu extends JPanel {
 
         menuButtons.put(key, button);
         if (menuItemsPanel.getComponentCount() > 0) {
-            menuItemsPanel.add(Box.createVerticalStrut(10));
+            menuItemsPanel.add(Box.createVerticalStrut(8));
         }
         menuItemsPanel.add(button);
         return button;
@@ -121,7 +123,7 @@ public class SidebarMenu extends JPanel {
         Graphics2D graphics2D = (Graphics2D) graphics.create();
         graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         graphics2D.setColor(AppColors.SIDEBAR_BACKGROUND);
-        graphics2D.fillRoundRect(0, 0, getWidth(), getHeight(), 28, 28);
+        graphics2D.fillRoundRect(0, 0, getWidth(), getHeight(), 14, 14);
         graphics2D.dispose();
         super.paintComponent(graphics);
     }
@@ -130,10 +132,13 @@ public class SidebarMenu extends JPanel {
         boolean isActive = key != null && key.equals(activeKey);
         if (isActive) {
             button.setBackground(AppColors.SIDEBAR_BUTTON_ACTIVE);
+            button.setFont(button.getFont().deriveFont(Font.BOLD, 13.5f));
         } else if (hovered) {
             button.setBackground(AppColors.SIDEBAR_BUTTON_HOVER);
+            button.setFont(button.getFont().deriveFont(Font.PLAIN, 13.5f));
         } else {
             button.setBackground(AppColors.SIDEBAR_BUTTON);
+            button.setFont(button.getFont().deriveFont(Font.PLAIN, 13.5f));
         }
         button.setOpaque(true);
         button.repaint();

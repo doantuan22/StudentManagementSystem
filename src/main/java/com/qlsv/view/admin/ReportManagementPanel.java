@@ -143,7 +143,7 @@ public class ReportManagementPanel extends BasePanel {
     private void loadStatistics() {
         try {
             SystemStatistics statistics = reportController.getSystemStatistics();
-            statisticsLabel.setText("Thống kê nhanh: "
+            statisticsLabel.setText("Tổng quan nhanh: "
                     + statistics.getTotalStudents() + " sinh viên, "
                     + statistics.getTotalLecturers() + " giảng viên, "
                     + statistics.getTotalSubjects() + " môn học, "

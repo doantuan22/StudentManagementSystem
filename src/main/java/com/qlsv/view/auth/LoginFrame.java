@@ -5,18 +5,22 @@ import com.qlsv.model.User;
 import com.qlsv.utils.DialogUtil;
 import com.qlsv.view.common.AppColors;
 import com.qlsv.view.common.BaseFrame;
+import com.qlsv.view.common.RoundedButton;
+import com.qlsv.view.common.RoundedPasswordField;
+import com.qlsv.view.common.RoundedTextField;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JPasswordField;
-import javax.swing.JScrollPane;
-import javax.swing.JTextField;
+import javax.swing.SwingConstants;
+import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
@@ -25,91 +29,93 @@ import java.awt.Insets;
 
 public class LoginFrame extends BaseFrame {
 
+    private static final int WINDOW_WIDTH = 480;
+    private static final int WINDOW_HEIGHT = 600;
+    private static final int FORM_WIDTH = 344;
+    private static final int INPUT_HEIGHT = 42;
+    private static final int BUTTON_HEIGHT = 44;
+    private static final int HEADER_GAP = 8;
+    private static final int TITLE_GAP = 6;
+    private static final int SECTION_GAP = 24;
+    private static final int FIELD_GAP = 16;
+    private static final int LABEL_GAP = 10;
+    private static final double TOP_SPACER_WEIGHT = 0.40;
+    private static final double BOTTOM_SPACER_WEIGHT = 0.60;
+
     private final LoginController loginController = new LoginController();
 
     public LoginFrame() {
         super("Đăng nhập");
+        setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
+        setMinimumSize(new Dimension(440, 560));
+        setLocationRelativeTo(null);
         initComponents();
     }
 
     private void initComponents() {
-        JPanel rootPanel = new JPanel(new GridBagLayout());
-        rootPanel.setBackground(AppColors.CONTENT_BACKGROUND);
-        rootPanel.setBorder(BorderFactory.createEmptyBorder(24, 24, 24, 24));
+        JPanel wrapperPanel = new JPanel(new GridBagLayout());
+        wrapperPanel.setOpaque(true);
+        wrapperPanel.setBackground(AppColors.CARD_BACKGROUND);
+        wrapperPanel.setBorder(BorderFactory.createEmptyBorder(20, 36, 20, 36));
 
-        JLabel eyebrowLabel = new JLabel("Hệ thống quản lý sinh viên");
-        eyebrowLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        eyebrowLabel.setForeground(AppColors.BUTTON_PRIMARY);
-        eyebrowLabel.setFont(eyebrowLabel.getFont().deriveFont(Font.BOLD, 13f));
+        JPanel contentPanel = new JPanel(new GridBagLayout());
+        contentPanel.setOpaque(false);
 
-        JLabel titleLabel = new JLabel("Đăng nhập hệ thống");
-        titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        titleLabel.setForeground(AppColors.CARD_VALUE_TEXT);
-        titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 26f));
+        RoundedTextField usernameField = createInputField();
+        RoundedPasswordField passwordField = createPasswordField();
+        RoundedButton loginButton = createLoginButton();
 
-        JLabel descriptionLabel = new JLabel(
-                "<html><div style='width:340px;'>Đăng nhập để truy cập các chức năng quản lý học tập, hồ sơ và báo cáo trong hệ thống.</div></html>"
-        );
-        descriptionLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        descriptionLabel.setForeground(AppColors.CARD_MUTED_TEXT);
-        descriptionLabel.setFont(descriptionLabel.getFont().deriveFont(Font.PLAIN, 13.5f));
+        GridBagConstraints contentConstraints = new GridBagConstraints();
+        contentConstraints.gridx = 0;
+        contentConstraints.weightx = 1;
+        contentConstraints.anchor = GridBagConstraints.CENTER;
+        contentConstraints.fill = GridBagConstraints.NONE;
 
-        JTextField usernameField = new JTextField();
-        JPasswordField passwordField = new JPasswordField();
-        usernameField.setToolTipText("Nhập tên đăng nhập của bạn.");
-        passwordField.setToolTipText("Nhập mật khẩu để tiếp tục.");
-        styleInputField(usernameField);
-        styleInputField(passwordField);
+        contentConstraints.gridy = 0;
+        contentConstraints.insets = new Insets(0, 0, SECTION_GAP, 0);
+        contentPanel.add(createHeaderSection(), contentConstraints);
 
-        JButton loginButton = new JButton("Đăng nhập");
-        stylePrimaryButton(loginButton);
+        contentConstraints.gridy = 1;
+        contentConstraints.insets = new Insets(0, 0, SECTION_GAP, 0);
+        contentPanel.add(createFormSection(usernameField, passwordField), contentConstraints);
 
-        JPanel formCard = new JPanel();
-        formCard.setLayout(new BoxLayout(formCard, BoxLayout.Y_AXIS));
-        formCard.setOpaque(true);
-        formCard.setBackground(AppColors.CARD_BACKGROUND);
-        formCard.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(AppColors.CARD_BORDER),
-                BorderFactory.createEmptyBorder(30, 32, 30, 32)
-        ));
+        contentConstraints.gridy = 2;
+        contentConstraints.insets = new Insets(0, 0, 0, 0);
+        contentPanel.add(createActionSection(loginButton), contentConstraints);
 
-        formCard.add(eyebrowLabel);
-        formCard.add(Box.createVerticalStrut(10));
-        formCard.add(titleLabel);
-        formCard.add(Box.createVerticalStrut(8));
-        formCard.add(descriptionLabel);
-        formCard.add(Box.createVerticalStrut(24));
-        formCard.add(createFieldLabel("Tên đăng nhập"));
-        formCard.add(Box.createVerticalStrut(6));
-        formCard.add(usernameField);
-        formCard.add(Box.createVerticalStrut(16));
-        formCard.add(createFieldLabel("Mật khẩu"));
-        formCard.add(Box.createVerticalStrut(6));
-        formCard.add(passwordField);
-        formCard.add(Box.createVerticalStrut(22));
-        formCard.add(loginButton);
+        GridBagConstraints spacerConstraints = new GridBagConstraints();
+        spacerConstraints.gridx = 0;
+        spacerConstraints.weightx = 1;
+        spacerConstraints.fill = GridBagConstraints.BOTH;
+
+        JPanel topSpacer = new JPanel();
+        topSpacer.setOpaque(false);
+        spacerConstraints.gridy = 0;
+        spacerConstraints.weighty = TOP_SPACER_WEIGHT;
+        wrapperPanel.add(topSpacer, spacerConstraints);
 
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.gridx = 0;
-        constraints.gridy = 0;
+        constraints.gridy = 1;
         constraints.weightx = 1;
-        constraints.weighty = 1;
-        constraints.insets = new Insets(12, 12, 12, 12);
+        constraints.weighty = 0;
         constraints.anchor = GridBagConstraints.CENTER;
-        rootPanel.add(formCard, constraints);
+        constraints.insets = new Insets(0, 0, 0, 0);
+        wrapperPanel.add(contentPanel, constraints);
 
-        JScrollPane scrollPane = new JScrollPane(rootPanel);
-        scrollPane.setBorder(null);
-        scrollPane.getViewport().setBackground(AppColors.CONTENT_BACKGROUND);
-        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        JPanel bottomSpacer = new JPanel();
+        bottomSpacer.setOpaque(false);
+        spacerConstraints.gridy = 2;
+        spacerConstraints.weighty = BOTTOM_SPACER_WEIGHT;
+        wrapperPanel.add(bottomSpacer, spacerConstraints);
 
-        setContentPane(scrollPane);
+        setContentPane(wrapperPanel);
         getRootPane().setDefaultButton(loginButton);
 
         loginButton.addActionListener(event -> {
             try {
                 User user = loginController.login(usernameField.getText(), new String(passwordField.getPassword()));
-                javax.swing.JFrame dashboardFrame = loginController.openDashboard(user);
+                JFrame dashboardFrame = loginController.openDashboard(user);
                 dashboardFrame.setVisible(true);
                 dispose();
             } catch (Exception exception) {
@@ -118,35 +124,112 @@ public class LoginFrame extends BaseFrame {
         });
     }
 
-    private JLabel createFieldLabel(String text) {
-        JLabel label = new JLabel(text);
-        label.setAlignmentX(Component.LEFT_ALIGNMENT);
+    private JPanel createHeaderSection() {
+        JPanel headerPanel = new JPanel();
+        headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
+        headerPanel.setOpaque(false);
+        headerPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        headerPanel.setPreferredSize(new Dimension(FORM_WIDTH, 110));
+        headerPanel.setMinimumSize(new Dimension(FORM_WIDTH, 110));
+        headerPanel.setMaximumSize(new Dimension(FORM_WIDTH, 110));
+
+        JLabel appLabel = new JLabel("TKL");
+        appLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        appLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        appLabel.setForeground(AppColors.LOGIN_PRIMARY);
+        appLabel.setFont(new Font("Segoe UI", Font.BOLD, 34));
+
+
+        JLabel subTitleLabel = new JLabel("HỆ THỐNG QUẢN LÝ SINH VIÊN");
+        subTitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        subTitleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        subTitleLabel.setForeground(AppColors.CARD_MUTED_TEXT);
+        subTitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+
+        headerPanel.add(appLabel);
+        headerPanel.add(Box.createVerticalStrut(HEADER_GAP));
+        headerPanel.add(Box.createVerticalStrut(TITLE_GAP));
+        headerPanel.add(subTitleLabel);
+        return headerPanel;
+    }
+
+    private JPanel createFormSection(RoundedTextField usernameField, RoundedPasswordField passwordField) {
+        JPanel formPanel = new JPanel();
+        formPanel.setLayout(new BoxLayout(formPanel, BoxLayout.Y_AXIS));
+        formPanel.setOpaque(false);
+        formPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        formPanel.setPreferredSize(new Dimension(FORM_WIDTH, 156));
+        formPanel.setMinimumSize(new Dimension(FORM_WIDTH, 156));
+        formPanel.setMaximumSize(new Dimension(FORM_WIDTH, 156));
+
+        formPanel.add(createFieldGroup("Tên đăng nhập", usernameField));
+        formPanel.add(Box.createVerticalStrut(FIELD_GAP));
+        formPanel.add(createFieldGroup("Mật khẩu", passwordField));
+        return formPanel;
+    }
+
+    private JPanel createActionSection(RoundedButton loginButton) {
+        JPanel actionPanel = new JPanel(new BorderLayout());
+        actionPanel.setOpaque(false);
+        actionPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        actionPanel.setPreferredSize(new Dimension(FORM_WIDTH, BUTTON_HEIGHT));
+        actionPanel.setMinimumSize(new Dimension(FORM_WIDTH, BUTTON_HEIGHT));
+        actionPanel.setMaximumSize(new Dimension(FORM_WIDTH, BUTTON_HEIGHT));
+        actionPanel.add(loginButton, BorderLayout.CENTER);
+        return actionPanel;
+    }
+
+    private RoundedTextField createInputField() {
+        RoundedTextField textField = new RoundedTextField(16);
+        textField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        textField.setPreferredSize(new Dimension(FORM_WIDTH, INPUT_HEIGHT));
+        textField.setMinimumSize(new Dimension(FORM_WIDTH, INPUT_HEIGHT));
+        textField.setMaximumSize(new Dimension(FORM_WIDTH, INPUT_HEIGHT));
+        textField.setAlignmentX(Component.LEFT_ALIGNMENT);
+        return textField;
+    }
+
+    private RoundedPasswordField createPasswordField() {
+        RoundedPasswordField passwordField = new RoundedPasswordField(16);
+        passwordField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        passwordField.setPreferredSize(new Dimension(FORM_WIDTH, INPUT_HEIGHT));
+        passwordField.setMinimumSize(new Dimension(FORM_WIDTH, INPUT_HEIGHT));
+        passwordField.setMaximumSize(new Dimension(FORM_WIDTH, INPUT_HEIGHT));
+        passwordField.setAlignmentX(Component.LEFT_ALIGNMENT);
+        return passwordField;
+    }
+
+    private RoundedButton createLoginButton() {
+        RoundedButton loginButton = new RoundedButton("Đăng nhập", 18);
+        loginButton.setBackground(AppColors.LOGIN_PRIMARY);
+        loginButton.setForeground(Color.WHITE);
+        loginButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        loginButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        loginButton.setPreferredSize(new Dimension(FORM_WIDTH, BUTTON_HEIGHT));
+        loginButton.setMinimumSize(new Dimension(FORM_WIDTH, BUTTON_HEIGHT));
+        loginButton.setMaximumSize(new Dimension(FORM_WIDTH, BUTTON_HEIGHT));
+        loginButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        return loginButton;
+    }
+
+    private JPanel createFieldGroup(String labelText, JComponent inputComponent) {
+        JPanel fieldGroup = new JPanel();
+        fieldGroup.setLayout(new BoxLayout(fieldGroup, BoxLayout.Y_AXIS));
+        fieldGroup.setOpaque(false);
+        fieldGroup.setAlignmentX(Component.CENTER_ALIGNMENT);
+        fieldGroup.setPreferredSize(new Dimension(FORM_WIDTH, 70));
+        fieldGroup.setMinimumSize(new Dimension(FORM_WIDTH, 70));
+        fieldGroup.setMaximumSize(new Dimension(FORM_WIDTH, 70));
+
+        JLabel label = new JLabel(labelText);
         label.setForeground(AppColors.CARD_TITLE_TEXT);
-        label.setFont(label.getFont().deriveFont(Font.BOLD, 13f));
-        return label;
-    }
+        label.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        label.setHorizontalAlignment(SwingConstants.LEFT);
+        label.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-    private void styleInputField(JComponent component) {
-        component.setAlignmentX(Component.LEFT_ALIGNMENT);
-        component.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
-        component.setPreferredSize(new Dimension(356, 42));
-        component.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(AppColors.INPUT_BORDER),
-                BorderFactory.createEmptyBorder(9, 12, 9, 12)
-        ));
-        component.setFont(component.getFont().deriveFont(Font.PLAIN, 14f));
-    }
-
-    private void stylePrimaryButton(JButton button) {
-        button.setAlignmentX(Component.LEFT_ALIGNMENT);
-        button.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
-        button.setPreferredSize(new Dimension(356, 44));
-        button.setFocusPainted(false);
-        button.setBorderPainted(false);
-        button.setOpaque(true);
-        button.setBackground(AppColors.BUTTON_PRIMARY);
-        button.setForeground(AppColors.BUTTON_TEXT);
-        button.setFont(button.getFont().deriveFont(Font.BOLD, 14f));
-        button.setBorder(BorderFactory.createEmptyBorder(11, 16, 11, 16));
+        fieldGroup.add(label);
+        fieldGroup.add(Box.createVerticalStrut(LABEL_GAP));
+        fieldGroup.add(inputComponent);
+        return fieldGroup;
     }
 }

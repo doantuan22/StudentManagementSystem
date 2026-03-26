@@ -4,6 +4,8 @@ import java.awt.Color;
 
 public final class AppColors {
 
+    public static final Color LOGIN_PRIMARY = new Color(52, 152, 219);
+    public static final Color LOGIN_PRIMARY_HOVER = new Color(65, 166, 233);
     public static final Color SIDEBAR_BACKGROUND = new Color(15, 23, 42);
     public static final Color SIDEBAR_BORDER = new Color(51, 65, 85);
     public static final Color SIDEBAR_BUTTON = new Color(30, 41, 59);

@@ -12,6 +12,7 @@ import javax.swing.JButton;
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
+import java.awt.Cursor;
 
 public class LecturerDashboardFrame extends BaseFrame {
 
@@ -24,6 +25,7 @@ public class LecturerDashboardFrame extends BaseFrame {
 
     private void initComponents(User user) {
         JButton logoutButton = new JButton("Đăng xuất");
+        configureHeaderButton(logoutButton);
         logoutButton.addActionListener(event -> {
             loginController.logout();
             new LoginFrame().setVisible(true);
@@ -39,9 +41,10 @@ public class LecturerDashboardFrame extends BaseFrame {
         contentPanel.add(new LecturerStudentListPanel(), "students");
         contentPanel.add(new LecturerScorePanel(), "scores");
         contentPanel.add(new LecturerSchedulePanel(), "schedule");
+        contentPanel.setBackground(AppColors.CONTENT_BACKGROUND);
 
         SidebarMenu sidebarMenu = new SidebarMenu(
-                "Không gian giảng viên",
+                "Giảng viên",
                 ""
         );
         registerMenuItem(sidebarMenu, "profile", "Thông tin cá nhân", cardLayout, contentPanel, "profile");
@@ -73,5 +76,15 @@ public class LecturerDashboardFrame extends BaseFrame {
             String cardName
     ) {
         sidebarMenu.addMenuItem(itemKey, text, () -> cardLayout.show(contentPanel, cardName));
+    }
+
+    private void configureHeaderButton(JButton button) {
+        button.setFocusPainted(false);
+        button.setBorderPainted(false);
+        button.setOpaque(true);
+        button.setBackground(AppColors.SIDEBAR_BUTTON_HOVER);
+        button.setForeground(AppColors.BUTTON_TEXT);
+        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        button.setBorder(BorderFactory.createEmptyBorder(8, 14, 8, 14));
     }
 }

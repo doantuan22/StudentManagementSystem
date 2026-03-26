@@ -31,6 +31,7 @@ public class StudentDAO {
                    s.date_of_birth,
                    s.email,
                    s.phone,
+                   s.address,
                    s.academic_year AS student_academic_year,
                    s.status,
                    f.id AS faculty_id,
@@ -114,9 +115,9 @@ public class StudentDAO {
 
     public Student insert(Student student) {
         String sql = """
-                INSERT INTO students(user_id, student_code, full_name, gender, date_of_birth, email, phone,
+                INSERT INTO students(user_id, student_code, full_name, gender, date_of_birth, email, phone, address,
                                      faculty_id, class_room_id, academic_year, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """;
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -137,13 +138,13 @@ public class StudentDAO {
         String sql = """
                 UPDATE students
                 SET user_id = ?, student_code = ?, full_name = ?, gender = ?, date_of_birth = ?, email = ?,
-                    phone = ?, faculty_id = ?, class_room_id = ?, academic_year = ?, status = ?
+                    phone = ?, address = ?, faculty_id = ?, class_room_id = ?, academic_year = ?, status = ?
                 WHERE id = ?
                 """;
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             fillStatement(statement, student);
-            statement.setLong(12, student.getId());
+            statement.setLong(13, student.getId());
             return statement.executeUpdate() > 0;
         } catch (SQLException exception) {
             throw new AppException("Không thể cập nhật sinh viên.", exception);
@@ -175,10 +176,11 @@ public class StudentDAO {
         }
         statement.setString(6, student.getEmail());
         statement.setString(7, student.getPhone());
-        statement.setLong(8, student.getFaculty().getId());
-        statement.setLong(9, student.getClassRoom().getId());
-        statement.setString(10, student.getAcademicYear());
-        statement.setString(11, student.getStatus());
+        statement.setString(8, student.getAddress());
+        statement.setLong(9, student.getFaculty().getId());
+        statement.setLong(10, student.getClassRoom().getId());
+        statement.setString(11, student.getAcademicYear());
+        statement.setString(12, student.getStatus());
     }
 
     private Student mapRow(ResultSet resultSet) throws SQLException {
@@ -205,6 +207,7 @@ public class StudentDAO {
                 dateOfBirth == null ? null : dateOfBirth.toLocalDate(),
                 resultSet.getString("email"),
                 resultSet.getString("phone"),
+                resultSet.getString("address"),
                 faculty,
                 classRoom,
                 resultSet.getString("student_academic_year"),

@@ -51,7 +51,7 @@ public class StudentDashboardFrame extends BaseFrame {
         contentPanel.add(schedulePanel, "schedule");
 
         SidebarMenu sidebarMenu = new SidebarMenu(
-                "Không gian sinh viên",
+                "Sinh viên",
                 ""
         );
         registerMenuItem(sidebarMenu, "home", "Tổng quan", cardLayout, contentPanel, "home", homePanel);

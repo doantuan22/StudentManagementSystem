@@ -10,6 +10,7 @@ public class Lecturer {
     private String fullName;
     private String email;
     private String phone;
+    private String address;
     private Faculty faculty;
     private String status;
 
@@ -17,13 +18,14 @@ public class Lecturer {
     }
 
     public Lecturer(Long id, Long userId, String lecturerCode, String fullName, String email, String phone,
-                    Faculty faculty, String status) {
+                    String address, Faculty faculty, String status) {
         this.id = id;
         this.userId = userId;
         this.lecturerCode = lecturerCode;
         this.fullName = fullName;
         this.email = email;
         this.phone = phone;
+        this.address = address;
         this.faculty = faculty;
         this.status = status;
     }
@@ -74,6 +76,14 @@ public class Lecturer {
 
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
     }
 
     public Faculty getFaculty() {

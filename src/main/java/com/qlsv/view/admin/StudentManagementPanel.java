@@ -124,7 +124,7 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
                 {"Lớp", selectedItem.getClassRoom() == null ? "Chưa cập nhật" : DisplayTextUtil.defaultText(selectedItem.getClassRoom().getClassName())},
                 {"Niên khóa", DisplayTextUtil.defaultText(selectedItem.getAcademicYear())},
                 {"Trạng thái", DisplayTextUtil.formatStatus(selectedItem.getStatus())},
-                {"Địa chỉ", "Chưa cập nhật"},
+                {"Địa chỉ", DisplayTextUtil.defaultText(selectedItem.getAddress())},
                 {"ID người dùng", DisplayTextUtil.formatUserReference(selectedItem.getUserId())}
         });
     }
@@ -138,6 +138,7 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
         JTextField birthField = new JTextField(existingItem == null || existingItem.getDateOfBirth() == null ? "" : existingItem.getDateOfBirth().toString());
         JTextField emailField = new JTextField(existingItem == null ? "" : existingItem.getEmail());
         JTextField phoneField = new JTextField(existingItem == null ? "" : existingItem.getPhone());
+        JTextField addressField = new JTextField(existingItem == null ? "" : existingItem.getAddress());
         JTextField academicYearField = new JTextField(existingItem == null ? "" : existingItem.getAcademicYear());
 
         JComboBox<Faculty> facultyComboBox = new JComboBox<>(facultyController.getFacultiesForSelection().toArray(new Faculty[0]));
@@ -186,6 +187,8 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
         formPanel.add(emailField);
         formPanel.add(new JLabel("Số điện thoại"));
         formPanel.add(phoneField);
+        formPanel.add(new JLabel("Địa chỉ"));
+        formPanel.add(addressField);
         formPanel.add(new JLabel("Khoa"));
         formPanel.add(facultyComboBox);
         formPanel.add(new JLabel("Lớp"));
@@ -214,6 +217,7 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
         student.setDateOfBirth(birthField.getText().isBlank() ? null : LocalDate.parse(birthField.getText().trim()));
         student.setEmail(emailField.getText().trim());
         student.setPhone(phoneField.getText().trim());
+        student.setAddress(addressField.getText().trim());
         student.setFaculty((Faculty) facultyComboBox.getSelectedItem());
         student.setClassRoom((ClassRoom) classRoomComboBox.getSelectedItem());
         student.setAcademicYear(academicYearField.getText().trim());

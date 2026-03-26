@@ -70,6 +70,7 @@ public class StudentProfilePanel extends BasePanel {
             addField(infoPanel, "Khoa", student.getFaculty() == null ? "Chưa cập nhật" : student.getFaculty().getFacultyName());
             addField(infoPanel, "Niên khóa", DisplayTextUtil.defaultText(student.getAcademicYear()));
             addField(infoPanel, "Trạng thái", DisplayTextUtil.formatStatus(student.getStatus()));
+            addField(infoPanel, "Địa chỉ", DisplayTextUtil.defaultText(student.getAddress()));
             addField(infoPanel, "Mã người dùng liên kết", DisplayTextUtil.formatUserReference(student.getUserId()));
             addField(infoPanel, "Ghi chú", "Sinh viên hiện chỉ được xem thông tin; nếu cần chỉnh sửa, admin sẽ cập nhật.");
 

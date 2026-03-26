@@ -39,7 +39,24 @@ public class LecturerService {
     }
 
     public Lecturer save(Lecturer lecturer) {
-        permissionService.requirePermission(RolePermission.MANAGE_LECTURERS);
+        if (lecturer.getId() != null) {
+            // Cap nhat
+            if (permissionService.hasPermission(RolePermission.MANAGE_LECTURERS)) {
+                // Admin thi cho phep
+            } else if (permissionService.hasPermission(RolePermission.EDIT_OWN_PROFILE)) {
+                // Giang vien tu sua cho minh thi ok
+                Lecturer current = findCurrentLecturer();
+                if (!current.getId().equals(lecturer.getId())) {
+                    throw new ValidationException("Bạn không thể chỉnh sửa hồ sơ của người khác.");
+                }
+            } else {
+                permissionService.requirePermission(RolePermission.MANAGE_LECTURERS);
+            }
+        } else {
+            // Them moi
+            permissionService.requirePermission(RolePermission.MANAGE_LECTURERS);
+        }
+
         validate(lecturer);
         return lecturer.getId() == null ? lecturerDAO.insert(lecturer) : updateAndReturn(lecturer);
     }

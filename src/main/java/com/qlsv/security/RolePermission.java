@@ -20,6 +20,7 @@ public final class RolePermission {
     public static final String VIEW_REPORTS = "VIEW_REPORTS";
     public static final String VIEW_SYSTEM_STATISTICS = "VIEW_SYSTEM_STATISTICS";
     public static final String VIEW_OWN_PROFILE = "VIEW_OWN_PROFILE";
+    public static final String EDIT_OWN_PROFILE = "EDIT_OWN_PROFILE";
     public static final String VIEW_ASSIGNED_CLASSES = "VIEW_ASSIGNED_CLASSES";
     public static final String VIEW_ASSIGNED_STUDENTS = "VIEW_ASSIGNED_STUDENTS";
     public static final String REGISTER_ENROLLMENT = "REGISTER_ENROLLMENT";
@@ -46,10 +47,12 @@ public final class RolePermission {
                 VIEW_REPORTS,
                 VIEW_SYSTEM_STATISTICS,
                 VIEW_OWN_PROFILE,
+                EDIT_OWN_PROFILE,
                 VIEW_OWN_SCHEDULE
         ));
         permissionMap.put(Role.LECTURER, Set.of(
                 VIEW_OWN_PROFILE,
+                EDIT_OWN_PROFILE,
                 VIEW_ASSIGNED_CLASSES,
                 VIEW_ASSIGNED_STUDENTS,
                 MANAGE_SCORES,
@@ -57,6 +60,7 @@ public final class RolePermission {
         ));
         permissionMap.put(Role.STUDENT, Set.of(
                 VIEW_OWN_PROFILE,
+                EDIT_OWN_PROFILE,
                 REGISTER_ENROLLMENT,
                 VIEW_OWN_SCORES,
                 VIEW_OWN_SCHEDULE

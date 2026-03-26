@@ -17,9 +17,13 @@ public class PermissionService {
     public void requirePermission(String permission) {
         requireLogin();
         // Kiem tra quyen tap trung de service va UI cung dung mot quy tac.
-        if (!AuthManager.hasPermission(permission)) {
+        if (!hasPermission(permission)) {
             throw new AuthorizationException("Bạn không có quyền thực hiện thao tác này.");
         }
+    }
+
+    public boolean hasPermission(String permission) {
+        return AuthManager.hasPermission(permission);
     }
 
     public void requireAnyRole(Role... roles) {

@@ -27,6 +27,7 @@ public class LecturerDAO {
                    l.full_name,
                    l.email,
                    l.phone,
+                   l.address,
                    l.status,
                    f.id AS faculty_id,
                    f.faculty_code,
@@ -104,8 +105,8 @@ public class LecturerDAO {
 
     public Lecturer insert(Lecturer lecturer) {
         String sql = """
-                INSERT INTO lecturers(user_id, lecturer_code, full_name, email, phone, faculty_id, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO lecturers(user_id, lecturer_code, full_name, email, phone, address, faculty_id, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """;
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -125,13 +126,13 @@ public class LecturerDAO {
     public boolean update(Lecturer lecturer) {
         String sql = """
                 UPDATE lecturers
-                SET user_id = ?, lecturer_code = ?, full_name = ?, email = ?, phone = ?, faculty_id = ?, status = ?
+                SET user_id = ?, lecturer_code = ?, full_name = ?, email = ?, phone = ?, address = ?, faculty_id = ?, status = ?
                 WHERE id = ?
                 """;
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             fillStatement(statement, lecturer);
-            statement.setLong(8, lecturer.getId());
+            statement.setLong(9, lecturer.getId());
             return statement.executeUpdate() > 0;
         } catch (SQLException exception) {
             throw new AppException("Không thể cập nhật giảng viên.", exception);
@@ -157,8 +158,9 @@ public class LecturerDAO {
         statement.setString(3, lecturer.getFullName());
         statement.setString(4, lecturer.getEmail());
         statement.setString(5, lecturer.getPhone());
-        statement.setLong(6, lecturer.getFaculty().getId());
-        statement.setString(7, lecturer.getStatus());
+        statement.setString(6, lecturer.getAddress());
+        statement.setLong(7, lecturer.getFaculty().getId());
+        statement.setString(8, lecturer.getStatus());
     }
 
     private Lecturer mapRow(ResultSet resultSet) throws SQLException {
@@ -175,6 +177,7 @@ public class LecturerDAO {
                 resultSet.getString("full_name"),
                 resultSet.getString("email"),
                 resultSet.getString("phone"),
+                resultSet.getString("address"),
                 faculty,
                 resultSet.getString("status")
         );

@@ -114,7 +114,7 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
                 {"Ngày sinh", "Chưa cập nhật"},
                 {"Số điện thoại", DisplayTextUtil.defaultText(selectedItem.getPhone())},
                 {"Email", DisplayTextUtil.defaultText(selectedItem.getEmail())},
-                {"Địa chỉ", "Chưa cập nhật"},
+                {"Địa chỉ", DisplayTextUtil.defaultText(selectedItem.getAddress())},
                 {"Khoa", selectedItem.getFaculty() == null ? "Chưa cập nhật" : DisplayTextUtil.defaultText(selectedItem.getFaculty().getFacultyName())},
                 {"Chức vụ", "Chưa cập nhật"},
                 {"Môn giảng dạy", subjects},
@@ -130,6 +130,7 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
         JTextField nameField = new JTextField(existingItem == null ? "" : existingItem.getFullName());
         JTextField emailField = new JTextField(existingItem == null ? "" : existingItem.getEmail());
         JTextField phoneField = new JTextField(existingItem == null ? "" : existingItem.getPhone());
+        JTextField addressField = new JTextField(existingItem == null ? "" : existingItem.getAddress());
         JComboBox<Faculty> facultyComboBox = new JComboBox<>(facultyController.getFacultiesForSelection().toArray(new Faculty[0]));
         JComboBox<FilterOption<String>> statusComboBox = new JComboBox<>(new DefaultComboBoxModel<>(new FilterOption[]{
                 new FilterOption<>("Đang hoạt động", "ACTIVE"),
@@ -152,6 +153,8 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
         formPanel.add(emailField);
         formPanel.add(new JLabel("Số điện thoại"));
         formPanel.add(phoneField);
+        formPanel.add(new JLabel("Địa chỉ"));
+        formPanel.add(addressField);
         formPanel.add(new JLabel("Khoa"));
         formPanel.add(facultyComboBox);
         formPanel.add(new JLabel("Trạng thái"));
@@ -174,6 +177,7 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
         lecturer.setFullName(nameField.getText().trim());
         lecturer.setEmail(emailField.getText().trim());
         lecturer.setPhone(phoneField.getText().trim());
+        lecturer.setAddress(addressField.getText().trim());
         lecturer.setFaculty((Faculty) facultyComboBox.getSelectedItem());
         FilterOption<String> selectedStatus = (FilterOption<String>) statusComboBox.getSelectedItem();
         lecturer.setStatus(selectedStatus == null ? "ACTIVE" : selectedStatus.value());

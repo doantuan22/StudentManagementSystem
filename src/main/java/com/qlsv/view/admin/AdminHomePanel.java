@@ -44,7 +44,11 @@ public class AdminHomePanel extends BasePanel {
         JPanel headerPanel = new JPanel(new BorderLayout(16, 12));
         headerPanel.setOpaque(false);
         headerPanel.add(introPanel, BorderLayout.CENTER);
-        headerPanel.add(reloadButton, BorderLayout.EAST);
+        JPanel buttonWrapper = new JPanel();
+        buttonWrapper.setOpaque(false); 
+        buttonWrapper.add(reloadButton);
+
+        headerPanel.add(buttonWrapper, BorderLayout.EAST);
 
         add(headerPanel, BorderLayout.NORTH);
         add(statisticsPanel, BorderLayout.CENTER);

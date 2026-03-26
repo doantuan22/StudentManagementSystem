@@ -243,6 +243,7 @@ public class LecturerScorePanel extends BasePanel {
     @Override
     public void reloadData() {
         try {
+            loadCourseSections();
             allScores.clear();
             allScores.addAll(scoreController.getCurrentLecturerScores());
             filterData();

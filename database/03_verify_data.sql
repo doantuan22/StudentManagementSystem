@@ -1,16 +1,16 @@
 -- ============================================================
 -- FILE: 03_verify_data.sql
--- MUC DICH: Kiểm tra nhanh sau khi đã dựng xong database và seed.
+-- MUC DICH: Kiem tra nhanh sau khi da dung xong database va seed.
 -- ============================================================
 
 USE student_management;
 
--- 1. Kiểm tra số lượng bảng (Kỳ vọng: 13-14 bảng chính)
-SELECT 'Table Count' AS Metric, COUNT(*) AS Value 
-FROM information_schema.tables 
+-- 1. Kiem tra so luong bang (Ky vong: 13-14 bang chinh)
+SELECT 'Table Count' AS Metric, COUNT(*) AS Value
+FROM information_schema.tables
 WHERE table_schema = 'student_management' AND table_type = 'BASE TABLE';
 
--- 2. Kiểm tra số lượng Model quan trọng
+-- 2. Kiem tra so luong Model quan trong
 SELECT 'Roles' AS Entity, COUNT(*) AS Count FROM roles
 UNION ALL
 SELECT 'Users', COUNT(*) FROM users
@@ -27,16 +27,18 @@ SELECT 'Subjects', COUNT(*) FROM subjects
 UNION ALL
 SELECT 'CourseSections', COUNT(*) FROM course_sections
 UNION ALL
+SELECT 'Schedules', COUNT(*) FROM schedules
+UNION ALL
 SELECT 'Enrollments', COUNT(*) FROM enrollments
 UNION ALL
 SELECT 'Scores', COUNT(*) FROM scores;
 
--- 3. Kiểm tra tính nhất quán User (Tất cả sinh viên/giảng viên phải có User ID)
+-- 3. Kiem tra tinh nhat quan User (Tat ca sinh vien/giang vien phai co User ID)
 SELECT 'Lecturers without UserID' AS Issue, COUNT(*) AS Count FROM lecturers WHERE user_id IS NULL
 UNION ALL
 SELECT 'Students without UserID', COUNT(*) FROM students WHERE user_id IS NULL;
 
--- 4. Kiểm tra sự trùng khớp Full Name giữa Users và Students/Lecturers
+-- 4. Kiem tra su trung khop Full Name giua Users va Students/Lecturers
 SELECT 'Mismatch Name (Lecturer)' AS Issue, COUNT(*) AS Count
 FROM lecturers l JOIN users u ON l.user_id = u.id
 WHERE l.full_name <> u.full_name
@@ -45,19 +47,25 @@ SELECT 'Mismatch Name (Student)', COUNT(*)
 FROM students s JOIN users u ON s.user_id = u.id
 WHERE s.full_name <> u.full_name;
 
--- 5. Thử nghiệm View
+-- 5. Kiem tra course_sections khong con luu phong/lich truc tiep
+SELECT column_name
+FROM information_schema.columns
+WHERE table_schema = 'student_management'
+  AND table_name = 'course_sections'
+  AND column_name IN ('room_id', 'schedule_text');
+
+-- 6. Thu nghiem View
 SELECT * FROM vw_student_schedules LIMIT 5;
 SELECT * FROM vw_section_scores LIMIT 5;
 
--- 6. Kiểm tra Trigger tự tạo User
--- Thử thêm một giảng viên mới không có user_id
+-- 7. Kiem tra Trigger tu tao User
 INSERT INTO lecturers (lecturer_code, full_name, faculty_id) VALUES ('GV_TEST', 'Test Trigger Lecturer', 1);
 
-SELECT u.username, u.full_name, l.lecturer_code 
-FROM users u 
-JOIN lecturers l ON u.id = l.user_id 
+SELECT u.username, u.full_name, l.lecturer_code
+FROM users u
+JOIN lecturers l ON u.id = l.user_id
 WHERE l.lecturer_code = 'GV_TEST';
 
--- Dọn dẹp test
+-- Don dep test
 DELETE FROM lecturers WHERE lecturer_code = 'GV_TEST';
 DELETE FROM users WHERE username = 'gv_test';

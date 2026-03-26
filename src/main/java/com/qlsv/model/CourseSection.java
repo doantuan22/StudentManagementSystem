@@ -105,8 +105,7 @@ public class CourseSection {
     @Override
     public String toString() {
         String subjectName = subject == null ? "" : subject.getSubjectName();
-        String normalizedRoom = room == null ? "" : " - " + room.getRoomName();
-        return sectionCode + " - " + subjectName + normalizedRoom;
+        return sectionCode + " - " + subjectName;
     }
 
     @Override

@@ -34,10 +34,10 @@ public final class DBConnection {
                 driverLoaded = true;
             } catch (ClassNotFoundException exception) {
                 LOGGER.log(Level.SEVERE,
-                        "Không tìm thấy MySQL JDBC Driver (com.mysql.cj.jdbc.Driver). " +
-                                "Kiểm tra dependency Maven: mysql-connector-j.",
+                        "Khong tim thay MySQL JDBC Driver (com.mysql.cj.jdbc.Driver). " +
+                                "Kiem tra dependency Maven: mysql-connector-j.",
                         exception);
-                throw new AppException("Không tìm thấy MySQL JDBC Driver. Hãy kiểm tra dependency Maven hoặc thư viện trong thư mục lib.", exception);
+                throw new AppException("Khong tim thay MySQL JDBC Driver. Hay kiem tra dependency Maven hoac thu vien trong thu muc lib.", exception);
             }
         }
     }
@@ -52,11 +52,10 @@ public final class DBConnection {
                     AppConfig.getDbPassword()
             );
         } catch (SQLException exception) {
-            // Log chi tiết để dễ debug khi chạy từ IDE khác.
             LOGGER.log(Level.SEVERE,
-                    "Không kết nối được MySQL. Kiểm tra db.url/db.username/db.password trong application.properties.",
+                    "Khong ket noi duoc MySQL. Kiem tra db.url/db.username/db.password trong application.properties.",
                     exception);
-            throw new AppException("Không kết nối được MySQL. Hãy kiểm tra application.properties và các script database.", exception);
+            throw new AppException("Khong ket noi duoc MySQL. Hay kiem tra application.properties va cac script database.", exception);
         }
     }
 
@@ -65,7 +64,7 @@ public final class DBConnection {
             return true;
         } catch (AppException | SQLException exception) {
             LOGGER.log(Level.WARNING,
-                    "DBConnection.canConnect() thất bại: " + exception.getMessage(),
+                    "DBConnection.canConnect() that bai: " + exception.getMessage(),
                     exception);
             return false;
         }
@@ -89,32 +88,33 @@ public final class DBConnection {
                     "schedules"
             };
 
-            // Lưu ý: các cột này là điều kiện tối thiểu để ứng dụng hoạt động đúng với version schema hiện tại.
+            // Cac cot nay la dieu kien toi thieu de app dung voi schema da tach lich hoc ra khoi course_sections.
             String[][] requiredColumns = new String[][]{
-                    {"course_sections", "room_id"},
-                    {"students", "academic_year"}
+                    {"students", "academic_year"},
+                    {"schedules", "course_section_id"},
+                    {"schedules", "room_id"}
             };
 
             List<String> missing = new ArrayList<>();
             for (String table : requiredTables) {
                 if (!tableExists(databaseMetaData, table)) {
-                    missing.add("Thiếu bảng: " + table);
+                    missing.add("Thieu bang: " + table);
                 }
             }
             for (String[] pair : requiredColumns) {
                 if (!columnExists(databaseMetaData, pair[0], pair[1])) {
-                    missing.add("Thiếu cột: " + pair[0] + "." + pair[1]);
+                    missing.add("Thieu cot: " + pair[0] + "." + pair[1]);
                 }
             }
 
             if (!missing.isEmpty()) {
                 LOGGER.log(Level.SEVERE,
-                        "DB schema không đạt yêu cầu. " + String.join("; ", missing));
+                        "DB schema khong dat yeu cau. " + String.join("; ", missing));
             }
             return missing.isEmpty();
         } catch (SQLException | AppException exception) {
             LOGGER.log(Level.SEVERE,
-                    "Không thể kiểm tra schema/metadata của database.",
+                    "Khong the kiem tra schema/metadata cua database.",
                     exception);
             return false;
         }

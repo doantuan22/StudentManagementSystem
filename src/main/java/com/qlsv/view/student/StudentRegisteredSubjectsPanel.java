@@ -16,6 +16,9 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.util.List;
@@ -23,6 +26,17 @@ import java.util.List;
 public class StudentRegisteredSubjectsPanel extends BasePanel {
 
     private final EnrollmentController enrollmentController = new EnrollmentController();
+    private final DefaultTableModel tableModel = new DefaultTableModel(
+            new String[]{"Học phần", "Môn học", "Tín chỉ", "Giảng viên", "Trạng thái", "Lịch học"}, 0) {
+        @Override
+        public boolean isCellEditable(int row, int column) {
+            return false;
+        }
+    };
+
+    private final JLabel subjectsCountLabel = new JLabel("Đang tải danh sách học phần...");
+    private DashboardCard totalSubjectsCard;
+    private DashboardCard totalCreditsCard;
 
     public StudentRegisteredSubjectsPanel() {
         setBackground(AppColors.CONTENT_BACKGROUND);
@@ -30,20 +44,14 @@ public class StudentRegisteredSubjectsPanel extends BasePanel {
         reloadData();
     }
 
-    private final DefaultTableModel tableModel = new DefaultTableModel(
-            new String[]{"Học phần", "Môn học", "Tín chỉ", "Giảng viên", "Trạng thái", "Lịch học", "Phòng"}, 0) {
-        @Override
-        public boolean isCellEditable(int row, int column) {
-            return false;
-        }
-    };
-    private final JLabel subjectsCountLabel = new JLabel("Tổng số môn học đã đăng ký");
-    private DashboardCard totalSubjectsCard;
-    private DashboardCard totalCreditsCard;
-
     private void initComponents() {
         JLabel titleLabel = new JLabel("Học phần đã đăng ký");
         titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 22f));
+        titleLabel.setForeground(AppColors.CARD_VALUE_TEXT);
+
+        JLabel subtitleLabel = new JLabel("Theo dõi danh sách môn đang học với lịch hiển thị lấy trực tiếp từ bảng schedules.");
+        subtitleLabel.setForeground(AppColors.CARD_MUTED_TEXT);
+        subtitleLabel.setFont(subtitleLabel.getFont().deriveFont(Font.PLAIN, 13f));
 
         totalSubjectsCard = new DashboardCard("Tổng số học phần", AppColors.STAT_CARD_SUBJECTS);
         totalCreditsCard = new DashboardCard("Tổng số tín chỉ", AppColors.STAT_CARD_SECTIONS);
@@ -54,40 +62,40 @@ public class StudentRegisteredSubjectsPanel extends BasePanel {
         cardsPanel.add(totalCreditsCard);
 
         JTable table = new JTable(tableModel);
-        table.setRowHeight(24);
+        configureTable(table);
 
-        JPanel tablePanel = new JPanel(new BorderLayout());
-        tablePanel.setOpaque(true);
-        tablePanel.setBackground(AppColors.CARD_BACKGROUND);
-        tablePanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(AppColors.CARD_BORDER),
-                BorderFactory.createEmptyBorder(12, 12, 12, 12)
-        ));
-        tablePanel.add(subjectsCountLabel, BorderLayout.NORTH);
-        tablePanel.add(new JScrollPane(table), BorderLayout.CENTER);
+        JPanel tablePanel = createTableCard("Danh sách học phần đang theo dõi", subjectsCountLabel, new JScrollPane(table));
 
         JButton reloadButton = new JButton("Tải lại");
+        styleNeutralButton(reloadButton);
         reloadButton.addActionListener(event -> reloadData());
 
-        JPanel actionPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 0, 0));
+        JPanel titlePanel = new JPanel(new BorderLayout(0, 6));
+        titlePanel.setOpaque(false);
+        titlePanel.add(titleLabel, BorderLayout.NORTH);
+        titlePanel.add(subtitleLabel, BorderLayout.CENTER);
+
+        JPanel actionPanel = new JPanel(new BorderLayout());
         actionPanel.setOpaque(false);
-        actionPanel.add(reloadButton);
+        actionPanel.add(titlePanel, BorderLayout.WEST);
+        actionPanel.add(reloadButton, BorderLayout.EAST);
 
         JPanel topWrapper = new JPanel(new BorderLayout(0, 12));
         topWrapper.setOpaque(false);
-        topWrapper.add(titleLabel, BorderLayout.NORTH);
-        topWrapper.add(actionPanel, BorderLayout.CENTER);
-        topWrapper.add(cardsPanel, BorderLayout.SOUTH);
+        topWrapper.add(actionPanel, BorderLayout.NORTH);
+        topWrapper.add(cardsPanel, BorderLayout.CENTER);
 
         add(topWrapper, BorderLayout.NORTH);
         add(tablePanel, BorderLayout.CENTER);
     }
 
+    @Override
     public void reloadData() {
         try {
             List<Enrollment> enrollments = enrollmentController.getCurrentStudentEnrollments();
             totalSubjectsCard.setValue(String.valueOf(enrollments.size()));
             totalCreditsCard.setValue(String.valueOf(calculateTotalCredits(enrollments)));
+            subjectsCountLabel.setText(enrollments.size() + " học phần đã đăng ký");
 
             tableModel.setRowCount(0);
             for (Enrollment enrollment : enrollments) {
@@ -100,9 +108,7 @@ public class StudentRegisteredSubjectsPanel extends BasePanel {
                         enrollment.getCourseSection() == null || enrollment.getCourseSection().getLecturer() == null
                                 ? "" : enrollment.getCourseSection().getLecturer().getFullName(),
                         DisplayTextUtil.formatStatus(enrollment.getStatus()),
-                        enrollment.getCourseSection() == null ? "" : enrollment.getCourseSection().getScheduleText(),
-                        enrollment.getCourseSection() == null || enrollment.getCourseSection().getRoom() == null
-                                ? "Chưa cập nhật" : enrollment.getCourseSection().getRoom().getRoomName()
+                        enrollment.getCourseSection() == null ? "" : DisplayTextUtil.defaultText(enrollment.getCourseSection().getScheduleText())
                 });
             }
         } catch (Exception exception) {
@@ -120,5 +126,60 @@ public class StudentRegisteredSubjectsPanel extends BasePanel {
             }
         }
         return total;
+    }
+
+    private JPanel createTableCard(String title, JLabel summaryLabel, JScrollPane scrollPane) {
+        JPanel panel = new JPanel(new BorderLayout(0, 12));
+        panel.setOpaque(true);
+        panel.setBackground(AppColors.CARD_BACKGROUND);
+        panel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(AppColors.CARD_BORDER),
+                BorderFactory.createEmptyBorder(14, 14, 14, 14)
+        ));
+
+        JLabel titleLabel = new JLabel(title);
+        titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 16f));
+        titleLabel.setForeground(AppColors.CARD_TITLE_TEXT);
+
+        summaryLabel.setForeground(AppColors.CARD_MUTED_TEXT);
+        summaryLabel.setFont(summaryLabel.getFont().deriveFont(Font.PLAIN, 12.5f));
+
+        JPanel headerPanel = new JPanel(new BorderLayout(12, 0));
+        headerPanel.setOpaque(false);
+        headerPanel.add(titleLabel, BorderLayout.WEST);
+        headerPanel.add(summaryLabel, BorderLayout.EAST);
+
+        scrollPane.setBorder(BorderFactory.createLineBorder(AppColors.CARD_BORDER));
+        scrollPane.getViewport().setBackground(AppColors.CARD_BACKGROUND);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        scrollPane.getHorizontalScrollBar().setUnitIncrement(16);
+
+        panel.add(headerPanel, BorderLayout.NORTH);
+        panel.add(scrollPane, BorderLayout.CENTER);
+        return panel;
+    }
+
+    private void configureTable(JTable table) {
+        table.setRowHeight(28);
+        table.setFillsViewportHeight(true);
+        table.setGridColor(AppColors.CARD_BORDER);
+        table.setBackground(Color.WHITE);
+        table.setSelectionBackground(AppColors.TABLE_SELECTION_BACKGROUND);
+        table.setSelectionForeground(AppColors.CARD_VALUE_TEXT);
+        table.getTableHeader().setReorderingAllowed(false);
+        table.getTableHeader().setBackground(AppColors.TABLE_HEADER_BACKGROUND);
+        table.getTableHeader().setForeground(AppColors.CARD_VALUE_TEXT);
+        table.getTableHeader().setFont(table.getTableHeader().getFont().deriveFont(Font.BOLD, 13f));
+        table.getTableHeader().setPreferredSize(new Dimension(0, 32));
+    }
+
+    private void styleNeutralButton(JButton button) {
+        button.setFocusPainted(false);
+        button.setBorderPainted(false);
+        button.setOpaque(true);
+        button.setBackground(AppColors.BUTTON_NEUTRAL);
+        button.setForeground(AppColors.BUTTON_TEXT);
+        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        button.setBorder(BorderFactory.createEmptyBorder(9, 16, 9, 16));
     }
 }

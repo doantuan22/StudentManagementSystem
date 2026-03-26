@@ -136,15 +136,12 @@ CREATE TABLE IF NOT EXISTS course_sections (
     section_code  VARCHAR(50)  NOT NULL UNIQUE,
     subject_id    BIGINT NOT NULL,
     lecturer_id   BIGINT NOT NULL,
-    room_id       BIGINT NOT NULL,
     semester      VARCHAR(30)  NOT NULL,
     school_year   VARCHAR(30)  NOT NULL,
-    schedule_text VARCHAR(255),
     max_students  INT NOT NULL DEFAULT 50,
     created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_course_sections_subject   FOREIGN KEY (subject_id)  REFERENCES subjects (id),
     CONSTRAINT fk_course_sections_lecturer  FOREIGN KEY (lecturer_id) REFERENCES lecturers (id),
-    CONSTRAINT fk_course_sections_room      FOREIGN KEY (room_id)     REFERENCES rooms (id),
     CONSTRAINT chk_course_sections_max_students CHECK (max_students > 0)
 );
 
@@ -315,7 +312,6 @@ CREATE INDEX idx_students_faculty          ON students (faculty_id);
 CREATE INDEX idx_lecturers_faculty         ON lecturers (faculty_id);
 CREATE INDEX idx_subjects_faculty          ON subjects (faculty_id);
 CREATE INDEX idx_course_sections_lecturer  ON course_sections (lecturer_id);
-CREATE INDEX idx_course_sections_room      ON course_sections (room_id);
 CREATE INDEX idx_enrollments_section       ON enrollments (course_section_id);
 CREATE INDEX idx_enrollments_student       ON enrollments (student_id);
 CREATE INDEX idx_scores_enrollment         ON scores (enrollment_id);

@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * DAO xu ly CRUD tai khoan dang nhap.
+ * DAO xử lý CRUD tài khoản đăng nhập.
  */
 public class UserDAO {
 
@@ -125,6 +125,28 @@ public class UserDAO {
             return user;
         } catch (SQLException exception) {
             throw new AppException("Không thể thêm người dùng.", exception);
+        }
+    }
+
+    public User insert(Connection connection, User user) throws SQLException {
+        String sql = """
+                INSERT INTO users(username, password_hash, full_name, email, role_id, active)
+                VALUES (?, ?, ?, ?, (SELECT id FROM roles WHERE role_code = ?), ?)
+                """;
+        try (PreparedStatement statement = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
+            statement.setString(1, user.getUsername());
+            statement.setString(2, user.getPasswordHash());
+            statement.setString(3, user.getFullName());
+            statement.setString(4, user.getEmail());
+            statement.setString(5, user.getRole().getCode());
+            statement.setBoolean(6, user.isActive());
+            statement.executeUpdate();
+            try (ResultSet resultSet = statement.getGeneratedKeys()) {
+                if (resultSet.next()) {
+                    user.setId(resultSet.getLong(1));
+                }
+            }
+            return user;
         }
     }
 

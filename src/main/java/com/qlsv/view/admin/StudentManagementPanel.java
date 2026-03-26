@@ -162,7 +162,6 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
 
     @Override
     protected Student promptForEntity(Student existingItem) {
-        JTextField userIdField = new JTextField(existingItem == null || existingItem.getUserId() == null ? "" : String.valueOf(existingItem.getUserId()));
         JTextField codeField = new JTextField(existingItem == null ? "" : existingItem.getStudentCode());
         JTextField nameField = new JTextField(existingItem == null ? "" : existingItem.getFullName());
         JComboBox<String> genderComboBox = new JComboBox<>(new String[]{"Nam", "Nữ", "Khác"});
@@ -204,8 +203,6 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
         }
 
         JPanel formPanel = new JPanel(new GridLayout(0, 2, 10, 10));
-        formPanel.add(new JLabel("ID người dùng"));
-        formPanel.add(userIdField);
         formPanel.add(new JLabel("Mã sinh viên"));
         formPanel.add(codeField);
         formPanel.add(new JLabel("Họ và tên"));
@@ -241,7 +238,6 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
         }
 
         Student student = existingItem == null ? new Student() : existingItem;
-        student.setUserId(userIdField.getText().isBlank() ? null : Long.parseLong(userIdField.getText().trim()));
         student.setStudentCode(codeField.getText().trim());
         student.setFullName(nameField.getText().trim());
         student.setGender((String) genderComboBox.getSelectedItem());

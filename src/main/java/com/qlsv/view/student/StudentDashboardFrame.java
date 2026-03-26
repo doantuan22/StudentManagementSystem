@@ -25,6 +25,7 @@ public class StudentDashboardFrame extends BaseFrame {
 
     private void initComponents(User user) {
         JButton logoutButton = new JButton("Đăng xuất");
+        styleHeaderActionButton(logoutButton);
         logoutButton.addActionListener(event -> {
             loginController.logout();
             new LoginFrame().setVisible(true);
@@ -60,7 +61,7 @@ public class StudentDashboardFrame extends BaseFrame {
         registerMenuItem(sidebarMenu, "registered", "Học phần đã đăng ký", cardLayout, contentPanel, "registered", registeredPanel);
         registerMenuItem(sidebarMenu, "scores", "Xem điểm", cardLayout, contentPanel, "scores", scorePanel);
         registerMenuItem(sidebarMenu, "schedule", "Lịch học", cardLayout, contentPanel, "schedule", schedulePanel);
-        
+
         sidebarMenu.setActiveItem("home");
         cardLayout.show(contentPanel, "home");
 

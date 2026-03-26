@@ -7,7 +7,6 @@ import com.qlsv.dao.ScheduleDAO;
 import com.qlsv.dao.StudentDAO;
 import com.qlsv.exception.ValidationException;
 import com.qlsv.model.Lecturer;
-import com.qlsv.model.Room;
 import com.qlsv.model.Schedule;
 import com.qlsv.model.Student;
 import com.qlsv.security.RolePermission;
@@ -43,11 +42,8 @@ public class ScheduleService {
     }
 
     public List<Schedule> findByCourseSectionId(Long courseSectionId) {
-        return findAll().stream()
-                .filter(schedule -> schedule.getCourseSection() != null
-                        && schedule.getCourseSection().getId() != null
-                        && schedule.getCourseSection().getId().equals(courseSectionId))
-                .toList();
+        permissionService.requirePermission(RolePermission.MANAGE_SCHEDULES);
+        return scheduleDAO.findByCourseSectionId(courseSectionId);
     }
 
     public List<Schedule> findByRoom(Long roomId) {
@@ -69,7 +65,6 @@ public class ScheduleService {
         permissionService.requirePermission(RolePermission.MANAGE_SCHEDULES);
         validate(schedule);
 
-        // Chot nghiep vu tranh trung lich ngay tai service de moi man hinh dung chung mot quy tac.
         if (scheduleDAO.hasLecturerScheduleConflict(schedule, schedule.getId())) {
             throw new ValidationException("Lịch học bị trùng với lịch dạy khác của giảng viên.");
         }
@@ -77,38 +72,14 @@ public class ScheduleService {
             throw new ValidationException("Lịch học bị trùng với lịch khác của phòng học.");
         }
 
-        Schedule savedSchedule = schedule.getId() == null ? scheduleDAO.insert(schedule) : updateAndReturn(schedule);
-        courseSectionDAO.updateScheduleSummary(
-                savedSchedule.getCourseSection().getId(),
-                savedSchedule.toDisplayText(),
-                savedSchedule.getRoom());
-        return savedSchedule;
+        return schedule.getId() == null ? scheduleDAO.insert(schedule) : updateAndReturn(schedule);
     }
 
     public boolean delete(Long id) {
         permissionService.requirePermission(RolePermission.MANAGE_SCHEDULES);
-        Schedule existingSchedule = scheduleDAO.findById(id)
+        scheduleDAO.findById(id)
                 .orElseThrow(() -> new ValidationException("Không tìm thấy lịch học cần xóa."));
-        boolean deleted = scheduleDAO.delete(id);
-        if (!deleted) {
-            return false;
-        }
-
-        List<Schedule> remainingSchedules = scheduleDAO.findByCourseSectionId(existingSchedule.getCourseSection().getId());
-        if (remainingSchedules.isEmpty()) {
-            courseSectionDAO.updateScheduleSummary(
-                    existingSchedule.getCourseSection().getId(),
-                    null,
-                    existingSchedule.getCourseSection().getRoom());
-            return true;
-        }
-
-        Schedule firstSchedule = remainingSchedules.get(0);
-        courseSectionDAO.updateScheduleSummary(
-                existingSchedule.getCourseSection().getId(),
-                firstSchedule.toDisplayText(),
-                firstSchedule.getRoom());
-        return true;
+        return scheduleDAO.delete(id);
     }
 
     private Schedule updateAndReturn(Schedule schedule) {
@@ -126,8 +97,8 @@ public class ScheduleService {
         if (schedule.getRoom() == null || schedule.getRoom().getId() == null) {
             throw new ValidationException("Phòng học không được để trống.");
         }
-        if (schedule.getStartPeriod() > schedule.getEndPeriod()) {
-            throw new ValidationException("Tiết bắt đầu không được lớn hơn tiết kết thúc.");
+        if (schedule.getStartPeriod() >= schedule.getEndPeriod()) {
+            throw new ValidationException("Tiết bắt đầu phải nhỏ hơn tiết kết thúc.");
         }
         courseSectionDAO.findById(schedule.getCourseSection().getId())
                 .orElseThrow(() -> new ValidationException("Học phần của lịch học không tồn tại."));

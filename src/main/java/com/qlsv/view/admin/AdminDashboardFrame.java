@@ -5,6 +5,7 @@ import com.qlsv.model.User;
 import com.qlsv.view.auth.LoginFrame;
 import com.qlsv.view.common.AppColors;
 import com.qlsv.view.common.BaseFrame;
+import com.qlsv.view.common.BasePanel;
 import com.qlsv.view.common.SidebarMenu;
 
 import javax.swing.BorderFactory;
@@ -36,36 +37,49 @@ public class AdminDashboardFrame extends BaseFrame {
 
         CardLayout cardLayout = new CardLayout();
         JPanel contentPanel = new JPanel(cardLayout);
-        contentPanel.add(new AdminHomePanel(), "home");
-        contentPanel.add(new StudentManagementPanel(), "students");
-        contentPanel.add(new LecturerManagementPanel(), "lecturers");
-        contentPanel.add(new FacultyManagementPanel(), "faculties");
-        contentPanel.add(new ClassRoomManagementPanel(), "classes");
-        contentPanel.add(new RoomManagementPanel(), "rooms");
-        contentPanel.add(new SubjectManagementPanel(), "subjects");
-        contentPanel.add(new CourseSectionManagementPanel(), "sections");
-        contentPanel.add(new EnrollmentManagementPanel(), "enrollments");
-        contentPanel.add(new ScoreManagementPanel(), "scores");
-        contentPanel.add(new ScheduleManagementPanel(), "schedules");
-        contentPanel.add(new ReportManagementPanel(), "reports");
+        AdminHomePanel homePanel = new AdminHomePanel();
+        StudentManagementPanel studentManagementPanel = new StudentManagementPanel();
+        LecturerManagementPanel lecturerManagementPanel = new LecturerManagementPanel();
+        FacultyManagementPanel facultyManagementPanel = new FacultyManagementPanel();
+        ClassRoomManagementPanel classRoomManagementPanel = new ClassRoomManagementPanel();
+        RoomManagementPanel roomManagementPanel = new RoomManagementPanel();
+        SubjectManagementPanel subjectManagementPanel = new SubjectManagementPanel();
+        CourseSectionManagementPanel courseSectionManagementPanel = new CourseSectionManagementPanel();
+        EnrollmentManagementPanel enrollmentManagementPanel = new EnrollmentManagementPanel();
+        ScoreManagementPanel scoreManagementPanel = new ScoreManagementPanel();
+        ScheduleManagementPanel scheduleManagementPanel = new ScheduleManagementPanel();
+        ReportManagementPanel reportManagementPanel = new ReportManagementPanel();
+
+        contentPanel.add(homePanel, "home");
+        contentPanel.add(studentManagementPanel, "students");
+        contentPanel.add(lecturerManagementPanel, "lecturers");
+        contentPanel.add(facultyManagementPanel, "faculties");
+        contentPanel.add(classRoomManagementPanel, "classes");
+        contentPanel.add(roomManagementPanel, "rooms");
+        contentPanel.add(subjectManagementPanel, "subjects");
+        contentPanel.add(courseSectionManagementPanel, "sections");
+        contentPanel.add(enrollmentManagementPanel, "enrollments");
+        contentPanel.add(scoreManagementPanel, "scores");
+        contentPanel.add(scheduleManagementPanel, "schedules");
+        contentPanel.add(reportManagementPanel, "reports");
         contentPanel.setBackground(AppColors.CONTENT_BACKGROUND);
 
         SidebarMenu sidebarMenu = new SidebarMenu(
                 "Quản trị hệ thống",
                 "Truy cập nhanh các màn hình quản lý dành cho quản trị viên."
         );
-        registerMenuItem(sidebarMenu, "home", "Tổng quan", cardLayout, contentPanel, "home");
-        registerMenuItem(sidebarMenu, "students", "Quản lý sinh viên", cardLayout, contentPanel, "students");
-        registerMenuItem(sidebarMenu, "lecturers", "Quản lý giảng viên", cardLayout, contentPanel, "lecturers");
-        registerMenuItem(sidebarMenu, "faculties", "Quản lý khoa", cardLayout, contentPanel, "faculties");
-        registerMenuItem(sidebarMenu, "classes", "Quản lý lớp", cardLayout, contentPanel, "classes");
-        registerMenuItem(sidebarMenu, "rooms", "Quản lý phòng", cardLayout, contentPanel, "rooms");
-        registerMenuItem(sidebarMenu, "subjects", "Quản lý môn học", cardLayout, contentPanel, "subjects");
-        registerMenuItem(sidebarMenu, "sections", "Quản lý học phần", cardLayout, contentPanel, "sections");
-        registerMenuItem(sidebarMenu, "enrollments", "Quản lý đăng ký", cardLayout, contentPanel, "enrollments");
-        registerMenuItem(sidebarMenu, "scores", "Quản lý điểm", cardLayout, contentPanel, "scores");
-        registerMenuItem(sidebarMenu, "schedules", "Quản lý lịch học", cardLayout, contentPanel, "schedules");
-        registerMenuItem(sidebarMenu, "reports", "Báo cáo", cardLayout, contentPanel, "reports");
+        registerMenuItem(sidebarMenu, "home", "Tổng quan", cardLayout, contentPanel, "home", homePanel);
+        registerMenuItem(sidebarMenu, "students", "Quản lý sinh viên", cardLayout, contentPanel, "students", studentManagementPanel);
+        registerMenuItem(sidebarMenu, "lecturers", "Quản lý giảng viên", cardLayout, contentPanel, "lecturers", lecturerManagementPanel);
+        registerMenuItem(sidebarMenu, "faculties", "Quản lý khoa", cardLayout, contentPanel, "faculties", facultyManagementPanel);
+        registerMenuItem(sidebarMenu, "classes", "Quản lý lớp", cardLayout, contentPanel, "classes", classRoomManagementPanel);
+        registerMenuItem(sidebarMenu, "rooms", "Quản lý phòng", cardLayout, contentPanel, "rooms", roomManagementPanel);
+        registerMenuItem(sidebarMenu, "subjects", "Quản lý môn học", cardLayout, contentPanel, "subjects", subjectManagementPanel);
+        registerMenuItem(sidebarMenu, "sections", "Quản lý học phần", cardLayout, contentPanel, "sections", courseSectionManagementPanel);
+        registerMenuItem(sidebarMenu, "enrollments", "Quản lý đăng ký", cardLayout, contentPanel, "enrollments", enrollmentManagementPanel);
+        registerMenuItem(sidebarMenu, "scores", "Quản lý điểm", cardLayout, contentPanel, "scores", scoreManagementPanel);
+        registerMenuItem(sidebarMenu, "schedules", "Quản lý lịch học", cardLayout, contentPanel, "schedules", scheduleManagementPanel);
+        registerMenuItem(sidebarMenu, "reports", "Báo cáo", cardLayout, contentPanel, "reports", reportManagementPanel);
         sidebarMenu.setActiveItem("home");
         cardLayout.show(contentPanel, "home");
 
@@ -87,9 +101,13 @@ public class AdminDashboardFrame extends BaseFrame {
             String text,
             CardLayout cardLayout,
             JPanel contentPanel,
-            String cardName
+            String cardName,
+            BasePanel panel
     ) {
-        sidebarMenu.addMenuItem(itemKey, text, () -> cardLayout.show(contentPanel, cardName));
+        sidebarMenu.addMenuItem(itemKey, text, () -> {
+            panel.reloadData();
+            cardLayout.show(contentPanel, cardName);
+        });
     }
 
     private void configureHeaderButton(JButton button) {

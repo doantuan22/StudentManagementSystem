@@ -171,7 +171,7 @@ public class StudentDAO {
             statement.setLong(4, studentId);
             return statement.executeUpdate() > 0;
         } catch (SQLException exception) {
-            throw new AppException("KhÃ´ng thá»ƒ cáº­p nháº­t thÃ´ng tin liÃªn há»‡ sinh viÃªn.", exception);
+            throw new AppException("Không thể cập nhật thông tin liên hệ sinh viên.", exception);
         }
     }
 

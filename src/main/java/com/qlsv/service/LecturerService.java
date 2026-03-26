@@ -1,12 +1,15 @@
 package com.qlsv.service;
 
-import com.qlsv.config.SessionManager;
 import com.qlsv.config.DBConnection;
+import com.qlsv.config.SessionManager;
 import com.qlsv.dao.LecturerDAO;
 import com.qlsv.dao.UserDAO;
 import com.qlsv.exception.AppException;
 import com.qlsv.exception.ValidationException;
 import com.qlsv.model.Lecturer;
+import com.qlsv.model.Role;
+import com.qlsv.model.User;
+import com.qlsv.security.PasswordHasher;
 import com.qlsv.security.RolePermission;
 import com.qlsv.utils.ValidationUtil;
 
@@ -46,11 +49,9 @@ public class LecturerService {
 
     public Lecturer save(Lecturer lecturer) {
         if (lecturer.getId() != null) {
-            // Cap nhat
             if (permissionService.hasPermission(RolePermission.MANAGE_LECTURERS)) {
-                // Admin thi cho phep
+                // Admin duoc phep cap nhat day du.
             } else if (permissionService.hasPermission(RolePermission.EDIT_OWN_PROFILE)) {
-                // Giang vien tu sua cho minh thi ok
                 Lecturer current = findCurrentLecturer();
                 if (!current.getId().equals(lecturer.getId())) {
                     throw new ValidationException("Bạn không thể chỉnh sửa hồ sơ của người khác.");
@@ -59,7 +60,6 @@ public class LecturerService {
                 permissionService.requirePermission(RolePermission.MANAGE_LECTURERS);
             }
         } else {
-            // Them moi
             permissionService.requirePermission(RolePermission.MANAGE_LECTURERS);
         }
 
@@ -76,15 +76,21 @@ public class LecturerService {
         try (Connection connection = DBConnection.getConnection()) {
             connection.setAutoCommit(false);
             try {
-                // 1. Cap nhat thong tin giang vien
+                ensureLinkedUser(connection, lecturer);
                 lecturerDAO.update(connection, lecturer);
 
-                // 2. Dong bo ho ten sang bang users neu co lien ket
                 if (lecturer.getUserId() != null) {
                     userDAO.updateFullName(connection, lecturer.getUserId(), lecturer.getFullName());
+                    userDAO.updateEmail(connection, lecturer.getUserId(), lecturer.getEmail());
                 }
 
                 connection.commit();
+                if (SessionManager.isLoggedIn()
+                        && lecturer.getUserId() != null
+                        && lecturer.getUserId().equals(SessionManager.requireCurrentUser().getId())) {
+                    SessionManager.requireCurrentUser().setFullName(lecturer.getFullName());
+                    SessionManager.requireCurrentUser().setEmail(lecturer.getEmail());
+                }
                 return lecturer;
             } catch (SQLException exception) {
                 connection.rollback();
@@ -103,5 +109,35 @@ public class LecturerService {
         if (lecturer.getFaculty() == null || lecturer.getFaculty().getId() == null) {
             throw new ValidationException("Giảng viên phải thuộc một khoa.");
         }
+    }
+
+    private void ensureLinkedUser(Connection connection, Lecturer lecturer) throws SQLException {
+        if (lecturer.getUserId() != null) {
+            return;
+        }
+
+        String username = lecturer.getLecturerCode() == null ? "" : lecturer.getLecturerCode().trim().toLowerCase();
+        if (username.isBlank()) {
+            return;
+        }
+
+        User existingUser = userDAO.findByUsername(username).orElse(null);
+        if (existingUser != null) {
+            if (existingUser.getRole() != Role.LECTURER) {
+                throw new ValidationException("Ma giang vien dang trung voi tai khoan khong phai giang vien.");
+            }
+            lecturer.setUserId(existingUser.getId());
+            return;
+        }
+
+        User user = new User();
+        user.setUsername(username);
+        user.setPasswordHash(PasswordHasher.hash("123456"));
+        user.setFullName(lecturer.getFullName());
+        user.setEmail(lecturer.getEmail());
+        user.setRole(Role.LECTURER);
+        user.setActive(true);
+        userDAO.insert(connection, user);
+        lecturer.setUserId(user.getId());
     }
 }

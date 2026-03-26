@@ -6,7 +6,10 @@ import com.qlsv.dao.StudentDAO;
 import com.qlsv.dao.UserDAO;
 import com.qlsv.exception.AppException;
 import com.qlsv.exception.ValidationException;
+import com.qlsv.model.Role;
 import com.qlsv.model.Student;
+import com.qlsv.model.User;
+import com.qlsv.security.PasswordHasher;
 import com.qlsv.security.RolePermission;
 import com.qlsv.utils.ValidationUtil;
 
@@ -125,6 +128,7 @@ public class StudentService {
         try (Connection connection = DBConnection.getConnection()) {
             connection.setAutoCommit(false);
             try {
+                ensureLinkedUser(connection, student);
                 studentDAO.update(connection, student);
 
                 if (student.getUserId() != null) {
@@ -163,5 +167,35 @@ public class StudentService {
             throw new ValidationException("Dia chi khong duoc vuot qua 255 ky tu.");
         }
         return normalizedAddress;
+    }
+
+    private void ensureLinkedUser(Connection connection, Student student) throws SQLException {
+        if (student.getUserId() != null) {
+            return;
+        }
+
+        String username = student.getStudentCode() == null ? "" : student.getStudentCode().trim().toLowerCase();
+        if (username.isBlank()) {
+            return;
+        }
+
+        User existingUser = userDAO.findByUsername(username).orElse(null);
+        if (existingUser != null) {
+            if (existingUser.getRole() != Role.STUDENT) {
+                throw new ValidationException("Ma sinh vien dang trung voi tai khoan khong phai sinh vien.");
+            }
+            student.setUserId(existingUser.getId());
+            return;
+        }
+
+        User user = new User();
+        user.setUsername(username);
+        user.setPasswordHash(PasswordHasher.hash("123456"));
+        user.setFullName(student.getFullName());
+        user.setEmail(student.getEmail());
+        user.setRole(Role.STUDENT);
+        user.setActive(true);
+        userDAO.insert(connection, user);
+        student.setUserId(user.getId());
     }
 }

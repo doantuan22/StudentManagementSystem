@@ -171,7 +171,20 @@ public class ScheduleDAO {
                   AND NOT (s.end_period < ? OR s.start_period > ?)
                   AND (? IS NULL OR s.id <> ?)
                 """;
-        return hasConflict(sql, schedule, excludeScheduleId, "Không thể kiểm tra trùng lịch của giảng viên.");
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setLong(1, schedule.getCourseSection().getId());
+            statement.setString(2, schedule.getDayOfWeek());
+            statement.setInt(3, schedule.getStartPeriod());
+            statement.setInt(4, schedule.getEndPeriod());
+            statement.setObject(5, excludeScheduleId);
+            statement.setObject(6, excludeScheduleId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return resultSet.next() && resultSet.getInt(1) > 0;
+            }
+        } catch (SQLException exception) {
+            throw new AppException("Không thể kiểm tra trùng lịch của giảng viên.", exception);
+        }
     }
 
     public boolean hasRoomScheduleConflict(Schedule schedule, Long excludeScheduleId) {

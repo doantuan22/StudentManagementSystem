@@ -2,6 +2,7 @@ package com.qlsv.service;
 
 import com.qlsv.dao.RoomDAO;
 import com.qlsv.exception.AppException;
+import com.qlsv.model.Role;
 import com.qlsv.model.Room;
 
 import java.util.List;
@@ -9,12 +10,15 @@ import java.util.List;
 public class RoomService {
 
     private final RoomDAO roomDAO = new RoomDAO();
+    private final PermissionService permissionService = new PermissionService();
 
     public List<Room> getAllRooms() {
+        permissionService.requireAnyRole(Role.ADMIN);
         return roomDAO.findAll();
     }
 
     public List<Room> searchRooms(String keyword) {
+        permissionService.requireAnyRole(Role.ADMIN);
         if (keyword == null || keyword.isBlank()) {
             return roomDAO.findAll();
         }
@@ -22,6 +26,7 @@ public class RoomService {
     }
 
     public void saveRoom(Room room) {
+        permissionService.requireAnyRole(Role.ADMIN);
         validateRoom(room);
         if (room.getId() == null) {
             roomDAO.insert(room);
@@ -31,8 +36,9 @@ public class RoomService {
     }
 
     public void deleteRoom(Long id) {
+        permissionService.requireAnyRole(Role.ADMIN);
         if (id == null || id <= 0) {
-            throw new AppException("Dữ liệu không hợp lệ para xóa phòng học.");
+            throw new AppException("Dữ liệu không hợp lệ để xóa phòng học.");
         }
         roomDAO.delete(id);
     }

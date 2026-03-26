@@ -5,6 +5,7 @@ import com.qlsv.model.User;
 import com.qlsv.view.auth.LoginFrame;
 import com.qlsv.view.common.AppColors;
 import com.qlsv.view.common.BaseFrame;
+import com.qlsv.view.common.BasePanel;
 import com.qlsv.view.common.SidebarMenu;
 
 import javax.swing.BorderFactory;
@@ -36,22 +37,27 @@ public class LecturerDashboardFrame extends BaseFrame {
 
         CardLayout cardLayout = new CardLayout();
         JPanel contentPanel = new JPanel(cardLayout);
-        contentPanel.add(new LecturerProfilePanel(), "profile");
-        contentPanel.add(new LecturerCourseSectionPanel(), "sections");
-        contentPanel.add(new LecturerStudentListPanel(), "students");
-        contentPanel.add(new LecturerScorePanel(), "scores");
-        contentPanel.add(new LecturerSchedulePanel(), "schedule");
+        LecturerProfilePanel profilePanel = new LecturerProfilePanel();
+        LecturerCourseSectionPanel sectionPanel = new LecturerCourseSectionPanel();
+        LecturerStudentListPanel studentListPanel = new LecturerStudentListPanel();
+        LecturerScorePanel scorePanel = new LecturerScorePanel();
+        LecturerSchedulePanel schedulePanel = new LecturerSchedulePanel();
+        contentPanel.add(profilePanel, "profile");
+        contentPanel.add(sectionPanel, "sections");
+        contentPanel.add(studentListPanel, "students");
+        contentPanel.add(scorePanel, "scores");
+        contentPanel.add(schedulePanel, "schedule");
         contentPanel.setBackground(AppColors.CONTENT_BACKGROUND);
 
         SidebarMenu sidebarMenu = new SidebarMenu(
                 "Giảng viên",
                 ""
         );
-        registerMenuItem(sidebarMenu, "profile", "Thông tin cá nhân", cardLayout, contentPanel, "profile");
-        registerMenuItem(sidebarMenu, "sections", "Học phần phụ trách", cardLayout, contentPanel, "sections");
-        registerMenuItem(sidebarMenu, "students", "Sinh viên theo học phần", cardLayout, contentPanel, "students");
-        registerMenuItem(sidebarMenu, "scores", "Nhập hoặc xem điểm", cardLayout, contentPanel, "scores");
-        registerMenuItem(sidebarMenu, "schedule", "Lịch dạy", cardLayout, contentPanel, "schedule");
+        registerMenuItem(sidebarMenu, "profile", "Thông tin cá nhân", cardLayout, contentPanel, "profile", profilePanel);
+        registerMenuItem(sidebarMenu, "sections", "Học phần phụ trách", cardLayout, contentPanel, "sections", sectionPanel);
+        registerMenuItem(sidebarMenu, "students", "Sinh viên theo học phần", cardLayout, contentPanel, "students", studentListPanel);
+        registerMenuItem(sidebarMenu, "scores", "Nhập hoặc xem điểm", cardLayout, contentPanel, "scores", scorePanel);
+        registerMenuItem(sidebarMenu, "schedule", "Lịch dạy", cardLayout, contentPanel, "schedule", schedulePanel);
         sidebarMenu.setActiveItem("profile");
         cardLayout.show(contentPanel, "profile");
 
@@ -73,9 +79,13 @@ public class LecturerDashboardFrame extends BaseFrame {
             String text,
             CardLayout cardLayout,
             JPanel contentPanel,
-            String cardName
+            String cardName,
+            BasePanel panel
     ) {
-        sidebarMenu.addMenuItem(itemKey, text, () -> cardLayout.show(contentPanel, cardName));
+        sidebarMenu.addMenuItem(itemKey, text, () -> {
+            panel.reloadData();
+            cardLayout.show(contentPanel, cardName);
+        });
     }
 
     private void configureHeaderButton(JButton button) {

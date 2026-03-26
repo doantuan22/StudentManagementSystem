@@ -258,11 +258,12 @@ Tat ca tai khoan deu dung mat khau:
 Danh sach:
 
 - `admin`
-- `lecturer01`
-- `lecturer02`
-- `student01`
-- `student02`
-- `student03`
+- `gv001`
+- `gv002`
+- `gv003`
+- `sv2200001`
+- `sv2200002`
+- `sv2200003`
 
 ## Cach chay project
 
@@ -334,8 +335,6 @@ Day la ban phat trien du de test he thong end-to-end tren cau truc project hien 
 
 ## Cap nhat UI admin va nien khoa sinh vien
 
-- Da bo sung cot `students.academic_year` va script nang cap `database/11_add_student_academic_year.sql` de bo sung du lieu nien khoa an toan tren database cu.
-- Da doi cot sai nghia `course_sections.class_room_id` thanh `course_sections.room` va bo sung script nang cap `database/12_rename_course_sections_class_room_to_room.sql`.
 - Da nang cap cac man hinh ADMIN theo bo cuc `bo loc -> bang danh sach -> chi tiet`, trong do cac man hinh sinh vien, giang vien, mon hoc va cac man hinh CRUD bang du lieu khac deu chi hien du lieu sau khi chon dieu kien loc phu hop.
 - Da Viet hoa giao dien theo tieng Viet co dau, bao gom tieu de frame, nut bam, cot bang, thong bao va cac panel thong tin chi tiet.
-- Đã sửa lỗi đồng bộ họ tên (full_name) giữa bảng users và students/lecturers khi admin cập nhật thông tin; bổ sung migration sync dữ liệu cũ tại `database/06_sync_user_full_name.sql`.
+- Da sua dong bo ho ten (full_name) giua bang users va students/lecturers khi admin cap nhat thong tin.

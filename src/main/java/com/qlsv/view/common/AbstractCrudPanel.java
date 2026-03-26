@@ -12,9 +12,8 @@ import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
-import javax.swing.SwingUtilities;
 import javax.swing.SwingConstants;
-import javax.swing.UIManager;
+import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
@@ -41,6 +40,10 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
 
     private final CardLayout tableCardLayout = (CardLayout) tableCardPanel.getLayout();
     private final JScrollPane tableScrollPane;
+    private final JButton addButton;
+    private final JButton editButton;
+    private final JButton deleteButton;
+    private final JButton reloadButton;
 
     private JSplitPane splitPane;
     private JComponent detailPanel;
@@ -72,10 +75,10 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
 
         JPanel actionPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 0));
         actionPanel.setOpaque(false);
-        JButton addButton = new JButton("Thêm");
-        JButton editButton = new JButton("Sửa");
-        JButton deleteButton = new JButton("Xóa");
-        JButton reloadButton = new JButton("Tải lại");
+        addButton = new JButton("Thêm");
+        editButton = new JButton("Sửa");
+        deleteButton = new JButton("Xóa");
+        reloadButton = new JButton("Tải lại");
         styleFilledButton(addButton, AppColors.BUTTON_SUCCESS);
         styleFilledButton(editButton, AppColors.BUTTON_WARNING);
         styleFilledButton(deleteButton, AppColors.BUTTON_DANGER);
@@ -192,6 +195,18 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
 
     protected final List<T> getCurrentItems() {
         return new ArrayList<>(currentItems);
+    }
+
+    protected final void configureActionButtons(boolean showAdd, boolean showEdit, boolean showDelete, boolean showReload) {
+        addButton.setVisible(showAdd);
+        editButton.setVisible(showEdit);
+        deleteButton.setVisible(showDelete);
+        reloadButton.setVisible(showReload);
+    }
+
+    @Override
+    public void reloadData() {
+        refreshData();
     }
 
     protected final void refreshData() {
@@ -322,8 +337,6 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
     }
 
     private JScrollPane buildDetailScrollPane(JComponent content) {
-        // Them JScrollPane cho khu vuc chi tiet de van nam ben duoi bang danh sach
-        // nhung nguoi dung co the cuon doc de xem het noi dung khi du lieu dai.
         JScrollPane scrollPane = new JScrollPane(content);
         scrollPane.setBorder(BorderFactory.createLineBorder(AppColors.CARD_BORDER));
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);

@@ -125,7 +125,6 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
 
     @Override
     protected Lecturer promptForEntity(Lecturer existingItem) {
-        JTextField userIdField = new JTextField(existingItem == null || existingItem.getUserId() == null ? "" : String.valueOf(existingItem.getUserId()));
         JTextField codeField = new JTextField(existingItem == null ? "" : existingItem.getLecturerCode());
         JTextField nameField = new JTextField(existingItem == null ? "" : existingItem.getFullName());
         JTextField emailField = new JTextField(existingItem == null ? "" : existingItem.getEmail());
@@ -143,8 +142,6 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
         selectStatus(statusComboBox, existingItem == null ? "ACTIVE" : existingItem.getStatus());
 
         JPanel formPanel = new JPanel(new GridLayout(0, 2, 10, 10));
-        formPanel.add(new JLabel("ID người dùng"));
-        formPanel.add(userIdField);
         formPanel.add(new JLabel("Mã giảng viên"));
         formPanel.add(codeField);
         formPanel.add(new JLabel("Họ và tên"));
@@ -172,7 +169,6 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
         }
 
         Lecturer lecturer = existingItem == null ? new Lecturer() : existingItem;
-        lecturer.setUserId(userIdField.getText().isBlank() ? null : Long.parseLong(userIdField.getText().trim()));
         lecturer.setLecturerCode(codeField.getText().trim());
         lecturer.setFullName(nameField.getText().trim());
         lecturer.setEmail(emailField.getText().trim());

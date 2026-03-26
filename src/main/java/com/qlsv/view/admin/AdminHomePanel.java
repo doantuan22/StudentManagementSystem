@@ -54,6 +54,11 @@ public class AdminHomePanel extends BasePanel {
         add(statisticsPanel, BorderLayout.CENTER);
     }
 
+    @Override
+    public void reloadData() {
+        statisticsPanel.reloadStatistics();
+    }
+
     private void configurePrimaryButton(JButton button) {
         button.setFocusPainted(false);
         button.setBorderPainted(false);

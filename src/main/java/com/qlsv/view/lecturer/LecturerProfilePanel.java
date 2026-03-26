@@ -182,10 +182,10 @@ public class LecturerProfilePanel extends BasePanel {
             currentLecturer.setPhone(phone);
             currentLecturer.setAddress(address);
 
-            lecturerController.saveLecturer(currentLecturer);
+            currentLecturer = lecturerController.saveLecturer(currentLecturer);
             DialogUtil.showInfo(this, "Cập nhật thông tin thành công!");
             isEditing = false;
-            renderProfile();
+            reloadData();
         } catch (Exception e) {
             DialogUtil.showError(this, e.getMessage());
         }

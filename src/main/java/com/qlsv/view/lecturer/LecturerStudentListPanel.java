@@ -163,6 +163,7 @@ public class LecturerStudentListPanel extends BasePanel {
     @Override
     public void reloadData() {
         try {
+            loadCourseSections();
             Lecturer lecturer = lecturerController.getCurrentLecturer();
             allEnrollments.clear();
             allEnrollments.addAll(enrollmentController.getLecturerEnrollments(lecturer.getId()));

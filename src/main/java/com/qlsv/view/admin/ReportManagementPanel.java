@@ -73,6 +73,12 @@ public class ReportManagementPanel extends BasePanel {
         loadStatistics();
     }
 
+    @Override
+    public void reloadData() {
+        refreshFilterOptions();
+        loadStatistics();
+    }
+
     private void refreshFilterOptions() {
         try {
             filterComboBox.removeAllItems();

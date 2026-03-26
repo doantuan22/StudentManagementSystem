@@ -1,41 +1,28 @@
 # Database Scripts
 
-Thư mục `database/` chứa các file SQL chính thức để thiết lập hệ thống cơ sở dữ liệu cho đồ án (MySQL 8).
+Thu muc `database/` chua bo file SQL chinh thuc de tao va nap du lieu cho project (MySQL 8).
 
-## Bộ file SQL chính thức (Thứ tự chạy)
+## Thu tu chay khuyen nghi
 
-Hãy chạy các file theo đúng thứ tự đánh số dưới đây để đảm bảo tính toàn vẹn dữ liệu:
+1. `00_drop_old_database.sql`
+   Dung khi muon reset sach database `student_management`.
+2. `01_create_schema.sql`
+   Tao database, bang, khoa ngoai, index, view va trigger can thiet.
+3. `02_seed_full_data.sql`
+   Nap du lieu mau day du cho 3 vai tro.
+4. `03_verify_data.sql`
+   Kiem tra nhanh schema va du lieu sau khi nap.
 
-1. **`00_drop_old_database.sql`**
-   - Xóa database cũ `student_management`. Dùng khi muốn reset sạch toàn bộ hệ thống.
-   - **CẢNH BÁO**: Sẽ mất toàn bộ dữ liệu hiện tại.
+## Tai khoan demo
 
-2. **`01_create_schema.sql`**
-   - Tạo database, toàn bộ bảng, khóa ngoại, index và view.
-   - **Đặc biệt**: Đã tích hợp các Trigger tự động tạo tài khoản User khi thêm Sinh viên/Giảng viên và tự động đồng bộ họ tên giữa các bảng.
+- Admin: `admin` / `123456`
+- Giang vien: `gv001`, `gv002`, `gv003` / `123456`
+- Sinh vien: `sv2200001`, `sv2200002`, `sv2200003`, ... / `123456`
 
-3. **`02_seed_full_data.sql`**
-   - Chèn dữ liệu mẫu đầy đủ (Roles, Users, Faculties, Classes, Rooms, Students, Lecturers, Subjects, Course Sections, Enrollments, Scores).
-   - Mật khẩu mặc định cho tất cả tài khoản: `123456`.
+## Cau hinh mac dinh
 
-4. **`03_verify_data.sql`**
-   - Các câu lệnh truy vấn để kiểm tra nhanh tình trạng database sau khi dựng.
+- URL: `jdbc:mysql://localhost:3306/student_management`
+- User: `root`
+- Pass: `123456`
 
-## Lưu ý về tài khoản Demo
-
-Sau khi chạy xong bộ script trên, bạn có thể dùng các tài khoản sau để test:
-- **Quản trị viên**: `admin` / `123456`
-- **Giảng viên**: `gv001`, `gv002`, `gv003` / `123456`
-- **Sinh viên**: `sv2200001`, `sv2200002`, `sv2200003`, ... / `123456`
-
-*(Lưu ý: Username của Sinh viên/Giảng viên được chuẩn hóa theo mã số viết thường)*
-
-## Cấu hình Kết nối (application.properties)
-
-Mặc định project sử dụng:
-- **URL**: `jdbc:mysql://localhost:3306/student_management`
-- **User**: `root`
-- **Pass**: `123456` (Hoặc chỉnh lại theo máy cá nhân trong file config).
-
----
-*Các file có tiền tố `obsolete_` là các bản vá cũ đã được hợp nhất vào bộ script chính thức, không nên sử dụng đơn lẻ.*
+Su dung bo file `00` -> `03` la du de tao schema, nap du lieu mau va kiem tra nhanh database cho project hien tai.

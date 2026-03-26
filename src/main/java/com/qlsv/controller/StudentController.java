@@ -37,8 +37,16 @@ public class StudentController {
         return studentService.findCurrentStudent();
     }
 
+    public Student getStudentById(Long id) {
+        return studentService.findById(id);
+    }
+
     public Student saveStudent(Student student) {
         return studentService.save(student);
+    }
+
+    public Student updateCurrentStudentContactInfo(String email, String phone, String address) {
+        return studentService.updateCurrentStudentContactInfo(email, phone, address);
     }
 
     public boolean deleteStudent(Long id) {

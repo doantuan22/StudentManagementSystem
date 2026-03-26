@@ -135,19 +135,43 @@ public class StudentDAO {
     }
 
     public boolean update(Student student) {
+        try (Connection connection = DBConnection.getConnection()) {
+            return update(connection, student);
+        } catch (SQLException exception) {
+            throw new AppException("Không thể kết nối cơ sở dữ liệu khi cập nhật sinh viên.", exception);
+        }
+    }
+
+    public boolean update(Connection connection, Student student) {
         String sql = """
                 UPDATE students
                 SET user_id = ?, student_code = ?, full_name = ?, gender = ?, date_of_birth = ?, email = ?,
                     phone = ?, address = ?, faculty_id = ?, class_room_id = ?, academic_year = ?, status = ?
                 WHERE id = ?
                 """;
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
             fillStatement(statement, student);
             statement.setLong(13, student.getId());
             return statement.executeUpdate() > 0;
         } catch (SQLException exception) {
             throw new AppException("Không thể cập nhật sinh viên.", exception);
+        }
+    }
+
+    public boolean updateContactInfo(Connection connection, Long studentId, String email, String phone, String address) {
+        String sql = """
+                UPDATE students
+                SET email = ?, phone = ?, address = ?
+                WHERE id = ?
+                """;
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, email);
+            statement.setString(2, phone);
+            statement.setString(3, address);
+            statement.setLong(4, studentId);
+            return statement.executeUpdate() > 0;
+        } catch (SQLException exception) {
+            throw new AppException("KhÃ´ng thá»ƒ cáº­p nháº­t thÃ´ng tin liÃªn há»‡ sinh viÃªn.", exception);
         }
     }
 

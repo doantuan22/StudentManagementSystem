@@ -165,6 +165,28 @@ public class UserDAO {
         }
     }
 
+    /**
+     * Cập nhật họ tên của người dùng.
+     * Sử dụng Connection truyền vào để hỗ trợ transaction.
+     */
+    public void updateFullName(Connection connection, Long userId, String fullName) throws SQLException {
+        String sql = "UPDATE users SET full_name = ? WHERE id = ?";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, fullName);
+            statement.setLong(2, userId);
+            statement.executeUpdate();
+        }
+    }
+
+    public void updateEmail(Connection connection, Long userId, String email) throws SQLException {
+        String sql = "UPDATE users SET email = ? WHERE id = ?";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, email);
+            statement.setLong(2, userId);
+            statement.executeUpdate();
+        }
+    }
+
     private User mapRow(ResultSet resultSet) throws SQLException {
         return new User(
                 resultSet.getLong("id"),

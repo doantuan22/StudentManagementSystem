@@ -338,3 +338,4 @@ Day la ban phat trien du de test he thong end-to-end tren cau truc project hien 
 - Da doi cot sai nghia `course_sections.class_room_id` thanh `course_sections.room` va bo sung script nang cap `database/12_rename_course_sections_class_room_to_room.sql`.
 - Da nang cap cac man hinh ADMIN theo bo cuc `bo loc -> bang danh sach -> chi tiet`, trong do cac man hinh sinh vien, giang vien, mon hoc va cac man hinh CRUD bang du lieu khac deu chi hien du lieu sau khi chon dieu kien loc phu hop.
 - Da Viet hoa giao dien theo tieng Viet co dau, bao gom tieu de frame, nut bam, cot bang, thong bao va cac panel thong tin chi tiet.
+- Đã sửa lỗi đồng bộ họ tên (full_name) giữa bảng users và students/lecturers khi admin cập nhật thông tin; bổ sung migration sync dữ liệu cũ tại `database/06_sync_user_full_name.sql`.

@@ -124,13 +124,20 @@ public class LecturerDAO {
     }
 
     public boolean update(Lecturer lecturer) {
+        try (Connection connection = DBConnection.getConnection()) {
+            return update(connection, lecturer);
+        } catch (SQLException exception) {
+            throw new AppException("Không thể kết nối cơ sở dữ liệu khi cập nhật giảng viên.", exception);
+        }
+    }
+
+    public boolean update(Connection connection, Lecturer lecturer) {
         String sql = """
                 UPDATE lecturers
                 SET user_id = ?, lecturer_code = ?, full_name = ?, email = ?, phone = ?, address = ?, faculty_id = ?, status = ?
                 WHERE id = ?
                 """;
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
             fillStatement(statement, lecturer);
             statement.setLong(9, lecturer.getId());
             return statement.executeUpdate() > 0;

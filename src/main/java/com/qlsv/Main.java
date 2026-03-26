@@ -24,8 +24,7 @@ public class Main {
             } else if (!DBConnection.hasRequiredTables()) {
                 DialogUtil.showError(
                         null,
-                        "Cơ sở dữ liệu hiện tại chưa có đầy đủ schema mới. Hãy chạy lại 02_create_tables.sql, 03_insert_sample_data.sql "
-                                + "và các script nâng cấp 11_add_student_academic_year.sql, 12_rename_course_sections_class_room_to_room.sql nếu đang nâng cấp từ bản cũ.");
+                        "Cơ sở dữ liệu hiện tại chưa có đầy đủ schema mới");
             }
             new LoginFrame().setVisible(true);
         });

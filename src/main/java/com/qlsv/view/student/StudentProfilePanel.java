@@ -2,24 +2,53 @@ package com.qlsv.view.student;
 
 import com.qlsv.controller.StudentController;
 import com.qlsv.model.Student;
-import com.qlsv.utils.DisplayTextUtil;
 import com.qlsv.utils.DialogUtil;
+import com.qlsv.utils.DisplayTextUtil;
+import com.qlsv.utils.ValidationUtil;
 import com.qlsv.view.common.AppColors;
 import com.qlsv.view.common.BasePanel;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.awt.Insets;
 
 public class StudentProfilePanel extends BasePanel {
 
+    private static final Color HERO_BACKGROUND = new Color(232, 240, 255);
+    private static final Color ACADEMIC_CARD_BACKGROUND = new Color(255, 255, 255);
+    private static final Color PERSONAL_CARD_BACKGROUND = new Color(241, 248, 255);
+    private static final Color CONTACT_CARD_BACKGROUND = new Color(239, 252, 245);
+    private static final int CARD_GAP = 16;
+    private static final int SECTION_GAP = 12;
+    private static final int INPUT_HEIGHT = 38;
+    private static final int TEXT_AREA_HEIGHT = 96;
+
     private final StudentController studentController = new StudentController();
-    private final JPanel infoPanel = new JPanel(new GridLayout(0, 2, 10, 10));
+    private final JPanel contentPanel = new JPanel();
+
+    private Student currentStudent;
+    private boolean isEditing;
+    private JTextField emailField;
+    private JTextField phoneField;
+    private JTextArea addressArea;
 
     public StudentProfilePanel() {
         setBackground(AppColors.CONTENT_BACKGROUND);
@@ -28,65 +57,428 @@ public class StudentProfilePanel extends BasePanel {
     }
 
     private void initComponents() {
-        JLabel titleLabel = new JLabel("Thông tin cá nhân sinh viên");
-        titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 22f));
+        contentPanel.setOpaque(false);
+        contentPanel.setLayout(new GridBagLayout());
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(12, 20, 24, 24));
 
-        JButton reloadButton = new JButton("Tải lại");
-        reloadButton.addActionListener(event -> reloadData());
-
-        JPanel titlePanel = new JPanel(new BorderLayout());
-        titlePanel.setOpaque(false);
-        titlePanel.add(titleLabel, BorderLayout.WEST);
-        titlePanel.add(reloadButton, BorderLayout.EAST);
-
-        infoPanel.setBackground(AppColors.CARD_BACKGROUND);
-        infoPanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(AppColors.CARD_BORDER),
-                BorderFactory.createEmptyBorder(16, 16, 16, 16)
-        ));
-
-        JScrollPane scrollPane = new JScrollPane(infoPanel);
+        JScrollPane scrollPane = new JScrollPane(contentPanel);
         scrollPane.setBorder(null);
         scrollPane.setOpaque(false);
         scrollPane.getViewport().setOpaque(false);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.getHorizontalScrollBar().setUnitIncrement(16);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
 
-        add(titlePanel, BorderLayout.NORTH);
         add(scrollPane, BorderLayout.CENTER);
     }
 
+    @Override
     public void reloadData() {
         try {
-            Student student = studentController.getCurrentStudent();
-            infoPanel.removeAll();
-
-            addField(infoPanel, "Mã sinh viên", DisplayTextUtil.defaultText(student.getStudentCode()));
-            addField(infoPanel, "Họ và tên", DisplayTextUtil.defaultText(student.getFullName()));
-            addField(infoPanel, "Giới tính", DisplayTextUtil.formatGender(student.getGender()));
-            addField(infoPanel, "Ngày sinh", DisplayTextUtil.formatDate(student.getDateOfBirth()));
-            addField(infoPanel, "Email", DisplayTextUtil.defaultText(student.getEmail()));
-            addField(infoPanel, "Số điện thoại", DisplayTextUtil.defaultText(student.getPhone()));
-            addField(infoPanel, "Lớp", student.getClassRoom() == null ? "Chưa cập nhật" : student.getClassRoom().getClassName());
-            addField(infoPanel, "Khoa", student.getFaculty() == null ? "Chưa cập nhật" : student.getFaculty().getFacultyName());
-            addField(infoPanel, "Niên khóa", DisplayTextUtil.defaultText(student.getAcademicYear()));
-            addField(infoPanel, "Trạng thái", DisplayTextUtil.formatStatus(student.getStatus()));
-            addField(infoPanel, "Địa chỉ", DisplayTextUtil.defaultText(student.getAddress()));
-            addField(infoPanel, "Mã người dùng liên kết", DisplayTextUtil.formatUserReference(student.getUserId()));
-            addField(infoPanel, "Ghi chú", "Sinh viên hiện chỉ được xem thông tin; nếu cần chỉnh sửa, admin sẽ cập nhật.");
-
-            infoPanel.revalidate();
-            infoPanel.repaint();
+            currentStudent = studentController.getCurrentStudent();
+            isEditing = false;
+            renderProfile();
         } catch (Exception exception) {
             DialogUtil.showError(this, exception.getMessage());
         }
     }
 
-    private void addField(JPanel panel, String label, String value) {
-        JLabel labelComponent = new JLabel(label);
-        labelComponent.setFont(labelComponent.getFont().deriveFont(Font.BOLD, 13f));
+    private void renderProfile() {
+        contentPanel.removeAll();
 
-        JLabel valueComponent = new JLabel(value);
-        panel.add(labelComponent);
-        panel.add(valueComponent);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.weightx = 1.0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.NORTHWEST;
+
+        gbc.gridy = 0;
+        gbc.insets = new Insets(0, 0, CARD_GAP, 0);
+        contentPanel.add(buildHeroCard(), gbc);
+
+        gbc.gridy = 1;
+        gbc.insets = new Insets(0, 0, 0, 0);
+        contentPanel.add(buildSectionGrid(), gbc);
+
+        gbc.gridy = 2;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
+        JPanel filler = new JPanel();
+        filler.setOpaque(false);
+        contentPanel.add(filler, gbc);
+
+        contentPanel.revalidate();
+        contentPanel.repaint();
+    }
+
+    private JPanel buildHeroCard() {
+        JPanel card = createCard(HERO_BACKGROUND);
+        card.add(buildHeroHeader(), BorderLayout.NORTH);
+        card.add(buildSummaryPanel(), BorderLayout.CENTER);
+        return card;
+    }
+
+    private JPanel buildHeroHeader() {
+        JPanel headerPanel = new JPanel(new GridBagLayout());
+        headerPanel.setOpaque(false);
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridy = 0;
+        gbc.insets = new Insets(0, 0, 0, 0);
+
+        JPanel titlePanel = new JPanel();
+        titlePanel.setOpaque(false);
+        titlePanel.setLayout(new BoxLayout(titlePanel, BoxLayout.Y_AXIS));
+        titlePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel eyebrowLabel = new JLabel("HỒ SƠ SINH VIÊN");
+        eyebrowLabel.setFont(eyebrowLabel.getFont().deriveFont(Font.BOLD, 12f));
+        eyebrowLabel.setForeground(new Color(37, 99, 235));
+
+        JLabel titleLabel = new JLabel("Thông tin cá nhân");
+        titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 26f));
+        titleLabel.setForeground(AppColors.CARD_VALUE_TEXT);
+
+        JLabel subtitleLabel = createNoteLabel(
+                "Theo dõi thông tin cơ bản và cập nhật ngay email, số điện thoại, địa chỉ liên hệ khi cần."
+        );
+
+        titlePanel.add(eyebrowLabel);
+        titlePanel.add(Box.createVerticalStrut(6));
+        titlePanel.add(titleLabel);
+        titlePanel.add(Box.createVerticalStrut(8));
+        titlePanel.add(subtitleLabel);
+
+        gbc.gridx = 0;
+        gbc.weightx = 1.0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.NORTHWEST;
+        headerPanel.add(titlePanel, gbc);
+
+        gbc.gridx = 1;
+        gbc.weightx = 0.0;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.NORTHEAST;
+        gbc.insets = new Insets(0, CARD_GAP, 0, 0);
+        headerPanel.add(buildActionPanel(), gbc);
+
+        return headerPanel;
+    }
+
+    private JPanel buildSummaryPanel() {
+        JPanel summaryPanel = new JPanel(new GridLayout(1, 4, CARD_GAP, 0));
+        summaryPanel.setOpaque(false);
+        summaryPanel.setBorder(BorderFactory.createEmptyBorder(CARD_GAP, 0, 0, 0));
+
+        summaryPanel.add(createBadge("MSSV", DisplayTextUtil.defaultText(currentStudent.getStudentCode())));
+        summaryPanel.add(createBadge("Lớp", currentStudent.getClassRoom() == null
+                ? "Chưa cập nhật"
+                : currentStudent.getClassRoom().getClassName()));
+        summaryPanel.add(createBadge("Khoa", currentStudent.getFaculty() == null
+                ? "Chưa cập nhật"
+                : currentStudent.getFaculty().getFacultyName()));
+        summaryPanel.add(createBadge("Trạng thái", DisplayTextUtil.formatStatus(currentStudent.getStatus())));
+        return summaryPanel;
+    }
+
+    private JPanel buildActionPanel() {
+        JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 0));
+        actionPanel.setOpaque(false);
+
+        if (!isEditing) {
+            JButton editButton = new JButton("Cập nhật thông tin");
+            styleFilledButton(editButton, AppColors.BUTTON_WARNING);
+            editButton.addActionListener(event -> {
+                isEditing = true;
+                renderProfile();
+            });
+
+            JButton reloadButton = new JButton("Tải lại");
+            styleFilledButton(reloadButton, AppColors.BUTTON_NEUTRAL);
+            reloadButton.addActionListener(event -> reloadData());
+
+            actionPanel.add(editButton);
+            actionPanel.add(reloadButton);
+        }
+        return actionPanel;
+    }
+
+    private JPanel buildSectionGrid() {
+        JPanel sectionsPanel = new JPanel(new GridLayout(1, 3, CARD_GAP, 0));
+        sectionsPanel.setOpaque(false);
+        sectionsPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        sectionsPanel.add(buildIdentityCard());
+        sectionsPanel.add(buildAcademicCard());
+        sectionsPanel.add(buildContactCard());
+        return sectionsPanel;
+    }
+
+    private JPanel buildAcademicCard() {
+        JPanel card = createSectionCard(
+                "Thông tin học tập",
+                "Đào tạo & chuyên ngành",
+                ACADEMIC_CARD_BACKGROUND
+        );
+
+        JPanel fieldsPanel = createFieldsPanel();
+        fieldsPanel.add(createReadOnlyField("Mã số sinh viên", DisplayTextUtil.defaultText(currentStudent.getStudentCode())));
+        fieldsPanel.add(Box.createVerticalStrut(SECTION_GAP));
+        fieldsPanel.add(createReadOnlyField("Lớp học", currentStudent.getClassRoom() == null
+                ? "Chưa cập nhật"
+                : currentStudent.getClassRoom().getClassName()));
+        fieldsPanel.add(Box.createVerticalStrut(SECTION_GAP));
+        fieldsPanel.add(createReadOnlyField("Khoa / Viện", currentStudent.getFaculty() == null
+                ? "Chưa cập nhật"
+                : currentStudent.getFaculty().getFacultyName()));
+        fieldsPanel.add(Box.createVerticalStrut(SECTION_GAP));
+        fieldsPanel.add(createReadOnlyField("Khóa học", DisplayTextUtil.defaultText(currentStudent.getAcademicYear())));
+
+        card.add(fieldsPanel, BorderLayout.CENTER);
+        return card;
+    }
+
+    private JPanel buildIdentityCard() {
+        JPanel card = createSectionCard(
+                "Thông tin nhân thân",
+                "Dữ liệu định danh",
+                PERSONAL_CARD_BACKGROUND
+        );
+
+        JPanel fieldsPanel = createFieldsPanel();
+        fieldsPanel.add(createReadOnlyField("Họ và tên", DisplayTextUtil.defaultText(currentStudent.getFullName())));
+        fieldsPanel.add(Box.createVerticalStrut(SECTION_GAP));
+        fieldsPanel.add(createReadOnlyField("Giới tính", DisplayTextUtil.formatGender(currentStudent.getGender())));
+        fieldsPanel.add(Box.createVerticalStrut(SECTION_GAP));
+        fieldsPanel.add(createReadOnlyField("Ngày sinh", DisplayTextUtil.formatDate(currentStudent.getDateOfBirth())));
+
+        card.add(fieldsPanel, BorderLayout.CENTER);
+        return card;
+    }
+
+    private JPanel buildContactCard() {
+        JPanel card = createSectionCard(
+                "Thông tin liên hệ",
+                "Liên lạc & thường trú",
+                CONTACT_CARD_BACKGROUND
+        );
+
+        JPanel content = new JPanel();
+        content.setOpaque(false);
+        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+        content.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        if (isEditing) {
+            emailField = createTextField(currentStudent.getEmail());
+            phoneField = createTextField(currentStudent.getPhone());
+            addressArea = createTextArea(currentStudent.getAddress());
+
+            content.add(createInputField("Email liên lạc", emailField));
+            content.add(Box.createVerticalStrut(SECTION_GAP));
+            content.add(createInputField("Số điện thoại", phoneField));
+            content.add(Box.createVerticalStrut(SECTION_GAP));
+            content.add(createInputField("Địa chỉ thường trú", createTextAreaScrollPane(addressArea)));
+            content.add(Box.createVerticalStrut(SECTION_GAP));
+
+            JPanel actionFooter = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+            actionFooter.setOpaque(false);
+
+            JButton saveButton = new JButton("Lưu");
+            styleFilledButton(saveButton, AppColors.BUTTON_SUCCESS);
+            saveButton.addActionListener(event -> handleSave());
+
+            JButton cancelButton = new JButton("Hủy");
+            styleFilledButton(cancelButton, AppColors.BUTTON_NEUTRAL);
+            cancelButton.addActionListener(event -> {
+                isEditing = false;
+                renderProfile();
+            });
+
+            actionFooter.add(saveButton);
+            actionFooter.add(cancelButton);
+            content.add(actionFooter);
+        } else {
+            content.add(createReadOnlyField("Email liên lạc", DisplayTextUtil.defaultText(currentStudent.getEmail())));
+            content.add(Box.createVerticalStrut(SECTION_GAP));
+            content.add(createReadOnlyField("Số điện thoại", DisplayTextUtil.defaultText(currentStudent.getPhone())));
+            content.add(Box.createVerticalStrut(SECTION_GAP));
+            content.add(createReadOnlyField("Địa chỉ thường trú", DisplayTextUtil.defaultText(currentStudent.getAddress())));
+        }
+
+        card.add(content, BorderLayout.CENTER);
+        return card;
+    }
+
+    private JPanel createSectionCard(String title, String subtitle, Color background) {
+        JPanel card = createCard(background);
+
+        JPanel headerPanel = new JPanel();
+        headerPanel.setOpaque(false);
+        headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
+
+        JLabel titleLabel = new JLabel(title);
+        titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 18f));
+        titleLabel.setForeground(AppColors.CARD_VALUE_TEXT);
+
+        JLabel subtitleLabel = createNoteLabel(subtitle);
+        subtitleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        headerPanel.add(titleLabel);
+        headerPanel.add(Box.createVerticalStrut(6));
+        headerPanel.add(subtitleLabel);
+
+        card.add(headerPanel, BorderLayout.NORTH);
+        return card;
+    }
+
+    private JPanel createCard(Color background) {
+        JPanel card = new JPanel(new BorderLayout(0, 14));
+        card.setOpaque(true);
+        card.setBackground(background);
+        card.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(AppColors.CARD_BORDER, 1, true),
+                BorderFactory.createEmptyBorder(18, 20, 18, 20)
+        ));
+        card.setAlignmentX(Component.LEFT_ALIGNMENT);
+        return card;
+    }
+
+    private JPanel createFieldsPanel() {
+        JPanel fieldsPanel = new JPanel();
+        fieldsPanel.setOpaque(false);
+        fieldsPanel.setLayout(new BoxLayout(fieldsPanel, BoxLayout.Y_AXIS));
+        fieldsPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        return fieldsPanel;
+    }
+
+    private JPanel createReadOnlyField(String label, String value) {
+        JPanel fieldPanel = new JPanel(new BorderLayout(0, 4));
+        fieldPanel.setOpaque(false);
+        fieldPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel labelComponent = new JLabel(label);
+        labelComponent.setFont(labelComponent.getFont().deriveFont(Font.BOLD, 12f));
+        labelComponent.setForeground(AppColors.CARD_MUTED_TEXT);
+
+        JLabel valueComponent = new JLabel(toHtml(DisplayTextUtil.defaultText(value)));
+        valueComponent.setFont(valueComponent.getFont().deriveFont(Font.BOLD, 14f));
+        valueComponent.setForeground(AppColors.CARD_VALUE_TEXT);
+        valueComponent.setVerticalAlignment(SwingConstants.TOP);
+
+        fieldPanel.add(labelComponent, BorderLayout.NORTH);
+        fieldPanel.add(valueComponent, BorderLayout.CENTER);
+        return fieldPanel;
+    }
+
+    private JPanel createInputField(String label, Component inputComponent) {
+        JPanel fieldPanel = new JPanel(new BorderLayout(0, 6));
+        fieldPanel.setOpaque(false);
+        fieldPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel labelComponent = new JLabel(label);
+        labelComponent.setFont(labelComponent.getFont().deriveFont(Font.BOLD, 12.5f));
+        labelComponent.setForeground(AppColors.CARD_MUTED_TEXT);
+
+        fieldPanel.add(labelComponent, BorderLayout.NORTH);
+        fieldPanel.add(inputComponent, BorderLayout.CENTER);
+        return fieldPanel;
+    }
+
+    private JPanel createBadge(String title, String value) {
+        JPanel badgePanel = new JPanel(new BorderLayout(0, 4));
+        badgePanel.setOpaque(true);
+        badgePanel.setBackground(Color.WHITE);
+        badgePanel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(226, 232, 240), 1),
+                BorderFactory.createEmptyBorder(12, 14, 12, 14)
+        ));
+
+        JLabel titleLabel = new JLabel(title);
+        titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 11f));
+        titleLabel.setForeground(AppColors.CARD_MUTED_TEXT);
+
+        JLabel valueLabel = new JLabel(toHtml(DisplayTextUtil.defaultText(value)));
+        valueLabel.setFont(valueLabel.getFont().deriveFont(Font.BOLD, 15f));
+        valueLabel.setForeground(AppColors.CARD_VALUE_TEXT);
+        valueLabel.setVerticalAlignment(SwingConstants.TOP);
+
+        badgePanel.add(titleLabel, BorderLayout.NORTH);
+        badgePanel.add(valueLabel, BorderLayout.CENTER);
+        return badgePanel;
+    }
+
+    private JLabel createNoteLabel(String text) {
+        JLabel label = new JLabel(toHtml(text));
+        label.setFont(label.getFont().deriveFont(Font.PLAIN, 13f));
+        label.setForeground(AppColors.CARD_MUTED_TEXT);
+        return label;
+    }
+
+    private JTextField createTextField(String value) {
+        JTextField textField = new JTextField(value == null ? "" : value);
+        textField.setMinimumSize(new Dimension(140, INPUT_HEIGHT));
+        textField.setPreferredSize(new Dimension(220, INPUT_HEIGHT));
+        textField.setMaximumSize(new Dimension(Integer.MAX_VALUE, INPUT_HEIGHT));
+        textField.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(AppColors.INPUT_BORDER),
+                BorderFactory.createEmptyBorder(8, 10, 8, 10)
+        ));
+        return textField;
+    }
+
+    private JTextArea createTextArea(String value) {
+        JTextArea textArea = new JTextArea(value == null ? "" : value, 4, 20);
+        textArea.setLineWrap(true);
+        textArea.setWrapStyleWord(true);
+        textArea.setFont(textArea.getFont().deriveFont(Font.PLAIN, 13f));
+        textArea.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 10));
+        return textArea;
+    }
+
+    private JScrollPane createTextAreaScrollPane(JTextArea textArea) {
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        scrollPane.setBorder(BorderFactory.createLineBorder(AppColors.INPUT_BORDER));
+        scrollPane.setMinimumSize(new Dimension(140, TEXT_AREA_HEIGHT));
+        scrollPane.setPreferredSize(new Dimension(220, TEXT_AREA_HEIGHT));
+        scrollPane.setMaximumSize(new Dimension(Integer.MAX_VALUE, TEXT_AREA_HEIGHT));
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        return scrollPane;
+    }
+
+    private void handleSave() {
+        try {
+            String email = ValidationUtil.requireEmail(emailField.getText().trim(), "Email");
+            String phone = ValidationUtil.requirePhone(phoneField.getText().trim(), "So dien thoai");
+            String address = normalizeAddress(addressArea.getText());
+
+            currentStudent = studentController.updateCurrentStudentContactInfo(email, phone, address);
+            DialogUtil.showInfo(this, "Cap nhat thong tin thanh cong.");
+            reloadData();
+        } catch (Exception exception) {
+            DialogUtil.showError(this, exception.getMessage());
+        }
+    }
+
+    private String normalizeAddress(String address) {
+        String normalizedAddress = address == null ? "" : address.trim();
+        if (normalizedAddress.length() > 255) {
+            throw new IllegalArgumentException("Dia chi khong duoc vuot qua 255 ky tu.");
+        }
+        return normalizedAddress;
+    }
+
+    private void styleFilledButton(JButton button, Color background) {
+        button.setFocusPainted(false);
+        button.setBorderPainted(false);
+        button.setOpaque(true);
+        button.setBackground(background);
+        button.setForeground(AppColors.BUTTON_TEXT);
+        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        button.setBorder(BorderFactory.createEmptyBorder(10, 16, 10, 16));
+        button.setAlignmentX(Component.RIGHT_ALIGNMENT);
+    }
+
+    private String toHtml(String text) {
+        return "<html><div>" + text + "</div></html>";
     }
 }

@@ -1,45 +1,41 @@
 # Database Scripts
 
-Thư mục `database/` chứa các file SQL phục vụ việc tạo schema và chèn dữ liệu demo/test cho đồ án (MySQL 8).
+Thư mục `database/` chứa các file SQL chính thức để thiết lập hệ thống cơ sở dữ liệu cho đồ án (MySQL 8).
 
-## Các file script hiện tại
+## Bộ file SQL chính thức (Thứ tự chạy)
 
-1. `00_drop_old_database.sql`
-   - Xóa database cũ `student_management` (nếu tồn tại). Dùng khi muốn reset sạch dữ liệu.
-2. `01_create_schema.sql`
-   - Tạo database `student_management` (nếu chưa có).
-   - Tạo toàn bộ bảng, khóa ngoại, view (`vw_student_schedules`, `vw_section_scores`) và index phục vụ tra cứu.
-3. `02_seed_full_data.sql`
-   - Chèn dữ liệu mẫu đầy đủ: roles/users, faculties/classes/rooms, lecturers/students, subjects/course_sections, schedules, enrollments và scores.
-   - Mật khẩu demo mặc định cho các tài khoản: `123456` (đã được lưu dạng SHA-256 trong script).
-4. `03_verify_data.sql`
-   - Chạy các câu lệnh kiểm tra nhanh: số lượng bản ghi các bảng, kiểm tra view trả dữ liệu.
+Hãy chạy các file theo đúng thứ tự đánh số dưới đây để đảm bảo tính toàn vẹn dữ liệu:
 
-## Thứ tự chạy script (khuyến nghị)
+1. **`00_drop_old_database.sql`**
+   - Xóa database cũ `student_management`. Dùng khi muốn reset sạch toàn bộ hệ thống.
+   - **CẢNH BÁO**: Sẽ mất toàn bộ dữ liệu hiện tại.
 
-Nếu setup lần đầu (hoặc muốn reset sạch dữ liệu):
+2. **`01_create_schema.sql`**
+   - Tạo database, toàn bộ bảng, khóa ngoại, index và view.
+   - **Đặc biệt**: Đã tích hợp các Trigger tự động tạo tài khoản User khi thêm Sinh viên/Giảng viên và tự động đồng bộ họ tên giữa các bảng.
 
-1. (Tùy chọn) `00_drop_old_database.sql`
-2. `01_create_schema.sql`
-3. `02_seed_full_data.sql`
-4. `03_verify_data.sql` (để kiểm tra nhanh)
+3. **`02_seed_full_data.sql`**
+   - Chèn dữ liệu mẫu đầy đủ (Roles, Users, Faculties, Classes, Rooms, Students, Lecturers, Subjects, Course Sections, Enrollments, Scores).
+   - Mật khẩu mặc định cho tất cả tài khoản: `123456`.
 
-Lưu ý: `02_seed_full_data.sql` dùng lệnh `INSERT INTO` (không xử lý trùng). Vì vậy nếu DB đã có dữ liệu và bạn chạy lại seed, bạn nên reset bằng `00_drop_old_database.sql` trước để tránh lỗi khóa/không trùng dữ liệu.
+4. **`03_verify_data.sql`**
+   - Các câu lệnh truy vấn để kiểm tra nhanh tình trạng database sau khi dựng.
 
-## Cấu hình MySQL mặc định của đồ án (demo)
+## Lưu ý về tài khoản Demo
 
-Mặc định trong project:
-- `db.username=root`
-- `db.password=123456`
-- `db.url=jdbc:mysql://localhost:3306/student_management`
+Sau khi chạy xong bộ script trên, bạn có thể dùng các tài khoản sau để test:
+- **Quản trị viên**: `admin` / `123456`
+- **Giảng viên**: `gv001`, `gv002`, `gv003` / `123456`
+- **Sinh viên**: `sv2200001`, `sv2200002`, `sv2200003`, ... / `123456`
 
-Thành viên nhóm có thể cần chỉnh `src/main/resources/application.properties` theo MySQL của máy mình.
+*(Lưu ý: Username của Sinh viên/Giảng viên được chuẩn hóa theo mã số viết thường)*
 
-## Tài khoản demo để test
+## Cấu hình Kết nối (application.properties)
 
-- `admin` / `123456`
-- `lecturer01` / `123456`
-- `lecturer02` / `123456`
-- `student01` / `123456`
-- `student02` / `123456`
-- `student03` / `123456`
+Mặc định project sử dụng:
+- **URL**: `jdbc:mysql://localhost:3306/student_management`
+- **User**: `root`
+- **Pass**: `123456` (Hoặc chỉnh lại theo máy cá nhân trong file config).
+
+---
+*Các file có tiền tố `obsolete_` là các bản vá cũ đã được hợp nhất vào bộ script chính thức, không nên sử dụng đơn lẻ.*

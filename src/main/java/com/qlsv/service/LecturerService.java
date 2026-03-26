@@ -1,17 +1,23 @@
 package com.qlsv.service;
 
 import com.qlsv.config.SessionManager;
+import com.qlsv.config.DBConnection;
 import com.qlsv.dao.LecturerDAO;
+import com.qlsv.dao.UserDAO;
+import com.qlsv.exception.AppException;
 import com.qlsv.exception.ValidationException;
 import com.qlsv.model.Lecturer;
 import com.qlsv.security.RolePermission;
 import com.qlsv.utils.ValidationUtil;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.List;
 
 public class LecturerService {
 
     private final LecturerDAO lecturerDAO = new LecturerDAO();
+    private final UserDAO userDAO = new UserDAO();
     private final PermissionService permissionService = new PermissionService();
 
     public List<Lecturer> findAll() {
@@ -67,8 +73,26 @@ public class LecturerService {
     }
 
     private Lecturer updateAndReturn(Lecturer lecturer) {
-        lecturerDAO.update(lecturer);
-        return lecturer;
+        try (Connection connection = DBConnection.getConnection()) {
+            connection.setAutoCommit(false);
+            try {
+                // 1. Cap nhat thong tin giang vien
+                lecturerDAO.update(connection, lecturer);
+
+                // 2. Dong bo ho ten sang bang users neu co lien ket
+                if (lecturer.getUserId() != null) {
+                    userDAO.updateFullName(connection, lecturer.getUserId(), lecturer.getFullName());
+                }
+
+                connection.commit();
+                return lecturer;
+            } catch (SQLException exception) {
+                connection.rollback();
+                throw new AppException("Lỗi khi cập nhật giảng viên và đồng bộ tài khoản.", exception);
+            }
+        } catch (SQLException exception) {
+            throw new AppException("Lỗi kết nối database khi cập nhật giảng viên.", exception);
+        }
     }
 
     private void validate(Lecturer lecturer) {

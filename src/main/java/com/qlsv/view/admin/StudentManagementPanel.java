@@ -61,6 +61,20 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
     }
 
     @Override
+    public void reloadData() {
+        refreshData();
+    }
+
+    @Override
+    public void setVisible(boolean visible) {
+        boolean wasVisible = isVisible();
+        super.setVisible(visible);
+        if (visible && !wasVisible) {
+            reloadData();
+        }
+    }
+
+    @Override
     protected List<Student> loadItems() {
         if (!filterReady) {
             return List.of();
@@ -113,19 +127,36 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
             return;
         }
 
+        Student displayStudent = selectedItem;
+        if (selectedItem.getId() != null) {
+            try {
+                displayStudent = studentController.getStudentById(selectedItem.getId());
+                selectedItem.setEmail(displayStudent.getEmail());
+                selectedItem.setPhone(displayStudent.getPhone());
+                selectedItem.setAddress(displayStudent.getAddress());
+
+                int selectedRow = getTable().getSelectedRow();
+                if (selectedRow >= 0) {
+                    getTable().setValueAt(displayStudent.getEmail(), selectedRow, 3);
+                }
+            } catch (Exception ignored) {
+                displayStudent = selectedItem;
+            }
+        }
+
         detailSectionPanel.showFields(new String[][]{
-                {"Mã sinh viên", DisplayTextUtil.defaultText(selectedItem.getStudentCode())},
-                {"Họ và tên", DisplayTextUtil.defaultText(selectedItem.getFullName())},
-                {"Giới tính", DisplayTextUtil.formatGender(selectedItem.getGender())},
-                {"Ngày sinh", DisplayTextUtil.formatDate(selectedItem.getDateOfBirth())},
-                {"Số điện thoại", DisplayTextUtil.defaultText(selectedItem.getPhone())},
-                {"Email", DisplayTextUtil.defaultText(selectedItem.getEmail())},
-                {"Khoa", selectedItem.getFaculty() == null ? "Chưa cập nhật" : DisplayTextUtil.defaultText(selectedItem.getFaculty().getFacultyName())},
-                {"Lớp", selectedItem.getClassRoom() == null ? "Chưa cập nhật" : DisplayTextUtil.defaultText(selectedItem.getClassRoom().getClassName())},
-                {"Niên khóa", DisplayTextUtil.defaultText(selectedItem.getAcademicYear())},
-                {"Trạng thái", DisplayTextUtil.formatStatus(selectedItem.getStatus())},
-                {"Địa chỉ", DisplayTextUtil.defaultText(selectedItem.getAddress())},
-                {"ID người dùng", DisplayTextUtil.formatUserReference(selectedItem.getUserId())}
+                {"Mã sinh viên", DisplayTextUtil.defaultText(displayStudent.getStudentCode())},
+                {"Họ và tên", DisplayTextUtil.defaultText(displayStudent.getFullName())},
+                {"Giới tính", DisplayTextUtil.formatGender(displayStudent.getGender())},
+                {"Ngày sinh", DisplayTextUtil.formatDate(displayStudent.getDateOfBirth())},
+                {"Số điện thoại", DisplayTextUtil.defaultText(displayStudent.getPhone())},
+                {"Email", DisplayTextUtil.defaultText(displayStudent.getEmail())},
+                {"Khoa", displayStudent.getFaculty() == null ? "Chưa cập nhật" : DisplayTextUtil.defaultText(displayStudent.getFaculty().getFacultyName())},
+                {"Lớp", displayStudent.getClassRoom() == null ? "Chưa cập nhật" : DisplayTextUtil.defaultText(displayStudent.getClassRoom().getClassName())},
+                {"Niên khóa", DisplayTextUtil.defaultText(displayStudent.getAcademicYear())},
+                {"Trạng thái", DisplayTextUtil.formatStatus(displayStudent.getStatus())},
+                {"Địa chỉ", DisplayTextUtil.defaultText(displayStudent.getAddress())},
+                {"ID người dùng", DisplayTextUtil.formatUserReference(displayStudent.getUserId())}
         });
     }
 

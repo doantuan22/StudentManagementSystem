@@ -1,8 +1,7 @@
 -- ============================================================
 -- FILE: 01_create_schema.sql
--- MUC DICH: Tao toan bo schema cua He thong Quan ly Sinh vien
--- BAO GOM:  Bang rooms, course_sections.room_id, schedules.room_id,
---           students.academic_year va tat ca rang buoc hien tai.
+-- MUC DICH: Tạo toàn bộ schema của Hệ thống Quản lý Sinh viên.
+--           Đã tích hợp các cột bổ sung và trigger tự động hóa.
 -- CHAY SAU: 00_drop_old_database.sql
 -- ============================================================
 
@@ -15,7 +14,7 @@ CREATE DATABASE IF NOT EXISTS student_management
 USE student_management;
 
 -- ------------------------------------------------------------
--- BANG CO SO: Khong phu thuoc bang nao khac
+-- BANG CO SO (Base tables)
 -- ------------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS roles (
@@ -40,7 +39,7 @@ CREATE TABLE IF NOT EXISTS rooms (
 );
 
 -- ------------------------------------------------------------
--- BANG PHU THUOC roles va faculties
+-- BANG USERS VA PHAN QUYEN
 -- ------------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS users (
@@ -54,6 +53,10 @@ CREATE TABLE IF NOT EXISTS users (
     created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_users_role FOREIGN KEY (role_id) REFERENCES roles (id)
 );
+
+-- ------------------------------------------------------------
+-- LOP HOC VA MON HOC
+-- ------------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS class_rooms (
     id            BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -78,7 +81,7 @@ CREATE TABLE IF NOT EXISTS subjects (
 );
 
 -- ------------------------------------------------------------
--- BANG GIANG VIEN va SINH VIEN
+-- GIANG VIEN VA SINH VIEN
 -- ------------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS lecturers (
@@ -117,7 +120,7 @@ CREATE TABLE IF NOT EXISTS students (
 );
 
 -- ------------------------------------------------------------
--- BANG PHAN CONG GIANG VIEN - MON HOC
+-- PHAN CONG VA HOC PHAN
 -- ------------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS lecturer_subjects (
@@ -127,10 +130,6 @@ CREATE TABLE IF NOT EXISTS lecturer_subjects (
     CONSTRAINT fk_lecturer_subjects_lecturer FOREIGN KEY (lecturer_id) REFERENCES lecturers (id),
     CONSTRAINT fk_lecturer_subjects_subject  FOREIGN KEY (subject_id)  REFERENCES subjects (id)
 );
-
--- ------------------------------------------------------------
--- BANG HOC PHAN MO - tham chieu rooms (room_id)
--- ------------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS course_sections (
     id            BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -149,10 +148,6 @@ CREATE TABLE IF NOT EXISTS course_sections (
     CONSTRAINT chk_course_sections_max_students CHECK (max_students > 0)
 );
 
--- ------------------------------------------------------------
--- BANG LICH HOC - tham chieu rooms (room_id)
--- ------------------------------------------------------------
-
 CREATE TABLE IF NOT EXISTS schedules (
     id                BIGINT PRIMARY KEY AUTO_INCREMENT,
     course_section_id BIGINT NOT NULL,
@@ -169,7 +164,7 @@ CREATE TABLE IF NOT EXISTS schedules (
 );
 
 -- ------------------------------------------------------------
--- BANG DANG KY HOC PHAN va DIEM
+-- DANG KY VA DIEM
 -- ------------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS enrollments (
@@ -200,7 +195,7 @@ CREATE TABLE IF NOT EXISTS scores (
 );
 
 -- ------------------------------------------------------------
--- VIEW
+-- VIEWS
 -- ------------------------------------------------------------
 
 CREATE OR REPLACE VIEW vw_student_schedules AS
@@ -236,7 +231,83 @@ FROM enrollments e
          LEFT JOIN scores s      ON s.enrollment_id = e.id;
 
 -- ------------------------------------------------------------
--- INDEX
+-- TRIGGERS: TU DONG TAO/CAP NHAT TAI KHOAN USER
+-- ------------------------------------------------------------
+
+DELIMITER //
+
+-- Trigger cho lecturers: Tự động tạo user khi insert lecturer mới nếu user_id null
+CREATE TRIGGER trg_lecturers_create_user
+BEFORE INSERT ON lecturers
+FOR EACH ROW
+BEGIN
+    IF NEW.user_id IS NULL THEN
+        -- Kiểm tra xem username đã tồn tại trong bảng users chưa
+        IF NOT EXISTS (SELECT 1 FROM users WHERE username = LOWER(NEW.lecturer_code)) THEN
+            INSERT INTO users (username, password_hash, full_name, email, role_id)
+            VALUES (LOWER(NEW.lecturer_code), 
+                    '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 
+                    NEW.full_name, 
+                    NEW.email, 
+                    2);
+            SET NEW.user_id = LAST_INSERT_ID();
+        ELSE
+            -- Nếu username đã tồn tại nhưng chưa được liên kết, ta sẽ lấy ID đó luôn
+            SET NEW.user_id = (SELECT id FROM users WHERE username = LOWER(NEW.lecturer_code) LIMIT 1);
+        END IF;
+    END IF;
+END //
+
+-- Trigger cho students: Tự động tạo user khi insert student mới nếu user_id null
+CREATE TRIGGER trg_students_create_user
+BEFORE INSERT ON students
+FOR EACH ROW
+BEGIN
+    IF NEW.user_id IS NULL THEN
+        IF NOT EXISTS (SELECT 1 FROM users WHERE username = LOWER(NEW.student_code)) THEN
+            INSERT INTO users (username, password_hash, full_name, email, role_id)
+            VALUES (LOWER(NEW.student_code), 
+                    '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 
+                    NEW.full_name, 
+                    NEW.email, 
+                    3);
+            SET NEW.user_id = LAST_INSERT_ID();
+        ELSE
+            SET NEW.user_id = (SELECT id FROM users WHERE username = LOWER(NEW.student_code) LIMIT 1);
+        END IF;
+    END IF;
+END //
+
+-- Trigger cho lecturers: Cập nhật username và full_name nếu lecturer thay đổi
+CREATE TRIGGER trg_lecturers_update_user
+AFTER UPDATE ON lecturers
+FOR EACH ROW
+BEGIN
+    IF NEW.user_id IS NOT NULL THEN
+        UPDATE users 
+        SET username = LOWER(NEW.lecturer_code),
+            full_name = NEW.full_name
+        WHERE id = NEW.user_id;
+    END IF;
+END //
+
+-- Trigger cho students: Cập nhật username và full_name nếu student thay đổi
+CREATE TRIGGER trg_students_update_user
+AFTER UPDATE ON students
+FOR EACH ROW
+BEGIN
+    IF NEW.user_id IS NOT NULL THEN
+        UPDATE users 
+        SET username = LOWER(NEW.student_code),
+            full_name = NEW.full_name
+        WHERE id = NEW.user_id;
+    END IF;
+END //
+
+DELIMITER ;
+
+-- ------------------------------------------------------------
+-- INDEXES
 -- ------------------------------------------------------------
 
 CREATE INDEX idx_students_class_room       ON students (class_room_id);

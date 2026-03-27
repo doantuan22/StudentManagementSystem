@@ -15,7 +15,7 @@ import java.util.function.Function;
 public class ReportDAO {
 
     public List<Object[]> findStudentsByClassRoom(Long classRoomId) {
-        return executeRead("Khong the tai danh sach sinh vien theo lop.", entityManager ->
+        return executeRead("Không thể tải danh sách sinh viên theo lớp.", entityManager ->
                 entityManager.createQuery("""
                                 SELECT s.studentCode, s.fullName, s.email, s.phone, s.status
                                 FROM Student s
@@ -27,7 +27,7 @@ public class ReportDAO {
     }
 
     public List<Object[]> findLecturersByFaculty(Long facultyId) {
-        return executeRead("Khong the tai danh sach giang vien theo khoa.", entityManager ->
+        return executeRead("Không thể tải danh sách giảng viên theo khoa.", entityManager ->
                 entityManager.createQuery("""
                                 SELECT l.lecturerCode, l.fullName, l.email, l.phone, l.status
                                 FROM Lecturer l
@@ -39,7 +39,7 @@ public class ReportDAO {
     }
 
     public List<Object[]> findStudentsByCourseSection(Long courseSectionId) {
-        return executeRead("Khong the tai danh sach sinh vien trong hoc phan.", entityManager ->
+        return executeRead("Không thể tải danh sách sinh viên trong học phần.", entityManager ->
                 entityManager.createQuery("""
                                 SELECT s.studentCode, s.fullName, s.email, e.status, e.enrolledAt
                                 FROM Enrollment e
@@ -52,7 +52,7 @@ public class ReportDAO {
     }
 
     public List<Object[]> findScoresByCourseSection(Long courseSectionId) {
-        return executeRead("Khong the tai bang diem theo hoc phan.", entityManager ->
+        return executeRead("Không thể tải bảng điểm theo học phần.", entityManager ->
                 entityManager.createQuery("""
                                 SELECT s.studentCode,
                                        s.fullName,
@@ -72,7 +72,7 @@ public class ReportDAO {
     }
 
     public SystemStatistics getSystemStatistics() {
-        return executeRead("Khong the tai thong ke he thong.", entityManager -> new SystemStatistics(
+        return executeRead("Không thể tải thống kê hệ thống.", entityManager -> new SystemStatistics(
                 count(entityManager, "SELECT COUNT(s) FROM Student s"),
                 count(entityManager, "SELECT COUNT(l) FROM Lecturer l"),
                 count(entityManager, "SELECT COUNT(su) FROM Subject su"),

@@ -34,7 +34,7 @@ public class LecturerProfilePanel extends BasePanel {
         profileFieldsPanel.setOpaque(false);
         container.add(profileFieldsPanel, BorderLayout.NORTH);
 
-        // Them JScrollPane de noi dung khong bi che khuat khi cua so nho
+        // Thêm JScrollPane để nội dung không bị che khuất khi cửa sổ nhỏ
         JScrollPane scrollPane = new JScrollPane(container);
         scrollPane.setBorder(null);
         scrollPane.setOpaque(false);
@@ -65,7 +65,7 @@ public class LecturerProfilePanel extends BasePanel {
                 BorderFactory.createEmptyBorder(24, 24, 24, 24)
         ));
 
-        // Header panel voi tieu de va nut bam
+        // Header panel với tiêu đề và nút bấm
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setOpaque(false);
 
@@ -79,7 +79,7 @@ public class LecturerProfilePanel extends BasePanel {
 
         if (!isEditing) {
             JButton editButton = new JButton("Sửa thông tin");
-            styleFilledButton(editButton, AppColors.BUTTON_WARNING); // Dong bo mau vang voi nut Sua cua ADMIN
+            styleFilledButton(editButton, AppColors.BUTTON_WARNING); // Đồng bộ màu vàng với nút Sửa của ADMIN
             editButton.addActionListener(e -> {
                 isEditing = true;
                 renderProfile();
@@ -87,11 +87,11 @@ public class LecturerProfilePanel extends BasePanel {
             buttonPanel.add(editButton);
         } else {
             JButton saveButton = new JButton("Lưu thay đổi");
-            styleFilledButton(saveButton, AppColors.BUTTON_SUCCESS); // Nut Luu mau xanh
+            styleFilledButton(saveButton, AppColors.BUTTON_SUCCESS); // Nút Lưu màu xanh
             saveButton.addActionListener(e -> handleSave());
 
             JButton cancelButton = new JButton("Hủy");
-            styleFilledButton(cancelButton, AppColors.BUTTON_NEUTRAL); // Nut Huy mau xam
+            styleFilledButton(cancelButton, AppColors.BUTTON_NEUTRAL); // Nút Hủy màu xám
             cancelButton.addActionListener(e -> {
                 isEditing = false;
                 renderProfile();
@@ -113,7 +113,7 @@ public class LecturerProfilePanel extends BasePanel {
             phoneField = new JTextField(currentLecturer.getPhone());
             addressField = new JTextField(currentLecturer.getAddress());
 
-            // Style cho cac o nhap lieu
+            // Style cho các ô nhập liệu
             styleTextField(emailField);
             styleTextField(phoneField);
             styleTextField(addressField);

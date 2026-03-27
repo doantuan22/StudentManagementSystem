@@ -38,7 +38,7 @@ public class LecturerService {
     public Lecturer findCurrentLecturer() {
         permissionService.requirePermission(RolePermission.VIEW_OWN_PROFILE);
         return lecturerDAO.findByUserId(SessionManager.requireCurrentUser().getId())
-                .orElseThrow(() -> new ValidationException("KhÃ´ng tÃ¬m tháº¥y há»“ sÆ¡ giáº£ng viÃªn cá»§a tÃ i khoáº£n Ä‘ang Ä‘Äƒng nháº­p."));
+                .orElseThrow(() -> new ValidationException("Không tìm thấy hồ sơ giảng viên của tài khoản đang đăng nhập."));
     }
 
     public Lecturer save(Lecturer lecturer) {
@@ -48,7 +48,7 @@ public class LecturerService {
             } else if (permissionService.hasPermission(RolePermission.EDIT_OWN_PROFILE)) {
                 Lecturer current = findCurrentLecturer();
                 if (!current.getId().equals(lecturer.getId())) {
-                    throw new ValidationException("Báº¡n khÃ´ng thá»ƒ chá»‰nh sá»­a há»“ sÆ¡ cá»§a ngÆ°á»i khÃ¡c.");
+                    throw new ValidationException("Bạn không thể chỉnh sửa hồ sơ của người khác.");
                 }
             } else {
                 permissionService.requirePermission(RolePermission.MANAGE_LECTURERS);
@@ -60,11 +60,11 @@ public class LecturerService {
         validate(lecturer);
 
         Long lecturerId = JpaBootstrap.executeInTransaction(
-                "Lá»—i khi lÆ°u giáº£ng viÃªn vÃ  Ä‘á»“ng bá»™ tÃ i khoáº£n báº±ng JPA.",
+                "Lỗi khi lưu giảng viên và đồng bộ tài khoản bằng JPA.",
                 ignored -> {
                     boolean isNew = lecturer.getId() == null;
                     if (!isNew && lecturerDAO.findById(lecturer.getId()).isEmpty()) {
-                        throw new ValidationException("KhÃ´ng tÃ¬m tháº¥y giáº£ng viÃªn Ä‘á»ƒ cáº­p nháº­t.");
+                        throw new ValidationException("Không tìm thấy giảng viên để cập nhật.");
                     }
 
                     ensureLinkedUser(lecturer);
@@ -79,7 +79,7 @@ public class LecturerService {
         );
 
         Lecturer persistedLecturer = lecturerDAO.findById(lecturerId)
-                .orElseThrow(() -> new ValidationException("KhÃ´ng thá»ƒ táº£i láº¡i giáº£ng viÃªn sau khi lÆ°u."));
+                .orElseThrow(() -> new ValidationException("Không thể tải lại giảng viên sau khi lưu."));
 
         if (SessionManager.isLoggedIn()
                 && persistedLecturer.getUserId() != null
@@ -93,18 +93,18 @@ public class LecturerService {
     public boolean delete(Long id) {
         permissionService.requirePermission(RolePermission.MANAGE_LECTURERS);
         return JpaBootstrap.executeInTransaction(
-                "KhÃ´ng thá»ƒ xÃ³a giáº£ng viÃªn.",
+                "Không thể xóa giảng viên.",
                 ignored -> lecturerDAO.delete(id)
         );
     }
 
     private void validate(Lecturer lecturer) {
-        ValidationUtil.requireWithinLength(lecturer.getLecturerCode(), 50, "MÃ£ giáº£ng viÃªn");
-        ValidationUtil.requireNotBlank(lecturer.getFullName(), "Há» tÃªn giáº£ng viÃªn khÃ´ng Ä‘Æ°á»£c Ä‘á»ƒ trá»‘ng.");
-        ValidationUtil.requireEmail(lecturer.getEmail(), "Email giáº£ng viÃªn");
-        ValidationUtil.requirePhone(lecturer.getPhone(), "Sá»‘ Ä‘iá»‡n thoáº¡i giáº£ng viÃªn");
+        ValidationUtil.requireWithinLength(lecturer.getLecturerCode(), 50, "Mã giảng viên");
+        ValidationUtil.requireNotBlank(lecturer.getFullName(), "Họ tên giảng viên không được để trống.");
+        ValidationUtil.requireEmail(lecturer.getEmail(), "Email giảng viên");
+        ValidationUtil.requirePhone(lecturer.getPhone(), "Số điện thoại giảng viên");
         if (lecturer.getFaculty() == null || lecturer.getFaculty().getId() == null) {
-            throw new ValidationException("Giáº£ng viÃªn pháº£i thuá»™c má»™t khoa.");
+            throw new ValidationException("Giảng viên phải thuộc một khoa.");
         }
     }
 
@@ -121,7 +121,7 @@ public class LecturerService {
         User existingUser = userDAO.findByUsername(username).orElse(null);
         if (existingUser != null) {
             if (existingUser.getRole() != Role.LECTURER) {
-                throw new ValidationException("MÃ£ giáº£ng viÃªn Ä‘ang trÃ¹ng vá»›i tÃ i khoáº£n khÃ´ng pháº£i giáº£ng viÃªn.");
+                throw new ValidationException("Mã giảng viên đang trùng với tài khoản không phải giảng viên.");
             }
             lecturer.setUserId(existingUser.getId());
             return;

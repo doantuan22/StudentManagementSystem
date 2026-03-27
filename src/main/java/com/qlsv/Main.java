@@ -42,11 +42,11 @@ public class Main {
                                   BooleanSupplier schemaCheck,
                                   Consumer<String> errorHandler) {
         if (!canBootstrapCheck.getAsBoolean()) {
-            errorHandler.accept("Khong ket noi duoc co so du lieu. Hay kiem tra MySQL va file application.properties.");
+            errorHandler.accept("Không kết nối được cơ sở dữ liệu. Hãy kiểm tra MySQL và file application.properties.");
             return false;
         }
         if (!schemaCheck.getAsBoolean()) {
-            errorHandler.accept("Co so du lieu hien tai chua co day du schema moi");
+            errorHandler.accept("Cơ sở dữ liệu hiện tại chưa có đầy đủ schema mới");
             return false;
         }
         return true;

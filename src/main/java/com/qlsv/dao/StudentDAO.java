@@ -28,13 +28,13 @@ public class StudentDAO {
             """;
 
     public List<Student> findAll() {
-        return executeRead("Khong the tai danh sach sinh vien bang JPA.", entityManager ->
+        return executeRead("Không thể tải danh sách sinh viên bằng JPA.", entityManager ->
                 entityManager.createQuery(FETCH_BASE + " ORDER BY s.id", Student.class)
                         .getResultList());
     }
 
     public Optional<Student> findById(Long id) {
-        return executeRead("Khong the tim sinh vien theo ma dinh danh bang JPA.", entityManager ->
+        return executeRead("Không thể tìm sinh viên theo mã định danh bằng JPA.", entityManager ->
                 entityManager.createQuery(FETCH_BASE + " WHERE s.id = :id", Student.class)
                         .setParameter("id", id)
                         .getResultStream()
@@ -42,7 +42,7 @@ public class StudentDAO {
     }
 
     public Optional<Student> findByStudentCode(String studentCode) {
-        return executeRead("Khong the tim sinh vien theo ma sinh vien bang JPA.", entityManager ->
+        return executeRead("Không thể tìm sinh viên theo mã sinh viên bằng JPA.", entityManager ->
                 entityManager.createQuery(FETCH_BASE + " WHERE LOWER(s.studentCode) = LOWER(:studentCode)", Student.class)
                         .setParameter("studentCode", normalize(studentCode))
                         .getResultStream()
@@ -50,7 +50,7 @@ public class StudentDAO {
     }
 
     public Optional<Student> findByUserId(Long userId) {
-        return executeRead("Khong the tim sinh vien theo tai khoan nguoi dung bang JPA.", entityManager ->
+        return executeRead("Không thể tìm sinh viên theo tài khoản người dùng bằng JPA.", entityManager ->
                 entityManager.createQuery(FETCH_BASE + " WHERE s.user.id = :userId", Student.class)
                         .setParameter("userId", userId)
                         .getResultStream()
@@ -58,28 +58,28 @@ public class StudentDAO {
     }
 
     public List<Student> findByFacultyId(Long facultyId) {
-        return executeRead("Khong the loc sinh vien theo khoa bang JPA.", entityManager ->
+        return executeRead("Không thể lọc sinh viên theo khoa bằng JPA.", entityManager ->
                 entityManager.createQuery(FETCH_BASE + " WHERE s.faculty.id = :facultyId ORDER BY s.id", Student.class)
                         .setParameter("facultyId", facultyId)
                         .getResultList());
     }
 
     public List<Student> findByClassRoomId(Long classRoomId) {
-        return executeRead("Khong the loc sinh vien theo lop bang JPA.", entityManager ->
+        return executeRead("Không thể lọc sinh viên theo lớp bằng JPA.", entityManager ->
                 entityManager.createQuery(FETCH_BASE + " WHERE s.classRoom.id = :classRoomId ORDER BY s.id", Student.class)
                         .setParameter("classRoomId", classRoomId)
                         .getResultList());
     }
 
     public List<Student> findByAcademicYear(String academicYear) {
-        return executeRead("Khong the loc sinh vien theo nien khoa bang JPA.", entityManager ->
+        return executeRead("Không thể lọc sinh viên theo niên khóa bằng JPA.", entityManager ->
                 entityManager.createQuery(FETCH_BASE + " WHERE LOWER(s.academicYear) = LOWER(:academicYear) ORDER BY s.id", Student.class)
                         .setParameter("academicYear", normalize(academicYear))
                         .getResultList());
     }
 
     public List<String> findAcademicYears() {
-        return executeRead("Khong the tai danh sach nien khoa sinh vien bang JPA.", entityManager ->
+        return executeRead("Không thể tải danh sách niên khóa sinh viên bằng JPA.", entityManager ->
                 entityManager.createQuery("""
                                 SELECT DISTINCT s.academicYear
                                 FROM Student s
@@ -94,12 +94,12 @@ public class StudentDAO {
     }
 
     public List<Student> searchByCriteria(String keyword, Long facultyId, Long classRoomId, String academicYear) {
-        return executeRead("Khong the tim kiem sinh vien bang JPA.", entityManager ->
+        return executeRead("Không thể tìm kiếm sinh viên bằng JPA.", entityManager ->
                 buildSearchQuery(entityManager, keyword, facultyId, classRoomId, academicYear).getResultList());
     }
 
     public Student insert(Student student) {
-        Long studentId = executeWrite("Khong the them sinh vien bang JPA.", entityManager -> {
+        Long studentId = executeWrite("Không thể thêm sinh viên bằng JPA.", entityManager -> {
             Student entity = new Student();
             copyState(entityManager, student, entity);
             entityManager.persist(entity);
@@ -109,14 +109,14 @@ public class StudentDAO {
             return entity.getId();
         });
         return findById(studentId)
-                .orElseThrow(() -> new AppException("Khong the tai lai sinh vien sau khi them bang JPA."));
+                .orElseThrow(() -> new AppException("Không thể tải lại sinh viên sau khi thêm bằng JPA."));
     }
 
     public boolean update(Student student) {
-        executeWrite("Khong the cap nhat sinh vien bang JPA.", entityManager -> {
+        executeWrite("Không thể cập nhật sinh viên bằng JPA.", entityManager -> {
             Student entity = entityManager.find(Student.class, student.getId());
             if (entity == null) {
-                throw new AppException("Khong tim thay sinh vien de cap nhat bang JPA.");
+                throw new AppException("Không tìm thấy sinh viên để cập nhật bằng JPA.");
             }
             copyState(entityManager, student, entity);
             entityManager.flush();
@@ -126,7 +126,7 @@ public class StudentDAO {
     }
 
     public boolean updateContactInfo(Long studentId, String email, String phone, String address) {
-        return executeWrite("Khong the cap nhat thong tin lien he sinh vien bang JPA.", entityManager -> {
+        return executeWrite("Không thể cập nhật thông tin liên hệ sinh viên bằng JPA.", entityManager -> {
             Student student = entityManager.find(Student.class, studentId);
             if (student == null) {
                 return false;
@@ -140,7 +140,7 @@ public class StudentDAO {
     }
 
     public boolean delete(Long id) {
-        return executeWrite("Khong the xoa sinh vien bang JPA.", entityManager -> {
+        return executeWrite("Không thể xóa sinh viên bằng JPA.", entityManager -> {
             Student entity = entityManager.find(Student.class, id);
             if (entity == null) {
                 return false;
@@ -153,7 +153,7 @@ public class StudentDAO {
 
     public Student requireById(Long id) {
         return findById(id)
-                .orElseThrow(() -> new AppException("Khong tim thay sinh vien theo ma dinh danh."));
+                .orElseThrow(() -> new AppException("Không tìm thấy sinh viên theo mã định danh."));
     }
 
     private <T> T executeRead(String errorMessage, Function<EntityManager, T> action) {

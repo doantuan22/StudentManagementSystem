@@ -33,7 +33,7 @@ public class FacultyService {
     public Faculty save(Faculty faculty) {
         permissionService.requirePermission(RolePermission.MANAGE_FACULTIES);
         return JpaBootstrap.executeInTransaction(
-                "KhÃ´ng thá»ƒ lÆ°u khoa.",
+                "Không thể lưu khoa.",
                 ignored -> {
                     validate(faculty);
                     return faculty.getId() == null ? facultyDAO.insert(faculty) : updateAndReturn(faculty);
@@ -44,7 +44,7 @@ public class FacultyService {
     public boolean delete(Long id) {
         permissionService.requirePermission(RolePermission.MANAGE_FACULTIES);
         return JpaBootstrap.executeInTransaction(
-                "KhÃ´ng thá»ƒ xÃ³a khoa.",
+                "Không thể xóa khoa.",
                 ignored -> facultyDAO.delete(id)
         );
     }
@@ -55,7 +55,7 @@ public class FacultyService {
     }
 
     private void validate(Faculty faculty) {
-        ValidationUtil.requireWithinLength(faculty.getFacultyCode(), 50, "MÃ£ khoa");
-        ValidationUtil.requireNotBlank(faculty.getFacultyName(), "TÃªn khoa khÃ´ng Ä‘Æ°á»£c Ä‘á»ƒ trá»‘ng.");
+        ValidationUtil.requireWithinLength(faculty.getFacultyCode(), 50, "Mã khoa");
+        ValidationUtil.requireNotBlank(faculty.getFacultyName(), "Tên khoa không được để trống.");
     }
 }

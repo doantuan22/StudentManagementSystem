@@ -58,13 +58,13 @@ public class StudentService {
     public Student findCurrentStudent() {
         permissionService.requirePermission(RolePermission.VIEW_OWN_PROFILE);
         return studentDAO.findByUserId(SessionManager.requireCurrentUser().getId())
-                .orElseThrow(() -> new ValidationException("Khong tim thay ho so sinh vien cua tai khoan dang dang nhap."));
+                .orElseThrow(() -> new ValidationException("Không tìm thấy hồ sơ sinh viên của tài khoản đang đăng nhập."));
     }
 
     public Student findById(Long id) {
         permissionService.requirePermission(RolePermission.MANAGE_STUDENTS);
         return studentDAO.findById(id)
-                .orElseThrow(() -> new ValidationException("Khong tim thay sinh vien theo ma dinh danh."));
+                .orElseThrow(() -> new ValidationException("Không tìm thấy sinh viên theo mã định danh."));
     }
 
     public Student save(Student student) {
@@ -72,11 +72,11 @@ public class StudentService {
         validate(student);
 
         Long studentId = JpaBootstrap.executeInTransaction(
-                "Loi khi luu sinh vien va dong bo tai khoan bang JPA.",
+                "Lỗi khi lưu sinh viên và đồng bộ tài khoản bằng JPA.",
                 ignored -> {
                     boolean isNew = student.getId() == null;
                     if (!isNew && studentDAO.findById(student.getId()).isEmpty()) {
-                        throw new ValidationException("Khong tim thay sinh vien de cap nhat.");
+                        throw new ValidationException("Không tìm thấy sinh viên để cập nhật.");
                     }
 
                     ensureLinkedUser(student);
@@ -91,24 +91,24 @@ public class StudentService {
         );
 
         return studentDAO.findById(studentId)
-                .orElseThrow(() -> new ValidationException("Khong the tai lai sinh vien sau khi luu."));
+                .orElseThrow(() -> new ValidationException("Không thể tải lại sinh viên sau khi lưu."));
     }
 
     public Student updateCurrentStudentContactInfo(String email, String phone, String address) {
         permissionService.requirePermission(RolePermission.EDIT_OWN_PROFILE);
 
         Student currentStudent = studentDAO.findByUserId(SessionManager.requireCurrentUser().getId())
-                .orElseThrow(() -> new ValidationException("Khong tim thay ho so sinh vien cua tai khoan dang dang nhap."));
+                .orElseThrow(() -> new ValidationException("Không tìm thấy hồ sơ sinh viên của tài khoản đang đăng nhập."));
 
-        String normalizedEmail = ValidationUtil.requireEmail(email, "Email sinh vien");
-        String normalizedPhone = ValidationUtil.requirePhone(phone, "So dien thoai sinh vien");
+        String normalizedEmail = ValidationUtil.requireEmail(email, "Email sinh viên");
+        String normalizedPhone = ValidationUtil.requirePhone(phone, "Số điện thoại sinh viên");
         String normalizedAddress = normalizeAddress(address);
 
         Long studentId = JpaBootstrap.executeInTransaction(
-                "Loi khi cap nhat thong tin lien he sinh vien bang JPA.",
+                "Lỗi khi cập nhật thông tin liên hệ sinh viên bằng JPA.",
                 ignored -> {
                     if (!studentDAO.updateContactInfo(currentStudent.getId(), normalizedEmail, normalizedPhone, normalizedAddress)) {
-                        throw new ValidationException("Khong tim thay sinh vien de cap nhat thong tin lien he.");
+                        throw new ValidationException("Không tìm thấy sinh viên để cập nhật thông tin liên hệ.");
                     }
 
                     if (currentStudent.getUserId() != null) {
@@ -120,35 +120,35 @@ public class StudentService {
 
         SessionManager.requireCurrentUser().setEmail(normalizedEmail);
         return studentDAO.findById(studentId)
-                .orElseThrow(() -> new ValidationException("Khong the tai lai thong tin sinh vien sau khi cap nhat."));
+                .orElseThrow(() -> new ValidationException("Không thể tải lại thông tin sinh viên sau khi cập nhật."));
     }
 
     public boolean delete(Long id) {
         permissionService.requirePermission(RolePermission.MANAGE_STUDENTS);
         return JpaBootstrap.executeInTransaction(
-                "Khong the xoa sinh vien.",
+                "Không thể xóa sinh viên.",
                 ignored -> studentDAO.delete(id)
         );
     }
 
     private void validate(Student student) {
-        ValidationUtil.requireWithinLength(student.getStudentCode(), 50, "Ma sinh vien");
-        ValidationUtil.requireNotBlank(student.getFullName(), "Ho ten sinh vien khong duoc de trong.");
-        ValidationUtil.requireEmail(student.getEmail(), "Email sinh vien");
-        ValidationUtil.requirePhone(student.getPhone(), "So dien thoai sinh vien");
-        ValidationUtil.requireNotBlank(student.getAcademicYear(), "Nien khoa khong duoc de trong.");
+        ValidationUtil.requireWithinLength(student.getStudentCode(), 50, "Mã sinh viên");
+        ValidationUtil.requireNotBlank(student.getFullName(), "Họ tên sinh viên không được để trống.");
+        ValidationUtil.requireEmail(student.getEmail(), "Email sinh viên");
+        ValidationUtil.requirePhone(student.getPhone(), "Số điện thoại sinh viên");
+        ValidationUtil.requireNotBlank(student.getAcademicYear(), "Niên khóa không được để trống.");
         if (student.getFaculty() == null || student.getFaculty().getId() == null) {
-            throw new ValidationException("Sinh vien phai thuoc mot khoa.");
+            throw new ValidationException("Sinh viên phải thuộc một khoa.");
         }
         if (student.getClassRoom() == null || student.getClassRoom().getId() == null) {
-            throw new ValidationException("Sinh vien phai thuoc mot lop.");
+            throw new ValidationException("Sinh viên phải thuộc một lớp.");
         }
     }
 
     private String normalizeAddress(String address) {
         String normalizedAddress = address == null ? "" : address.trim();
         if (normalizedAddress.length() > 255) {
-            throw new ValidationException("Dia chi khong duoc vuot qua 255 ky tu.");
+            throw new ValidationException("Địa chỉ không được vượt quá 255 ký tự.");
         }
         return normalizedAddress;
     }
@@ -166,7 +166,7 @@ public class StudentService {
         User existingUser = userDAO.findByUsername(username).orElse(null);
         if (existingUser != null) {
             if (existingUser.getRole() != Role.STUDENT) {
-                throw new ValidationException("Ma sinh vien dang trung voi tai khoan khong phai sinh vien.");
+                throw new ValidationException("Mã sinh viên đang trùng với tài khoản không phải sinh viên.");
             }
             student.setUserId(existingUser.getId());
             return;

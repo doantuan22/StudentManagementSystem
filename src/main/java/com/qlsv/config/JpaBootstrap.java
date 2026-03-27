@@ -34,7 +34,7 @@ public final class JpaBootstrap {
                 entityManagerFactory = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT, buildOverrides());
                 return entityManagerFactory;
             } catch (Exception exception) {
-                throw new AppException("Khong the khoi tao Hibernate/JPA EntityManagerFactory.", exception);
+                throw new AppException("Không thể khởi tạo Hibernate/JPA EntityManagerFactory.", exception);
             }
         }
     }
@@ -87,7 +87,7 @@ public final class JpaBootstrap {
         EntityManager currentEntityManager = getCurrentEntityManager();
         EntityTransaction transaction = currentEntityManager == null ? null : currentEntityManager.getTransaction();
         if (currentEntityManager == null || transaction == null || !transaction.isActive()) {
-            throw new AppException("Khong tim thay transaction JPA dang hoat dong cho thao tac ghi du lieu.");
+            throw new AppException("Không tìm thấy transaction JPA đang hoạt động cho thao tác ghi dữ liệu.");
         }
 
         try {

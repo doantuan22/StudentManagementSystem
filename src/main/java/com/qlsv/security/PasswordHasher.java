@@ -21,7 +21,7 @@ public final class PasswordHasher {
             }
             return builder.toString();
         } catch (NoSuchAlgorithmException exception) {
-            throw new AppException("Khong tao duoc bo bam mat khau.", exception);
+            throw new AppException("Không tạo được bộ băm mật khẩu.", exception);
         }
     }
 

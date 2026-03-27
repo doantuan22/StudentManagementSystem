@@ -46,7 +46,7 @@ public class CourseSectionService {
     public CourseSection save(CourseSection courseSection) {
         permissionService.requirePermission(RolePermission.MANAGE_COURSE_SECTIONS);
         return JpaBootstrap.executeInTransaction(
-                "KhÃ´ng thá»ƒ lÆ°u há»c pháº§n.",
+                "Không thể lưu học phần.",
                 ignored -> {
                     validate(courseSection);
                     return courseSection.getId() == null ? courseSectionDAO.insert(courseSection) : updateAndReturn(courseSection);
@@ -57,7 +57,7 @@ public class CourseSectionService {
     public boolean delete(Long id) {
         permissionService.requirePermission(RolePermission.MANAGE_COURSE_SECTIONS);
         return JpaBootstrap.executeInTransaction(
-                "KhÃ´ng thá»ƒ xÃ³a há»c pháº§n.",
+                "Không thể xóa học phần.",
                 ignored -> courseSectionDAO.delete(id)
         );
     }
@@ -68,15 +68,15 @@ public class CourseSectionService {
     }
 
     private void validate(CourseSection courseSection) {
-        ValidationUtil.requireWithinLength(courseSection.getSectionCode(), 50, "Ma hoc phan");
-        ValidationUtil.requireNotBlank(courseSection.getSemester(), "Hoc ky khong duoc de trong.");
-        ValidationUtil.requireNotBlank(courseSection.getSchoolYear(), "Nam hoc khong duoc de trong.");
-        ValidationUtil.requirePositive(courseSection.getMaxStudents(), "Si so toi da phai lon hon 0.");
+        ValidationUtil.requireWithinLength(courseSection.getSectionCode(), 50, "Mã học phần");
+        ValidationUtil.requireNotBlank(courseSection.getSemester(), "Học kỳ không được để trống.");
+        ValidationUtil.requireNotBlank(courseSection.getSchoolYear(), "Năm học không được để trống.");
+        ValidationUtil.requirePositive(courseSection.getMaxStudents(), "Sĩ số tối đa phải lớn hơn 0.");
         if (courseSection.getSubject() == null || courseSection.getSubject().getId() == null) {
-            throw new IllegalArgumentException("Hoc phan phai gan voi mon hoc.");
+            throw new IllegalArgumentException("Học phần phải gắn với môn học.");
         }
         if (courseSection.getLecturer() == null || courseSection.getLecturer().getId() == null) {
-            throw new IllegalArgumentException("Hoc phan phai co giang vien phu trach.");
+            throw new IllegalArgumentException("Học phần phải có giảng viên phụ trách.");
         }
     }
 }

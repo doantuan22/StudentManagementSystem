@@ -42,13 +42,13 @@ public final class StudentJpaMigrationVerifier {
     private void verifyStudentDaoReadPaths() {
         List<Student> students = studentDAO.findAll();
 
-        assertCondition(!students.isEmpty(), "Khong co du lieu Student de verify DAO read path.");
+        assertCondition(!students.isEmpty(), "Không có dữ liệu Student để verify DAO read path.");
 
         Student sampleStudent = students.get(0);
         compareStudent(
                 sampleStudent,
                 studentDAO.findById(sampleStudent.getId()).orElseThrow(() ->
-                        new AppException("DAO khong tim thay Student mau theo id.")),
+                        new AppException("DAO không tìm thấy Student mẫu theo id.")),
                 "findById"
         );
 
@@ -58,36 +58,36 @@ public final class StudentJpaMigrationVerifier {
                 .ifPresent(userLinkedStudent -> compareStudent(
                         userLinkedStudent,
                         studentDAO.findByUserId(userLinkedStudent.getUserId()).orElseThrow(() ->
-                                new AppException("DAO khong tim thay Student mau theo userId.")),
+                                new AppException("DAO không tìm thấy Student mẫu theo userId.")),
                         "findByUserId"
                 ));
 
         assertEquals(
                 extractIds(filterByFaculty(students, sampleStudent.getFaculty().getId())),
                 extractIds(studentDAO.findByFacultyId(sampleStudent.getFaculty().getId())),
-                "Lech ket qua loc Student theo Faculty trong StudentDAO."
+                "Lệch kết quả lọc Student theo Faculty trong StudentDAO."
         );
         assertEquals(
                 extractIds(filterByClassRoom(students, sampleStudent.getClassRoom().getId())),
                 extractIds(studentDAO.findByClassRoomId(sampleStudent.getClassRoom().getId())),
-                "Lech ket qua loc Student theo ClassRoom trong StudentDAO."
+                "Lệch kết quả lọc Student theo ClassRoom trong StudentDAO."
         );
         assertEquals(
                 extractIds(filterByAcademicYear(students, sampleStudent.getAcademicYear())),
                 extractIds(studentDAO.findByAcademicYear(sampleStudent.getAcademicYear())),
-                "Lech ket qua loc Student theo nien khoa trong StudentDAO."
+                "Lệch kết quả lọc Student theo niên khóa trong StudentDAO."
         );
         assertEquals(
                 normalizeAcademicYears(students),
                 studentDAO.findAcademicYears(),
-                "Lech danh sach nien khoa trong StudentDAO."
+                "Lệch danh sách niên khóa trong StudentDAO."
         );
 
         String searchKeyword = deriveSearchKeyword(sampleStudent);
         assertEquals(
                 extractIds(studentDAO.searchByKeyword(searchKeyword)),
                 extractIds(studentDAO.searchByCriteria(searchKeyword, null, null, null)),
-                "Lech ket qua tim kiem Student trong StudentDAO."
+                "Lệch kết quả tìm kiếm Student trong StudentDAO."
         );
         assertEquals(
                 extractIds(filterByFaculty(studentDAO.searchByKeyword(searchKeyword), sampleStudent.getFaculty().getId())),
@@ -97,7 +97,7 @@ public final class StudentJpaMigrationVerifier {
                         null,
                         null
                 )),
-                "Lech ket qua tim kiem Student theo keyword + Faculty trong StudentDAO."
+                "Lệch kết quả tìm kiếm Student theo keyword + Faculty trong StudentDAO."
         );
 
         System.out.println("COMPARE_OK studentCount=" + students.size() + ", keyword=" + searchKeyword);
@@ -108,24 +108,24 @@ public final class StudentJpaMigrationVerifier {
 
         try {
             User admin = findActiveUserByRole(Role.ADMIN)
-                    .orElseThrow(() -> new AppException("Khong tim thay tai khoan ADMIN de verify Student controller/service."));
+                    .orElseThrow(() -> new AppException("Không tìm thấy tài khoản ADMIN để verify Student controller/service."));
 
             SessionManager.setCurrentUser(admin);
             List<Student> jpaStudentsViaController = studentController.getAllStudents();
             assertEquals(
                     extractIds(studentDAO.findAll()),
                     extractIds(jpaStudentsViaController),
-                    "Controller/service tra ve danh sach Student khong dung."
+                    "Controller/service trả về danh sách Student không đúng."
             );
 
             Student updateCandidate = jpaStudentsViaController.stream()
                     .filter(student -> student.getUserId() != null)
                     .findFirst()
-                    .orElseThrow(() -> new AppException("Khong tim thay Student co userId de smoke test save/update JPA."));
+                    .orElseThrow(() -> new AppException("Không tìm thấy Student có userId để smoke test save/update JPA."));
 
             compareStudent(
                     studentDAO.findById(updateCandidate.getId()).orElseThrow(() ->
-                            new AppException("DAO khong tim thay Student updateCandidate.")),
+                            new AppException("DAO không tìm thấy Student updateCandidate.")),
                     studentController.getStudentById(updateCandidate.getId()),
                     "controller.getStudentById"
             );
@@ -133,24 +133,24 @@ public final class StudentJpaMigrationVerifier {
             assertEquals(
                     extractIds(studentDAO.findByFacultyId(updateCandidate.getFaculty().getId())),
                     extractIds(studentController.getStudentsByFaculty(updateCandidate.getFaculty().getId())),
-                    "Controller/service loc Student theo Faculty khong dung."
+                    "Controller/service lọc Student theo Faculty không đúng."
             );
             assertEquals(
                     extractIds(studentDAO.findByClassRoomId(updateCandidate.getClassRoom().getId())),
                     extractIds(studentController.getStudentsByClassRoom(updateCandidate.getClassRoom().getId())),
-                    "Controller/service loc Student theo ClassRoom khong dung."
+                    "Controller/service lọc Student theo ClassRoom không đúng."
             );
             assertEquals(
                     extractIds(studentDAO.findByAcademicYear(updateCandidate.getAcademicYear())),
                     extractIds(studentController.getStudentsByAcademicYear(updateCandidate.getAcademicYear())),
-                    "Controller/service loc Student theo nien khoa khong dung."
+                    "Controller/service lọc Student theo niên khóa không đúng."
             );
 
             String searchKeyword = deriveSearchKeyword(updateCandidate);
             assertEquals(
                     extractIds(studentDAO.searchByKeyword(searchKeyword)),
                     extractIds(studentController.searchStudents(searchKeyword, null, null, null)),
-                    "Controller/service tim kiem Student theo keyword khong dung."
+                    "Controller/service tìm kiếm Student theo keyword không đúng."
             );
             assertEquals(
                     extractIds(studentDAO.searchByCriteria(
@@ -165,7 +165,7 @@ public final class StudentJpaMigrationVerifier {
                             null,
                             null
                     )),
-                    "Controller/service tim kiem Student theo keyword + Faculty khong dung."
+                    "Controller/service tìm kiếm Student theo keyword + Faculty không đúng."
             );
 
             Student savedStudent = studentController.saveStudent(copyStudent(updateCandidate));
@@ -175,7 +175,7 @@ public final class StudentJpaMigrationVerifier {
             if (studentUser.isPresent() && updateCandidate.getAddress() != null) {
                 SessionManager.setCurrentUser(studentUser.get());
                 Student currentStudent = studentController.getCurrentStudent();
-                assertEquals(updateCandidate.getId(), currentStudent.getId(), "controller.getCurrentStudent tra ve sai Student.");
+                assertEquals(updateCandidate.getId(), currentStudent.getId(), "controller.getCurrentStudent trả về sai Student.");
 
                 Student updatedStudent = studentController.updateCurrentStudentContactInfo(
                         currentStudent.getEmail(),
@@ -196,7 +196,7 @@ public final class StudentJpaMigrationVerifier {
         Student template = studentDAO.findAll().stream()
                 .filter(student -> student.getFaculty() != null && student.getClassRoom() != null)
                 .findFirst()
-                .orElseThrow(() -> new AppException("Khong tim thay Student mau de smoke test CRUD JPA."));
+                .orElseThrow(() -> new AppException("Không tìm thấy Student mẫu để smoke test CRUD JPA."));
 
         String suffix = CODE_SUFFIX_FORMAT.format(LocalDateTime.now());
         String temporaryStudentCode = "JPASTU" + suffix;
@@ -223,7 +223,7 @@ public final class StudentJpaMigrationVerifier {
 
             entityManager.persist(temporaryStudent);
             entityManager.flush();
-            assertCondition(temporaryStudent.getId() != null, "Persist Student bang JPA khong sinh id.");
+            assertCondition(temporaryStudent.getId() != null, "Persist Student bằng JPA không sinh id.");
 
             temporaryStudent.setPhone("0987654321");
             temporaryStudent.setAddress("Smoke test rollback updated");
@@ -231,30 +231,30 @@ public final class StudentJpaMigrationVerifier {
 
             entityManager.clear();
             Student updatedStudent = entityManager.find(Student.class, temporaryStudent.getId());
-            assertCondition(updatedStudent != null, "Khong tim thay Student vua persist trong transaction JPA.");
-            assertEquals("0987654321", updatedStudent.getPhone(), "Cap nhat Student bang JPA trong transaction khong dung.");
+            assertCondition(updatedStudent != null, "Không tìm thấy Student vừa persist trong transaction JPA.");
+            assertEquals("0987654321", updatedStudent.getPhone(), "Cập nhật Student bằng JPA trong transaction không đúng.");
             assertEquals("Smoke test rollback updated", updatedStudent.getAddress(),
-                    "Cap nhat dia chi Student bang JPA trong transaction khong dung.");
+                    "Cập nhật địa chỉ Student bằng JPA trong transaction không đúng.");
 
             entityManager.remove(updatedStudent);
             entityManager.flush();
             entityManager.clear();
 
             Student deletedStudent = entityManager.find(Student.class, temporaryStudent.getId());
-            assertCondition(deletedStudent == null, "Xoa Student bang JPA trong transaction khong dung.");
+            assertCondition(deletedStudent == null, "Xóa Student bằng JPA trong transaction không đúng.");
 
             transaction.rollback();
         } catch (Exception exception) {
             if (transaction != null && transaction.isActive()) {
                 transaction.rollback();
             }
-            throw new AppException("Smoke test CRUD rollback cho Student JPA that bai.", exception);
+            throw new AppException("Smoke test CRUD rollback cho Student JPA thất bại.", exception);
         }
 
         assertCondition(studentDAO.findByStudentCode(temporaryStudentCode).isEmpty(),
-                "Rollback CRUD JPA van con de lai Student tam.");
+                "Rollback CRUD JPA vẫn còn để lại Student tạm.");
         assertCondition(userDAO.findByUsername(temporaryUsername).isEmpty(),
-                "Rollback CRUD JPA van con de lai User tam do trigger tao.");
+                "Rollback CRUD JPA vẫn còn để lại User tạm do trigger tạo.");
 
         System.out.println("CRUD_ROLLBACK_OK tempStudentCode=" + temporaryStudentCode);
     }

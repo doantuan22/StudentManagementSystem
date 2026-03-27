@@ -1,9 +1,9 @@
 -- ============================================================
 -- FILE: 02_seed_full_data.sql
--- MUC DICH: Chen toan bo du lieu mau bang tieng Viet co dau.
---           Du lieu da bao gom cac truong dia chi va nhat quan username.
+-- MỤC ĐÍCH: Chèn toàn bộ dữ liệu mẫu bằng tiếng Việt có dấu.
+-- Dữ liệu đã bao gồm các trường địa chỉ và nhất quán username.
 -- CHAY SAU: 01_create_schema.sql
--- MAT KHAU: Tat ca tai khoan dung mat khau "123456"
+-- MẬT KHẨU: Tất cả tài khoản dùng mật khẩu "123456"
 --           SHA-256: 8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92
 -- ============================================================
 

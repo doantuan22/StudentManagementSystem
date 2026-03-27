@@ -10,18 +10,27 @@ import com.qlsv.model.Faculty;
 import com.qlsv.model.SystemStatistics;
 import com.qlsv.utils.DialogUtil;
 import com.qlsv.utils.PDFExportUtil;
+import com.qlsv.view.common.AppColors;
 import com.qlsv.view.common.BasePanel;
+import com.qlsv.view.common.DashboardCard;
+import com.qlsv.view.common.DetailSectionPanel;
 
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.io.File;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -46,29 +55,28 @@ public class ReportManagementPanel extends BasePanel {
             REPORT_SCORES_BY_SECTION
     });
     private final JComboBox<Object> filterComboBox = new JComboBox<>();
-    private final DefaultTableModel tableModel = new DefaultTableModel();
+    private final DefaultTableModel tableModel = new DefaultTableModel() {
+        @Override
+        public boolean isCellEditable(int row, int column) {
+            return false;
+        }
+    };
     private final JTable table = new JTable(tableModel);
-    private final JLabel statisticsLabel = new JLabel("-");
+    private final JLabel tableSummaryLabel = new JLabel("Đang tải báo cáo...");
+    private final DetailSectionPanel reportInfoPanel = new DetailSectionPanel(
+            "Thông tin báo cáo",
+            "Chọn loại báo cáo và bộ lọc để xem thông tin chi tiết."
+    );
+
+    private final DashboardCard studentsCard = new DashboardCard("Tổng sinh viên", AppColors.STAT_CARD_STUDENTS);
+    private final DashboardCard lecturersCard = new DashboardCard("Tổng giảng viên", AppColors.STAT_CARD_LECTURERS);
+    private final DashboardCard subjectsCard = new DashboardCard("Tổng môn học", AppColors.STAT_CARD_SUBJECTS);
+    private final DashboardCard sectionsCard = new DashboardCard("Tổng học phần", AppColors.STAT_CARD_SECTIONS);
 
     public ReportManagementPanel() {
-        JButton loadButton = new JButton("Tải báo cáo");
-        JButton exportButton = new JButton("Xuất PDF");
-        loadButton.addActionListener(event -> loadReport());
-        exportButton.addActionListener(event -> exportCurrentTable());
-        reportTypeComboBox.addActionListener(event -> refreshFilterOptions());
-
-        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
-        topPanel.add(new JLabel("Loại báo cáo"));
-        topPanel.add(reportTypeComboBox);
-        topPanel.add(new JLabel("Bộ lọc"));
-        topPanel.add(filterComboBox);
-        topPanel.add(loadButton);
-        topPanel.add(exportButton);
-
-        add(topPanel, BorderLayout.NORTH);
-        add(new JScrollPane(table), BorderLayout.CENTER);
-        add(statisticsLabel, BorderLayout.SOUTH);
-
+        setOpaque(true);
+        setBackground(AppColors.CONTENT_BACKGROUND);
+        initComponents();
         refreshFilterOptions();
         loadStatistics();
     }
@@ -77,6 +85,95 @@ public class ReportManagementPanel extends BasePanel {
     public void reloadData() {
         refreshFilterOptions();
         loadStatistics();
+    }
+
+    private void initComponents() {
+        JLabel titleLabel = new JLabel("Báo cáo");
+        titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 22f));
+        titleLabel.setForeground(AppColors.CARD_VALUE_TEXT);
+
+        JLabel subtitleLabel = new JLabel("Tổng hợp dữ liệu báo cáo theo lớp, khoa và học phần với giao diện đồng bộ cùng các màn hình quản lý.");
+        subtitleLabel.setForeground(AppColors.CARD_MUTED_TEXT);
+        subtitleLabel.setFont(subtitleLabel.getFont().deriveFont(Font.PLAIN, 13f));
+
+        JButton loadButton = new JButton("Tải báo cáo");
+        JButton exportButton = new JButton("Xuất PDF");
+        styleActionButton(loadButton, AppColors.BUTTON_PRIMARY);
+        styleActionButton(exportButton, AppColors.BUTTON_SUCCESS);
+
+        loadButton.addActionListener(event -> loadReport());
+        exportButton.addActionListener(event -> exportCurrentTable());
+        reportTypeComboBox.addActionListener(event -> refreshFilterOptions());
+
+        JPanel titlePanel = new JPanel(new BorderLayout(0, 6));
+        titlePanel.setOpaque(false);
+        titlePanel.add(titleLabel, BorderLayout.NORTH);
+        titlePanel.add(subtitleLabel, BorderLayout.CENTER);
+
+        JPanel cardsPanel = new JPanel(new java.awt.GridLayout(1, 4, 12, 12));
+        cardsPanel.setOpaque(false);
+        cardsPanel.add(studentsCard);
+        cardsPanel.add(lecturersCard);
+        cardsPanel.add(subjectsCard);
+        cardsPanel.add(sectionsCard);
+
+        JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        filterPanel.setOpaque(false);
+        filterPanel.add(new JLabel("Loại báo cáo"));
+        filterPanel.add(reportTypeComboBox);
+        filterPanel.add(new JLabel("Bộ lọc"));
+        filterPanel.add(filterComboBox);
+        filterPanel.add(loadButton);
+        filterPanel.add(exportButton);
+
+        JPanel controlCard = createSurfaceCard(new BorderLayout(0, 0));
+        controlCard.add(filterPanel, BorderLayout.CENTER);
+
+        configureTable(table);
+        JScrollPane tableScrollPane = new JScrollPane(table);
+        tableScrollPane.setBorder(BorderFactory.createLineBorder(AppColors.CARD_BORDER));
+        tableScrollPane.getViewport().setBackground(AppColors.CARD_BACKGROUND);
+        tableScrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        tableScrollPane.getHorizontalScrollBar().setUnitIncrement(16);
+
+        JPanel tablePanel = createSurfaceCard(new BorderLayout(0, 12));
+        JPanel tableHeadingPanel = new JPanel(new BorderLayout(12, 0));
+        tableHeadingPanel.setOpaque(false);
+
+        JLabel tableTitleLabel = new JLabel("Dữ liệu báo cáo");
+        tableTitleLabel.setForeground(AppColors.CARD_TITLE_TEXT);
+        tableTitleLabel.setFont(tableTitleLabel.getFont().deriveFont(Font.BOLD, 16f));
+
+        tableSummaryLabel.setForeground(AppColors.CARD_MUTED_TEXT);
+        tableSummaryLabel.setFont(tableSummaryLabel.getFont().deriveFont(Font.PLAIN, 12.5f));
+
+        tableHeadingPanel.add(tableTitleLabel, BorderLayout.WEST);
+        tableHeadingPanel.add(tableSummaryLabel, BorderLayout.EAST);
+
+        tablePanel.add(tableHeadingPanel, BorderLayout.NORTH);
+        tablePanel.add(tableScrollPane, BorderLayout.CENTER);
+
+        JScrollPane detailScrollPane = new JScrollPane(reportInfoPanel);
+        detailScrollPane.setBorder(BorderFactory.createLineBorder(AppColors.CARD_BORDER));
+        detailScrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        detailScrollPane.getViewport().setBackground(reportInfoPanel.getBackground());
+
+        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, tablePanel, detailScrollPane);
+        splitPane.setBorder(null);
+        splitPane.setOpaque(false);
+        splitPane.setResizeWeight(0.72);
+        splitPane.setContinuousLayout(true);
+        splitPane.setOneTouchExpandable(true);
+        splitPane.setDividerSize(10);
+
+        JPanel northPanel = new JPanel(new BorderLayout(0, 12));
+        northPanel.setOpaque(false);
+        northPanel.add(titlePanel, BorderLayout.NORTH);
+        northPanel.add(cardsPanel, BorderLayout.CENTER);
+        northPanel.add(controlCard, BorderLayout.SOUTH);
+
+        add(northPanel, BorderLayout.NORTH);
+        add(splitPane, BorderLayout.CENTER);
     }
 
     private void refreshFilterOptions() {
@@ -141,6 +238,9 @@ public class ReportManagementPanel extends BasePanel {
             for (Object[] row : rows) {
                 tableModel.addRow(row);
             }
+
+            tableSummaryLabel.setText(rows.size() + " dòng dữ liệu");
+            updateReportInfo(rows.size());
         } catch (Exception exception) {
             DialogUtil.showError(this, exception.getMessage());
         }
@@ -149,17 +249,21 @@ public class ReportManagementPanel extends BasePanel {
     private void loadStatistics() {
         try {
             SystemStatistics statistics = reportController.getSystemStatistics();
-            statisticsLabel.setText("Tổng quan nhanh: "
-                    + statistics.getTotalStudents() + " sinh viên, "
-                    + statistics.getTotalLecturers() + " giảng viên, "
-                    + statistics.getTotalSubjects() + " môn học, "
-                    + statistics.getTotalCourseSections() + " học phần.");
+            studentsCard.setValue(String.valueOf(statistics.getTotalStudents()));
+            lecturersCard.setValue(String.valueOf(statistics.getTotalLecturers()));
+            subjectsCard.setValue(String.valueOf(statistics.getTotalSubjects()));
+            sectionsCard.setValue(String.valueOf(statistics.getTotalCourseSections()));
         } catch (Exception exception) {
             DialogUtil.showError(this, exception.getMessage());
         }
     }
 
     private void exportCurrentTable() {
+        if (table.getRowCount() == 0) {
+            DialogUtil.showError(this, "Không có dữ liệu để xuất PDF.");
+            return;
+        }
+
         JFileChooser fileChooser = new JFileChooser();
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
         fileChooser.setSelectedFile(new File("report_" + timestamp + ".pdf"));
@@ -174,5 +278,55 @@ public class ReportManagementPanel extends BasePanel {
         } catch (Exception exception) {
             DialogUtil.showError(this, exception.getMessage());
         }
+    }
+
+    private void updateReportInfo(int rowCount) {
+        Object selectedFilter = filterComboBox.getSelectedItem();
+        String filterText = selectedFilter == null ? "Chưa chọn" : selectedFilter.toString();
+        String updatedAt = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+
+        reportInfoPanel.showFields(new String[][]{
+                {"Loại báo cáo", reportTypeComboBox.getSelectedItem() == null ? "Chưa chọn" : reportTypeComboBox.getSelectedItem().toString()},
+                {"Bộ lọc đang áp dụng", filterText},
+                {"Số dòng kết quả", String.valueOf(rowCount)},
+                {"Cập nhật lúc", updatedAt},
+                {"Ghi chú", "Có thể xuất trực tiếp báo cáo hiện tại sang PDF mà không thay đổi nghiệp vụ."}
+        });
+    }
+
+    private JPanel createSurfaceCard(BorderLayout layout) {
+        JPanel panel = new JPanel(layout);
+        panel.setOpaque(true);
+        panel.setBackground(AppColors.CARD_BACKGROUND);
+        panel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(AppColors.CARD_BORDER),
+                BorderFactory.createEmptyBorder(16, 18, 16, 18)
+        ));
+        return panel;
+    }
+
+    private void configureTable(JTable table) {
+        table.setRowHeight(28);
+        table.setFillsViewportHeight(true);
+        table.setGridColor(AppColors.CARD_BORDER);
+        table.setBackground(Color.WHITE);
+        table.setSelectionBackground(AppColors.TABLE_SELECTION_BACKGROUND);
+        table.setSelectionForeground(AppColors.CARD_VALUE_TEXT);
+        table.getTableHeader().setReorderingAllowed(false);
+        table.getTableHeader().setBackground(AppColors.TABLE_HEADER_BACKGROUND);
+        table.getTableHeader().setForeground(AppColors.CARD_VALUE_TEXT);
+        table.getTableHeader().setFont(table.getTableHeader().getFont().deriveFont(Font.BOLD, 13f));
+        table.getTableHeader().setPreferredSize(new Dimension(0, 32));
+    }
+
+    private void styleActionButton(JButton button, Color background) {
+        button.setFocusPainted(false);
+        button.setBorderPainted(false);
+        button.setOpaque(true);
+        button.setBackground(background);
+        button.setForeground(AppColors.BUTTON_TEXT);
+        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        button.setFont(button.getFont().deriveFont(Font.BOLD, 13f));
+        button.setBorder(BorderFactory.createEmptyBorder(9, 16, 9, 16));
     }
 }

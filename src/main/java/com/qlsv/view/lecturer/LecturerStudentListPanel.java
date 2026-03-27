@@ -6,6 +6,7 @@ import com.qlsv.controller.LecturerController;
 import com.qlsv.model.CourseSection;
 import com.qlsv.model.Enrollment;
 import com.qlsv.model.Lecturer;
+import com.qlsv.utils.AcademicFormatUtil;
 import com.qlsv.utils.DisplayTextUtil;
 import com.qlsv.utils.DialogUtil;
 import com.qlsv.utils.PDFExportUtil;
@@ -140,7 +141,7 @@ public class LecturerStudentListPanel extends BasePanel {
                     {"Số điện thoại", student.getPhone()},
                     {"Khoa", student.getFaculty() != null ? student.getFaculty().getFacultyName() : "Chưa cập nhật"},
                     {"Lớp", student.getClassRoom() != null ? student.getClassRoom().getClassName() : "Chưa cập nhật"},
-                    {"Niên khóa", student.getAcademicYear()},
+                    {"Niên khóa", AcademicFormatUtil.formatAcademicYear(student.getAcademicYear())},
                     {"Trạng thái", DisplayTextUtil.formatStatus(student.getStatus())}
             });
         }

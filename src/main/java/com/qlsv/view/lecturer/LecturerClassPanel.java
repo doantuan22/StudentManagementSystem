@@ -4,6 +4,7 @@ import com.qlsv.controller.CourseSectionController;
 import com.qlsv.controller.LecturerController;
 import com.qlsv.model.CourseSection;
 import com.qlsv.model.Lecturer;
+import com.qlsv.utils.AcademicFormatUtil;
 import com.qlsv.utils.DialogUtil;
 import com.qlsv.view.common.BasePanel;
 
@@ -34,8 +35,8 @@ public class LecturerClassPanel extends BasePanel {
                         courseSection.getSectionCode(),
                         courseSection.getSubject() == null ? "" : courseSection.getSubject().getSubjectName(),
                         courseSection.getRoom(),
-                        courseSection.getSemester(),
-                        courseSection.getSchoolYear(),
+                        AcademicFormatUtil.formatSemester(courseSection.getSemester()),
+                        AcademicFormatUtil.formatAcademicYear(courseSection.getSchoolYear()),
                         courseSection.getScheduleText()
                 });
             }

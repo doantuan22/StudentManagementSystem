@@ -8,6 +8,7 @@ import com.qlsv.model.Faculty;
 import com.qlsv.model.Lecturer;
 import com.qlsv.model.Room;
 import com.qlsv.model.Subject;
+import com.qlsv.utils.AcademicFormatUtil;
 import com.qlsv.view.common.AbstractCrudPanel;
 import com.qlsv.view.common.DetailSectionPanel;
 import com.qlsv.view.common.FilterOption;
@@ -107,8 +108,13 @@ public class CourseSectionManagementPanel extends AbstractCrudPanel<CourseSectio
     @Override
     protected CourseSection promptForEntity(CourseSection existingItem) {
         JTextField codeField = new JTextField(existingItem == null ? "" : existingItem.getSectionCode());
-        JTextField semesterField = new JTextField(existingItem == null ? "HK1" : existingItem.getSemester());
-        JTextField schoolYearField = new JTextField(existingItem == null ? "2025 - 2026" : existingItem.getSchoolYear());
+        JComboBox<String> semesterComboBox = new JComboBox<>(AcademicFormatUtil.getFixedSemesters().toArray(new String[0]));
+        semesterComboBox.setSelectedItem(existingItem == null
+                ? "HK1"
+                : AcademicFormatUtil.formatSemester(existingItem.getSemester()));
+        JTextField schoolYearField = new JTextField(existingItem == null
+                ? "2025 - 2026"
+                : AcademicFormatUtil.formatAcademicYear(existingItem.getSchoolYear()));
         JTextField maxStudentsField = new JTextField(existingItem == null ? "50" : String.valueOf(existingItem.getMaxStudents()));
 
         JComboBox<Subject> subjectComboBox = new JComboBox<>(screenController.loadSubjects().toArray(new Subject[0]));
@@ -135,7 +141,7 @@ public class CourseSectionManagementPanel extends AbstractCrudPanel<CourseSectio
         formPanel.add(new JLabel("Giảng viên"));
         formPanel.add(lecturerComboBox);
         formPanel.add(new JLabel("Học kỳ"));
-        formPanel.add(semesterField);
+        formPanel.add(semesterComboBox);
         formPanel.add(new JLabel("Năm học"));
         formPanel.add(schoolYearField);
         formPanel.add(new JLabel("Sĩ số tối đa"));
@@ -160,7 +166,7 @@ public class CourseSectionManagementPanel extends AbstractCrudPanel<CourseSectio
                         codeField.getText(),
                         (Subject) subjectComboBox.getSelectedItem(),
                         (Lecturer) lecturerComboBox.getSelectedItem(),
-                        semesterField.getText(),
+                        (String) semesterComboBox.getSelectedItem(),
                         schoolYearField.getText(),
                         maxStudentsField.getText()
                 )

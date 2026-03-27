@@ -4,8 +4,8 @@ import com.qlsv.config.JpaBootstrap;
 import com.qlsv.exception.AppException;
 import com.qlsv.model.ClassRoom;
 import com.qlsv.model.Faculty;
+import com.qlsv.utils.AcademicFormatUtil;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityTransaction;
 import org.hibernate.exception.ConstraintViolationException;
 
 import java.util.List;
@@ -45,12 +45,13 @@ public class ClassRoomDAO {
     }
 
     public List<ClassRoom> findByAcademicYear(String academicYear) {
-        String normalizedAcademicYear = academicYear == null ? "" : academicYear.trim();
+        String normalizedAcademicYear = AcademicFormatUtil.normalizeAcademicYear(academicYear, "Niên khóa");
         return executeRead("Không thể lọc lớp theo niên khóa.", entityManager ->
-                entityManager.createQuery(FETCH_BASE + " WHERE LOWER(c.academicYear) = LOWER(:academicYear) ORDER BY c.id",
-                                ClassRoom.class)
-                        .setParameter("academicYear", normalizedAcademicYear)
-                        .getResultList());
+                entityManager.createQuery(FETCH_BASE + " ORDER BY c.id", ClassRoom.class)
+                        .getResultList()
+                        .stream()
+                        .filter(classRoom -> AcademicFormatUtil.academicYearsEqual(classRoom.getAcademicYear(), normalizedAcademicYear))
+                        .toList());
     }
 
     public List<ClassRoom> searchByKeyword(String keyword) {

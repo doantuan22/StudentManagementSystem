@@ -99,6 +99,19 @@ public class EnrollmentDAO {
         });
     }
 
+    public List<Enrollment> findByFacultyId(Long facultyId) {
+        return executeRead("Không thể tải danh sách đăng ký theo khoa.", entityManager -> {
+            List<Enrollment> enrollments = entityManager.createQuery(
+                            FETCH_BASE + " WHERE studentFaculty.id = :facultyId ORDER BY e.id",
+                            Enrollment.class
+                    )
+                    .setParameter("facultyId", facultyId)
+                    .getResultList();
+            hydrateCourseSectionCompatibility(entityManager, enrollments);
+            return enrollments;
+        });
+    }
+
     public List<Enrollment> findByCourseSectionId(Long courseSectionId) {
         return executeRead("Không thể tải danh sách sinh viên của học phần.", entityManager -> {
             List<Enrollment> enrollments = entityManager.createQuery(

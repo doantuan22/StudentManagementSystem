@@ -7,6 +7,7 @@ import com.qlsv.model.Enrollment;
 import com.qlsv.model.Schedule;
 import com.qlsv.model.Score;
 import com.qlsv.model.Student;
+import com.qlsv.utils.AcademicFormatUtil;
 import com.qlsv.utils.DisplayTextUtil;
 
 import java.util.Comparator;
@@ -33,7 +34,7 @@ public class StudentHomeScreenController {
                 new DisplayField("Mã sinh viên", DisplayTextUtil.defaultText(student.getStudentCode())),
                 new DisplayField("Lớp", student.getClassRoom() == null ? "Chưa cập nhật" : student.getClassRoom().getClassName()),
                 new DisplayField("Khoa", student.getFaculty() == null ? "Chưa cập nhật" : student.getFaculty().getFacultyName()),
-                new DisplayField("Niên khóa", DisplayTextUtil.defaultText(student.getAcademicYear())),
+                new DisplayField("Niên khóa", DisplayTextUtil.defaultText(AcademicFormatUtil.formatAcademicYear(student.getAcademicYear()))),
                 new DisplayField("Trạng thái", DisplayTextUtil.formatStatus(student.getStatus()))
         );
 

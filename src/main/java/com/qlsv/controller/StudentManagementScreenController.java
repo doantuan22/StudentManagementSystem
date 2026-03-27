@@ -5,6 +5,7 @@ import com.qlsv.dto.StudentDisplayDto;
 import com.qlsv.model.ClassRoom;
 import com.qlsv.model.Faculty;
 import com.qlsv.model.Student;
+import com.qlsv.utils.AcademicFormatUtil;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -127,7 +128,7 @@ public class StudentManagementScreenController {
         student.setAddress(formData.address().trim());
         student.setFaculty(formData.faculty());
         student.setClassRoom(formData.classRoom());
-        student.setAcademicYear(formData.academicYear().trim());
+        student.setAcademicYear(AcademicFormatUtil.normalizeAcademicYear(formData.academicYear(), "Niên khóa"));
         student.setStatus(formData.status());
         return student;
     }

@@ -7,6 +7,7 @@ import com.qlsv.model.Faculty;
 import com.qlsv.model.Lecturer;
 import com.qlsv.model.Room;
 import com.qlsv.model.Subject;
+import com.qlsv.utils.AcademicFormatUtil;
 
 import java.util.List;
 
@@ -84,8 +85,8 @@ public class CourseSectionManagementScreenController {
         courseSection.setSectionCode(formData.sectionCode().trim());
         courseSection.setSubject(formData.subject());
         courseSection.setLecturer(formData.lecturer());
-        courseSection.setSemester(formData.semester().trim());
-        courseSection.setSchoolYear(formData.schoolYear().trim());
+        courseSection.setSemester(AcademicFormatUtil.normalizeSemester(formData.semester(), "Học kỳ"));
+        courseSection.setSchoolYear(AcademicFormatUtil.normalizeAcademicYear(formData.schoolYear(), "Năm học"));
         courseSection.setMaxStudents(Integer.parseInt(formData.maxStudents().trim()));
         return courseSection;
     }

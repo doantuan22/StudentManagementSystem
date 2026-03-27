@@ -55,6 +55,11 @@ public class EnrollmentService {
         return enrollmentDAO.findByClassRoomId(classRoomId);
     }
 
+    public List<Enrollment> findByFacultyId(Long facultyId) {
+        permissionService.requirePermission(RolePermission.MANAGE_ENROLLMENTS);
+        return enrollmentDAO.findByFacultyId(facultyId);
+    }
+
     public List<Enrollment> findByStudentId(Long studentId) {
         permissionService.requirePermission(RolePermission.MANAGE_ENROLLMENTS);
         return enrollmentDAO.findByStudentId(studentId);

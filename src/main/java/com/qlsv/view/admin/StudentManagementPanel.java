@@ -6,6 +6,7 @@ import com.qlsv.dto.StudentDisplayDto;
 import com.qlsv.model.ClassRoom;
 import com.qlsv.model.Faculty;
 import com.qlsv.model.Student;
+import com.qlsv.utils.AcademicFormatUtil;
 import com.qlsv.utils.DisplayTextUtil;
 import com.qlsv.view.common.AbstractCrudPanel;
 import com.qlsv.view.common.DetailSectionPanel;
@@ -162,7 +163,7 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
         JTextField emailField = new JTextField(existingItem == null ? "" : existingItem.getEmail());
         JTextField phoneField = new JTextField(existingItem == null ? "" : existingItem.getPhone());
         JTextField addressField = new JTextField(existingItem == null ? "" : existingItem.getAddress());
-        JTextField academicYearField = new JTextField(existingItem == null ? "" : existingItem.getAcademicYear());
+        JTextField academicYearField = new JTextField(existingItem == null ? "" : AcademicFormatUtil.formatAcademicYear(existingItem.getAcademicYear()));
 
         JComboBox<Faculty> facultyComboBox = new JComboBox<>(screenController.loadFaculties().toArray(new Faculty[0]));
         JComboBox<ClassRoom> classRoomComboBox = new JComboBox<>();

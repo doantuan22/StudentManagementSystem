@@ -8,6 +8,7 @@ import com.qlsv.exception.ValidationException;
 import com.qlsv.model.Role;
 import com.qlsv.model.Student;
 import com.qlsv.model.User;
+import com.qlsv.utils.AcademicFormatUtil;
 import com.qlsv.security.PasswordHasher;
 import com.qlsv.security.RolePermission;
 import com.qlsv.utils.ValidationUtil;
@@ -136,7 +137,7 @@ public class StudentService {
         ValidationUtil.requireNotBlank(student.getFullName(), "Họ tên sinh viên không được để trống.");
         ValidationUtil.requireEmail(student.getEmail(), "Email sinh viên");
         ValidationUtil.requirePhone(student.getPhone(), "Số điện thoại sinh viên");
-        ValidationUtil.requireNotBlank(student.getAcademicYear(), "Niên khóa không được để trống.");
+        student.setAcademicYear(AcademicFormatUtil.normalizeAcademicYear(student.getAcademicYear(), "Niên khóa"));
         if (student.getFaculty() == null || student.getFaculty().getId() == null) {
             throw new ValidationException("Sinh viên phải thuộc một khoa.");
         }

@@ -5,6 +5,7 @@ import com.qlsv.model.Enrollment;
 import com.qlsv.model.Schedule;
 import com.qlsv.model.Score;
 import com.qlsv.model.Student;
+import com.qlsv.utils.AcademicFormatUtil;
 import com.qlsv.utils.DisplayTextUtil;
 
 public final class DisplayDtoMapper {
@@ -24,7 +25,7 @@ public final class DisplayDtoMapper {
                 student == null ? "Chưa cập nhật" : DisplayTextUtil.defaultText(student.getAddress()),
                 student == null || student.getFaculty() == null ? "Chưa cập nhật" : DisplayTextUtil.defaultText(student.getFaculty().getFacultyName()),
                 student == null || student.getClassRoom() == null ? "Chưa cập nhật" : DisplayTextUtil.defaultText(student.getClassRoom().getClassName()),
-                student == null ? "Chưa cập nhật" : DisplayTextUtil.defaultText(student.getAcademicYear()),
+                student == null ? "Chưa cập nhật" : DisplayTextUtil.defaultText(AcademicFormatUtil.formatAcademicYear(student.getAcademicYear())),
                 student == null ? "Chưa cập nhật" : DisplayTextUtil.formatStatus(student.getStatus()),
                 student == null ? "Chưa cập nhật" : DisplayTextUtil.formatUserReference(student.getUserId())
         );
@@ -58,8 +59,8 @@ public final class DisplayDtoMapper {
                 courseSection == null || courseSection.getSubject() == null ? "Chưa cập nhật" : DisplayTextUtil.defaultText(courseSection.getSubject().getSubjectName()),
                 courseSection == null || courseSection.getSubject() == null ? "Chưa cập nhật" : DisplayTextUtil.defaultText(courseSection.getSubject().getCredits()),
                 courseSection == null || courseSection.getLecturer() == null ? "Chưa cập nhật" : DisplayTextUtil.defaultText(courseSection.getLecturer().getFullName()),
-                courseSection == null ? "Chưa cập nhật" : DisplayTextUtil.defaultText(courseSection.getSemester()),
-                courseSection == null ? "Chưa cập nhật" : DisplayTextUtil.defaultText(courseSection.getSchoolYear()),
+                courseSection == null ? "Chưa cập nhật" : DisplayTextUtil.defaultText(AcademicFormatUtil.formatSemester(courseSection.getSemester())),
+                courseSection == null ? "Chưa cập nhật" : DisplayTextUtil.defaultText(AcademicFormatUtil.formatAcademicYear(courseSection.getSchoolYear())),
                 courseSection == null ? "Chưa cập nhật" : DisplayTextUtil.defaultText(courseSection.getScheduleText()),
                 courseSection == null || courseSection.getRoom() == null ? "Chưa cập nhật" : DisplayTextUtil.defaultText(courseSection.getRoom().getRoomName()),
                 courseSection == null ? "Chưa cập nhật" : DisplayTextUtil.defaultText(courseSection.getMaxStudents()),

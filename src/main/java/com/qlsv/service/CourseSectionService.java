@@ -4,6 +4,7 @@ import com.qlsv.config.JpaBootstrap;
 import com.qlsv.dao.CourseSectionDAO;
 import com.qlsv.model.CourseSection;
 import com.qlsv.security.RolePermission;
+import com.qlsv.utils.AcademicFormatUtil;
 import com.qlsv.utils.ValidationUtil;
 
 import java.util.List;
@@ -69,8 +70,8 @@ public class CourseSectionService {
 
     private void validate(CourseSection courseSection) {
         ValidationUtil.requireWithinLength(courseSection.getSectionCode(), 50, "Mã học phần");
-        ValidationUtil.requireNotBlank(courseSection.getSemester(), "Học kỳ không được để trống.");
-        ValidationUtil.requireNotBlank(courseSection.getSchoolYear(), "Năm học không được để trống.");
+        courseSection.setSemester(AcademicFormatUtil.normalizeSemester(courseSection.getSemester(), "Học kỳ"));
+        courseSection.setSchoolYear(AcademicFormatUtil.normalizeAcademicYear(courseSection.getSchoolYear(), "Năm học"));
         ValidationUtil.requirePositive(courseSection.getMaxStudents(), "Sĩ số tối đa phải lớn hơn 0.");
         if (courseSection.getSubject() == null || courseSection.getSubject().getId() == null) {
             throw new IllegalArgumentException("Học phần phải gắn với môn học.");

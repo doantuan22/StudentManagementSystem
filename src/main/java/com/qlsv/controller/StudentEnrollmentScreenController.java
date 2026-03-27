@@ -6,6 +6,7 @@ import com.qlsv.dto.EnrollmentDisplayDto;
 import com.qlsv.dto.StudentEnrollmentDataDto;
 import com.qlsv.model.CourseSection;
 import com.qlsv.model.Enrollment;
+import com.qlsv.utils.AcademicFormatUtil;
 import com.qlsv.utils.DisplayTextUtil;
 
 import java.util.ArrayList;
@@ -52,18 +53,15 @@ public class StudentEnrollmentScreenController {
     private List<String> buildSemesterOptions(List<CourseSection> courseSections) {
         Set<String> options = new LinkedHashSet<>();
         options.add(ALL_SEMESTERS);
-        for (CourseSection courseSection : courseSections) {
-            String semester = courseSection.getSemester();
-            if (semester != null && !semester.isBlank()) {
-                options.add(semester);
-            }
-        }
+        options.addAll(AcademicFormatUtil.getFixedSemesters());
         return new ArrayList<>(options);
     }
 
     private List<CourseSection> filterCourseSections(List<CourseSection> allCourseSections, String keyword, String semesterFilter) {
         String normalizedKeyword = keyword == null ? "" : keyword.trim().toLowerCase(Locale.ROOT);
-        String normalizedSemester = semesterFilter == null || semesterFilter.isBlank() ? ALL_SEMESTERS : semesterFilter;
+        String normalizedSemester = semesterFilter == null || semesterFilter.isBlank()
+                ? ALL_SEMESTERS
+                : DisplayTextUtil.defaultText(AcademicFormatUtil.formatSemester(semesterFilter));
 
         List<CourseSection> displayedCourseSections = new ArrayList<>();
         for (CourseSection courseSection : allCourseSections) {
@@ -73,7 +71,7 @@ public class StudentEnrollmentScreenController {
                     || (courseSection.getLecturer() != null && containsIgnoreCase(courseSection.getLecturer().getFullName(), normalizedKeyword));
 
             boolean matchesSemester = ALL_SEMESTERS.equalsIgnoreCase(normalizedSemester)
-                    || normalizedSemester.equalsIgnoreCase(DisplayTextUtil.defaultText(courseSection.getSemester()));
+                    || normalizedSemester.equalsIgnoreCase(DisplayTextUtil.defaultText(AcademicFormatUtil.formatSemester(courseSection.getSemester())));
 
             if (matchesKeyword && matchesSemester) {
                 displayedCourseSections.add(courseSection);

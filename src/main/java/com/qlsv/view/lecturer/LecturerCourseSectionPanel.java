@@ -4,6 +4,7 @@ import com.qlsv.controller.CourseSectionController;
 import com.qlsv.controller.LecturerController;
 import com.qlsv.model.CourseSection;
 import com.qlsv.model.Lecturer;
+import com.qlsv.utils.AcademicFormatUtil;
 import com.qlsv.utils.DialogUtil;
 import com.qlsv.utils.DisplayTextUtil;
 import com.qlsv.view.common.AppColors;
@@ -135,8 +136,8 @@ public class LecturerCourseSectionPanel extends BasePanel {
                     {"Môn học", selectedSection.getSubject() != null ? selectedSection.getSubject().getSubjectName() : ""},
                     {"Số tín chỉ", selectedSection.getSubject() != null ? String.valueOf(selectedSection.getSubject().getCredits()) : ""},
                     {"Giảng viên", selectedSection.getLecturer() != null ? selectedSection.getLecturer().getFullName() : ""},
-                    {"Học kỳ", DisplayTextUtil.defaultText(selectedSection.getSemester())},
-                    {"Năm học", DisplayTextUtil.defaultText(selectedSection.getSchoolYear())},
+                    {"Học kỳ", DisplayTextUtil.defaultText(AcademicFormatUtil.formatSemester(selectedSection.getSemester()))},
+                    {"Năm học", DisplayTextUtil.defaultText(AcademicFormatUtil.formatAcademicYear(selectedSection.getSchoolYear()))},
                     {"Lịch học", DisplayTextUtil.defaultText(selectedSection.getScheduleText())},
                     {"Số sinh viên tối đa", String.valueOf(selectedSection.getMaxStudents())}
             });
@@ -157,8 +158,8 @@ public class LecturerCourseSectionPanel extends BasePanel {
                 tableModel.addRow(new Object[]{
                         courseSection.getSectionCode(),
                         courseSection.getSubject() == null ? "" : courseSection.getSubject().getSubjectName(),
-                        courseSection.getSemester(),
-                        courseSection.getSchoolYear(),
+                        AcademicFormatUtil.formatSemester(courseSection.getSemester()),
+                        AcademicFormatUtil.formatAcademicYear(courseSection.getSchoolYear()),
                         DisplayTextUtil.defaultText(courseSection.getScheduleText())
                 });
             }

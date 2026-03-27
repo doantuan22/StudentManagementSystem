@@ -33,6 +33,10 @@ public class EnrollmentController {
         return enrollmentService.findByClassRoomId(classRoomId);
     }
 
+    public List<Enrollment> getEnrollmentsByFaculty(Long facultyId) {
+        return enrollmentService.findByFacultyId(facultyId);
+    }
+
     public List<Enrollment> getEnrollmentsByStudent(Long studentId) {
         return enrollmentService.findByStudentId(studentId);
     }

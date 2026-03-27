@@ -4,6 +4,7 @@ import com.qlsv.controller.ClassRoomController;
 import com.qlsv.controller.FacultyController;
 import com.qlsv.model.ClassRoom;
 import com.qlsv.model.Faculty;
+import com.qlsv.utils.AcademicFormatUtil;
 import com.qlsv.utils.DisplayTextUtil;
 import com.qlsv.view.common.AbstractCrudPanel;
 import com.qlsv.view.common.DetailSectionPanel;
@@ -82,7 +83,7 @@ public class ClassRoomManagementPanel extends AbstractCrudPanel<ClassRoom> {
                 item.getId(),
                 item.getClassCode(),
                 item.getClassName(),
-                item.getAcademicYear(),
+                AcademicFormatUtil.formatAcademicYear(item.getAcademicYear()),
                 item.getFaculty() == null ? "" : item.getFaculty().getFacultyName()
         };
     }
@@ -104,7 +105,7 @@ public class ClassRoomManagementPanel extends AbstractCrudPanel<ClassRoom> {
         detailSectionPanel.showFields(new String[][]{
                 {"Mã lớp", DisplayTextUtil.defaultText(selectedItem.getClassCode())},
                 {"Tên lớp", DisplayTextUtil.defaultText(selectedItem.getClassName())},
-                {"Niên khóa", DisplayTextUtil.defaultText(selectedItem.getAcademicYear())},
+                {"Niên khóa", DisplayTextUtil.defaultText(AcademicFormatUtil.formatAcademicYear(selectedItem.getAcademicYear()))},
                 {"Khoa", selectedItem.getFaculty() == null ? "Chưa cập nhật" : DisplayTextUtil.defaultText(selectedItem.getFaculty().getFacultyName())}
         });
     }
@@ -113,7 +114,7 @@ public class ClassRoomManagementPanel extends AbstractCrudPanel<ClassRoom> {
     protected ClassRoom promptForEntity(ClassRoom existingItem) {
         JTextField codeField = new JTextField(existingItem == null ? "" : existingItem.getClassCode());
         JTextField nameField = new JTextField(existingItem == null ? "" : existingItem.getClassName());
-        JTextField yearField = new JTextField(existingItem == null ? "" : existingItem.getAcademicYear());
+        JTextField yearField = new JTextField(existingItem == null ? "" : AcademicFormatUtil.formatAcademicYear(existingItem.getAcademicYear()));
         JComboBox<Faculty> facultyComboBox = new JComboBox<>(facultyController.getFacultiesForSelection().toArray(new Faculty[0]));
         if (existingItem != null && existingItem.getFaculty() != null) {
             facultyComboBox.setSelectedItem(existingItem.getFaculty());
@@ -143,7 +144,7 @@ public class ClassRoomManagementPanel extends AbstractCrudPanel<ClassRoom> {
         ClassRoom classRoom = existingItem == null ? new ClassRoom() : existingItem;
         classRoom.setClassCode(codeField.getText().trim());
         classRoom.setClassName(nameField.getText().trim());
-        classRoom.setAcademicYear(yearField.getText().trim());
+        classRoom.setAcademicYear(AcademicFormatUtil.normalizeAcademicYear(yearField.getText(), "Niên khóa"));
         classRoom.setFaculty((Faculty) facultyComboBox.getSelectedItem());
         return classRoom;
     }
@@ -202,8 +203,9 @@ public class ClassRoomManagementPanel extends AbstractCrudPanel<ClassRoom> {
             filterValueComboBox.addItem(new FilterOption<>("Chọn niên khóa", null));
             Set<String> academicYears = new LinkedHashSet<>();
             for (ClassRoom classRoom : classRoomController.getClassRoomsForSelection()) {
-                if (classRoom.getAcademicYear() != null && !classRoom.getAcademicYear().isBlank()) {
-                    academicYears.add(classRoom.getAcademicYear());
+                String academicYear = AcademicFormatUtil.formatAcademicYear(classRoom.getAcademicYear());
+                if (!academicYear.isBlank()) {
+                    academicYears.add(academicYear);
                 }
             }
             for (String academicYear : academicYears) {

@@ -5,6 +5,7 @@ import com.qlsv.dto.EnrollmentDisplayDto;
 import com.qlsv.model.ClassRoom;
 import com.qlsv.model.CourseSection;
 import com.qlsv.model.Enrollment;
+import com.qlsv.model.Faculty;
 import com.qlsv.model.Student;
 
 import java.time.LocalDateTime;
@@ -16,9 +17,10 @@ public class EnrollmentManagementScreenController {
     private final StudentController studentController = new StudentController();
     private final CourseSectionController courseSectionController = new CourseSectionController();
     private final ClassRoomController classRoomController = new ClassRoomController();
+    private final FacultyController facultyController = new FacultyController();
 
     public List<Enrollment> loadItems(boolean filterReady, String filterType, Object filterValue,
-                                      String filterAll, String filterSectionCode, String filterClassRoom, String filterStudent) {
+                                      String filterAll, String filterSectionCode, String filterClassRoom, String filterFaculty) {
         if (!filterReady) {
             return List.of();
         }
@@ -32,8 +34,8 @@ public class EnrollmentManagementScreenController {
         if (normalizedFilterType.equals(filterClassRoom) && filterValue instanceof ClassRoom classRoom) {
             return enrollmentController.getEnrollmentsByClassRoom(classRoom.getId());
         }
-        if (normalizedFilterType.equals(filterStudent) && filterValue instanceof Student student) {
-            return enrollmentController.getEnrollmentsByStudent(student.getId());
+        if (normalizedFilterType.equals(filterFaculty) && filterValue instanceof Faculty faculty) {
+            return enrollmentController.getEnrollmentsByFaculty(faculty.getId());
         }
         return List.of();
     }
@@ -69,6 +71,10 @@ public class EnrollmentManagementScreenController {
 
     public List<ClassRoom> loadClassRooms() {
         return classRoomController.getClassRoomsForSelection();
+    }
+
+    public List<Faculty> loadFaculties() {
+        return facultyController.getFacultiesForSelection();
     }
 
     public Enrollment applyFormData(Enrollment existingItem, EnrollmentFormData formData) {

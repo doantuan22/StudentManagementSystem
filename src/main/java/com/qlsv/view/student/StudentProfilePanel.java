@@ -223,7 +223,7 @@ public class StudentProfilePanel extends BasePanel {
         fieldsPanel.add(Box.createVerticalStrut(SECTION_GAP));
         fieldsPanel.add(createReadOnlyField("Khoa / Viện", currentStudent.facultyName()));
         fieldsPanel.add(Box.createVerticalStrut(SECTION_GAP));
-        fieldsPanel.add(createReadOnlyField("Khóa học", currentStudent.academicYear()));
+        fieldsPanel.add(createReadOnlyField("Niên khóa", currentStudent.academicYear()));
 
         card.add(fieldsPanel, BorderLayout.CENTER);
         return card;

@@ -6,9 +6,11 @@ import com.qlsv.model.ClassRoom;
 import com.qlsv.model.Faculty;
 import com.qlsv.model.Student;
 import com.qlsv.model.User;
+import com.qlsv.utils.AcademicFormatUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -72,21 +74,34 @@ public class StudentDAO {
     }
 
     public List<Student> findByAcademicYear(String academicYear) {
+        String normalizedAcademicYear = AcademicFormatUtil.normalizeAcademicYear(academicYear, "Niên khóa");
         return executeRead("Không thể lọc sinh viên theo niên khóa bằng JPA.", entityManager ->
-                entityManager.createQuery(FETCH_BASE + " WHERE LOWER(s.academicYear) = LOWER(:academicYear) ORDER BY s.id", Student.class)
-                        .setParameter("academicYear", normalize(academicYear))
-                        .getResultList());
+                entityManager.createQuery(FETCH_BASE + " ORDER BY s.id", Student.class)
+                        .getResultList()
+                        .stream()
+                        .filter(student -> AcademicFormatUtil.academicYearsEqual(student.getAcademicYear(), normalizedAcademicYear))
+                        .toList());
     }
 
     public List<String> findAcademicYears() {
-        return executeRead("Không thể tải danh sách niên khóa sinh viên bằng JPA.", entityManager ->
-                entityManager.createQuery("""
-                                SELECT DISTINCT s.academicYear
-                                FROM Student s
-                                WHERE s.academicYear IS NOT NULL AND TRIM(s.academicYear) <> ''
-                                ORDER BY s.academicYear
-                                """, String.class)
-                        .getResultList());
+        return executeRead("Không thể tải danh sách niên khóa sinh viên bằng JPA.", entityManager -> {
+            List<String> rawAcademicYears = entityManager.createQuery("""
+                            SELECT DISTINCT s.academicYear
+                            FROM Student s
+                            WHERE s.academicYear IS NOT NULL AND TRIM(s.academicYear) <> ''
+                            ORDER BY s.academicYear
+                            """, String.class)
+                    .getResultList();
+
+            List<String> normalizedAcademicYears = new ArrayList<>();
+            for (String rawAcademicYear : rawAcademicYears) {
+                String displayValue = AcademicFormatUtil.formatAcademicYear(rawAcademicYear);
+                if (!displayValue.isBlank() && normalizedAcademicYears.stream().noneMatch(existing -> existing.equalsIgnoreCase(displayValue))) {
+                    normalizedAcademicYears.add(displayValue);
+                }
+            }
+            return normalizedAcademicYears;
+        });
     }
 
     public List<Student> searchByKeyword(String keyword) {
@@ -94,8 +109,18 @@ public class StudentDAO {
     }
 
     public List<Student> searchByCriteria(String keyword, Long facultyId, Long classRoomId, String academicYear) {
-        return executeRead("Không thể tìm kiếm sinh viên bằng JPA.", entityManager ->
-                buildSearchQuery(entityManager, keyword, facultyId, classRoomId, academicYear).getResultList());
+        String normalizedAcademicYear = academicYear == null || academicYear.isBlank()
+                ? ""
+                : AcademicFormatUtil.normalizeAcademicYear(academicYear, "Niên khóa");
+        return executeRead("Không thể tìm kiếm sinh viên bằng JPA.", entityManager -> {
+            List<Student> students = buildSearchQuery(entityManager, keyword, facultyId, classRoomId).getResultList();
+            if (normalizedAcademicYear.isBlank()) {
+                return students;
+            }
+            return students.stream()
+                    .filter(student -> AcademicFormatUtil.academicYearsEqual(student.getAcademicYear(), normalizedAcademicYear))
+                    .toList();
+        });
     }
 
     public Student insert(Student student) {
@@ -211,20 +236,15 @@ public class StudentDAO {
     private TypedQuery<Student> buildSearchQuery(EntityManager entityManager,
                                                  String keyword,
                                                  Long facultyId,
-                                                 Long classRoomId,
-                                                 String academicYear) {
+                                                 Long classRoomId) {
         StringBuilder jpql = new StringBuilder(FETCH_BASE).append(" WHERE 1 = 1");
         String normalizedKeyword = normalize(keyword).toLowerCase();
-        String normalizedAcademicYear = normalize(academicYear).toLowerCase();
 
         if (facultyId != null) {
             jpql.append(" AND s.faculty.id = :facultyId");
         }
         if (classRoomId != null) {
             jpql.append(" AND s.classRoom.id = :classRoomId");
-        }
-        if (!normalizedAcademicYear.isBlank()) {
-            jpql.append(" AND LOWER(s.academicYear) = :academicYear");
         }
         if (!normalizedKeyword.isBlank()) {
             jpql.append("""
@@ -244,9 +264,6 @@ public class StudentDAO {
         }
         if (classRoomId != null) {
             query.setParameter("classRoomId", classRoomId);
-        }
-        if (!normalizedAcademicYear.isBlank()) {
-            query.setParameter("academicYear", normalizedAcademicYear);
         }
         if (!normalizedKeyword.isBlank()) {
             query.setParameter("keyword", "%" + normalizedKeyword + "%");

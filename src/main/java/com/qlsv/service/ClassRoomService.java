@@ -4,6 +4,7 @@ import com.qlsv.config.JpaBootstrap;
 import com.qlsv.dao.ClassRoomDAO;
 import com.qlsv.model.ClassRoom;
 import com.qlsv.security.RolePermission;
+import com.qlsv.utils.AcademicFormatUtil;
 import com.qlsv.utils.ValidationUtil;
 
 import java.util.List;
@@ -60,7 +61,7 @@ public class ClassRoomService {
     private void validate(ClassRoom classRoom) {
         ValidationUtil.requireWithinLength(classRoom.getClassCode(), 50, "MÃ£ lá»›p");
         ValidationUtil.requireNotBlank(classRoom.getClassName(), "TÃªn lá»›p khÃ´ng Ä‘Æ°á»£c Ä‘á»ƒ trá»‘ng.");
-        ValidationUtil.requireNotBlank(classRoom.getAcademicYear(), "NiÃªn khÃ³a khÃ´ng Ä‘Æ°á»£c Ä‘á»ƒ trá»‘ng.");
+        classRoom.setAcademicYear(AcademicFormatUtil.normalizeAcademicYear(classRoom.getAcademicYear(), "Niên khóa"));
         if (classRoom.getFaculty() == null || classRoom.getFaculty().getId() == null) {
             throw new IllegalArgumentException("Lá»›p há»c pháº£i thuá»™c má»™t khoa.");
         }

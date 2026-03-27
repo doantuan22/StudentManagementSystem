@@ -1,5 +1,6 @@
 package com.qlsv.view.admin;
 
+import com.qlsv.controller.DisplayField;
 import com.qlsv.controller.ScoreManagementScreenController;
 import com.qlsv.dto.ScoreDisplayDto;
 import com.qlsv.model.ClassRoom;
@@ -11,6 +12,7 @@ import com.qlsv.utils.AcademicFormatUtil;
 import com.qlsv.utils.DialogUtil;
 import com.qlsv.view.common.AppColors;
 import com.qlsv.view.common.BasePanel;
+import com.qlsv.view.common.DetailSectionPanel;
 import com.qlsv.view.common.FilterOption;
 
 import javax.swing.BorderFactory;
@@ -25,10 +27,12 @@ import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
 import java.awt.BorderLayout;
+import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -54,6 +58,8 @@ public class ScoreManagementPanel extends BasePanel {
     private static final String FILTER_SECTION_CODE = "Theo mã học phần";
     private static final String FILTER_CLASS_ROOM = "Theo lớp";
     private static final int TOOLBAR_GAP = 8;
+    private static final int TABLE_SECTION_MIN_HEIGHT = 240;
+    private static final int DETAIL_SCROLL_MIN_HEIGHT = 180;
     private static final int DETAIL_TABLE_VIEWPORT_HEIGHT = 220;
     private static final int DETAIL_SECTION_MIN_HEIGHT = 300;
 
@@ -71,6 +77,14 @@ public class ScoreManagementPanel extends BasePanel {
     private final JButton addButton = new JButton("Thêm điểm");
     private final JButton editButton = new JButton("Sửa điểm");
     private final JButton deleteButton = new JButton("Xóa điểm");
+    private final JPanel mainContentPanel = new JPanel(new BorderLayout(0, 12));
+    private final JPanel tableCardPanel = new JPanel(new CardLayout());
+    private final CardLayout tableCardLayout = (CardLayout) tableCardPanel.getLayout();
+    private final JLabel emptyStateLabel = new JLabel("", SwingConstants.CENTER);
+    private final DetailSectionPanel detailSummaryPanel = new DetailSectionPanel(
+            "Chi tiết thông tin điểm",
+            "Vui lòng chọn sinh viên để xem chi tiết điểm."
+    );
 
     private final DefaultTableModel studentTableModel = new DefaultTableModel(
             new String[]{"Mã SV", "Họ tên", "Lớp", "Khoa", "Số môn", "Điểm TB"}, 0
@@ -91,19 +105,12 @@ public class ScoreManagementPanel extends BasePanel {
 
     private final JTable studentTable = new JTable(studentTableModel);
     private final JTable detailTable = new JTable(detailTableModel);
-    private final JLabel selectedStudentLabel = new JLabel("Chưa chọn sinh viên");
-    private final JLabel selectedStudentHintLabel = new JLabel("Chọn một sinh viên trong bảng trên để xem toàn bộ điểm chi tiết.");
-    private final JLabel studentCodeValueLabel = new JLabel("Chưa chọn");
-    private final JLabel studentNameValueLabel = new JLabel("Chưa chọn");
-    private final JLabel classRoomValueLabel = new JLabel("Chưa chọn");
-    private final JLabel facultyValueLabel = new JLabel("Chưa chọn");
-    private final JLabel scoreCountValueLabel = new JLabel("0");
-    private final JLabel averageScoreValueLabel = new JLabel("0.00");
 
     private JPanel filterFieldsPanel;
     private JPanel toolbarButtonPanel;
     private JPanel secondaryActionPanel;
     private JPanel controlCard;
+    private JSplitPane contentSplitPane;
 
     private final List<Score> loadedScores = new ArrayList<>();
     private final List<StudentScoreSummary> studentRows = new ArrayList<>();
@@ -242,25 +249,33 @@ public class ScoreManagementPanel extends BasePanel {
                 bindStudentDetail(getSelectedStudentSummary());
             }
         });
+        detailTable.getSelectionModel().addListSelectionListener(event -> {
+            if (!event.getValueIsAdjusting()) {
+                updateDetailSummary(getSelectedStudentSummary(), getSelectedDetailScore());
+            }
+        });
 
         JScrollPane studentTableScrollPane = createTableScrollPane(studentTable, false);
         JScrollPane detailTableScrollPane = createDetailTableScrollPane();
+        tableCardPanel.setOpaque(false);
+        mainContentPanel.setOpaque(false);
+        tableCardPanel.add(studentTableScrollPane, "table");
+        tableCardPanel.add(createEmptyStatePanel(), "empty");
 
-        JPanel studentSection = createSectionPanel(
-                "Danh sách sinh viên",
-                "Chọn sinh viên để xem toàn bộ điểm bên dưới.",
-                studentTableScrollPane
-        );
-        JPanel detailSection = createDetailSectionPanel(detailTableScrollPane);
+        JScrollPane detailScrollPane = buildDetailScrollPane(createDetailContentPanel(detailTableScrollPane));
 
-        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, studentSection, detailSection);
-        splitPane.setResizeWeight(0.52);
-        splitPane.setBorder(null);
-        splitPane.setContinuousLayout(true);
-        splitPane.setOneTouchExpandable(true);
-        splitPane.setDividerSize(10);
-        splitPane.setOpaque(false);
-        splitPane.setBackground(AppColors.CONTENT_BACKGROUND);
+        contentSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, tableCardPanel, detailScrollPane);
+        contentSplitPane.setResizeWeight(0.7);
+        contentSplitPane.setBorder(null);
+        contentSplitPane.setContinuousLayout(true);
+        contentSplitPane.setOneTouchExpandable(true);
+        contentSplitPane.setDividerSize(10);
+        contentSplitPane.setOpaque(false);
+        contentSplitPane.setBackground(AppColors.CONTENT_BACKGROUND);
+
+        tableCardPanel.setMinimumSize(new Dimension(0, TABLE_SECTION_MIN_HEIGHT));
+        detailScrollPane.setMinimumSize(new Dimension(0, DETAIL_SCROLL_MIN_HEIGHT));
+        mainContentPanel.add(contentSplitPane, BorderLayout.CENTER);
 
         JPanel topPanel = new JPanel(new BorderLayout(0, 12));
         topPanel.setOpaque(false);
@@ -268,10 +283,10 @@ public class ScoreManagementPanel extends BasePanel {
         topPanel.add(controlCard, BorderLayout.CENTER);
 
         add(topPanel, BorderLayout.NORTH);
-        add(splitPane, BorderLayout.CENTER);
+        add(mainContentPanel, BorderLayout.CENTER);
 
         SwingUtilities.invokeLater(() -> {
-            splitPane.setDividerLocation(0.52);
+            contentSplitPane.setDividerLocation(0.7);
         });
     }
 
@@ -306,14 +321,15 @@ public class ScoreManagementPanel extends BasePanel {
         }
 
         if (studentRows.isEmpty()) {
+            showStudentTableState(false, filterReady
+                    ? "Không tìm thấy sinh viên có điểm phù hợp với điều kiện lọc hiện tại."
+                    : "Vui lòng chọn điều kiện lọc để hiển thị danh sách điểm.");
             studentTable.clearSelection();
             bindStudentDetail(null);
-            selectedStudentHintLabel.setText(filterReady
-                    ? "Không tìm thấy sinh viên có điểm phù hợp với điều kiện hiện tại."
-                    : "Vui lòng chọn điều kiện lọc để hiển thị danh sách điểm.");
             return;
         }
 
+        showStudentTableState(true, null);
         int preferredIndex = 0;
         if (preferredStudentId != null) {
             for (int index = 0; index < studentRows.size(); index++) {
@@ -332,15 +348,14 @@ public class ScoreManagementPanel extends BasePanel {
     private void bindStudentDetail(StudentScoreSummary summary) {
         selectedStudentScores.clear();
         detailTableModel.setRowCount(0);
-        updateSelectedStudentLabels(summary);
 
         if (summary == null) {
             detailTable.clearSelection();
+            updateDetailSummary(null, null);
             return;
         }
 
         selectedStudentScores.addAll(summary.scores());
-        selectedStudentHintLabel.setText("Chi tiết toàn bộ môn học đã có điểm của sinh viên được chọn.");
 
         for (Score score : selectedStudentScores) {
             ScoreDisplayDto displayDto = screenController.toDisplayDto(score);
@@ -360,6 +375,10 @@ public class ScoreManagementPanel extends BasePanel {
 
         if (!selectedStudentScores.isEmpty()) {
             detailTable.setRowSelectionInterval(0, 0);
+            detailTable.scrollRectToVisible(detailTable.getCellRect(0, 0, true));
+        } else {
+            detailTable.clearSelection();
+            updateDetailSummary(summary, null);
         }
     }
 
@@ -618,26 +637,65 @@ public class ScoreManagementPanel extends BasePanel {
                 || normalizeSearchText(displayDto.resultText()).contains(normalizedKeyword);
     }
 
-    private void updateSelectedStudentLabels(StudentScoreSummary summary) {
+    private void updateDetailSummary(StudentScoreSummary summary, Score selectedScore) {
         if (summary == null) {
-            selectedStudentLabel.setText("Chưa chọn sinh viên");
-            selectedStudentHintLabel.setText("Chọn một sinh viên trong bảng trên để xem toàn bộ điểm chi tiết.");
-            studentCodeValueLabel.setText("Chưa chọn");
-            studentNameValueLabel.setText("Chưa chọn");
-            classRoomValueLabel.setText("Chưa chọn");
-            facultyValueLabel.setText("Chưa chọn");
-            scoreCountValueLabel.setText("0");
-            averageScoreValueLabel.setText("0.00");
+            detailSummaryPanel.showMessage("Vui lòng chọn sinh viên để xem chi tiết điểm.");
             return;
         }
 
-        selectedStudentLabel.setText("Chi tiết điểm của " + summary.studentName());
-        studentCodeValueLabel.setText(summary.studentCode());
-        studentNameValueLabel.setText(summary.studentName());
-        classRoomValueLabel.setText(summary.classRoomName());
-        facultyValueLabel.setText(summary.facultyName());
-        scoreCountValueLabel.setText(String.valueOf(summary.scoreCount()));
-        averageScoreValueLabel.setText(formatScore(summary.averageScore()));
+        List<DisplayField> detailFields = buildDetailFields(summary, selectedScore);
+        detailSummaryPanel.showFields(detailFields.stream()
+                .map(field -> new String[]{field.label(), field.value()})
+                .toArray(String[][]::new));
+    }
+
+    private List<DisplayField> buildDetailFields(StudentScoreSummary summary, Score selectedScore) {
+        List<DisplayField> detailFields = new ArrayList<>();
+        detailFields.add(new DisplayField("Mã sinh viên", defaultText(summary.studentCode())));
+        detailFields.add(new DisplayField("Họ tên", defaultText(summary.studentName())));
+        detailFields.add(new DisplayField("Lớp", defaultText(summary.classRoomName())));
+        detailFields.add(new DisplayField("Khoa", defaultText(summary.facultyName())));
+        detailFields.add(new DisplayField("Số môn có điểm", String.valueOf(summary.scoreCount())));
+        detailFields.add(new DisplayField("Điểm trung bình", formatScore(summary.averageScore())));
+
+        ScoreDisplayDto displayDto = selectedScore == null ? null : screenController.toDisplayDto(selectedScore);
+        detailFields.add(new DisplayField(
+                "Mã học phần",
+                displayDto == null ? "Chọn một môn học trong bảng bên dưới." : defaultText(safeSectionCode(selectedScore))
+        ));
+        detailFields.add(new DisplayField(
+                "Môn học",
+                displayDto == null ? "Chọn một môn học trong bảng bên dưới." : defaultText(displayDto.subjectName())
+        ));
+        detailFields.add(new DisplayField(
+                "Học kỳ",
+                displayDto == null ? "Chọn một môn học trong bảng bên dưới." : defaultText(resolveSemesterText(selectedScore))
+        ));
+        detailFields.add(new DisplayField(
+                "Phòng học",
+                displayDto == null ? "Chọn một môn học trong bảng bên dưới." : defaultText(displayDto.roomName())
+        ));
+        detailFields.add(new DisplayField(
+                "Điểm quá trình",
+                displayDto == null ? "Chưa chọn" : defaultText(displayDto.processScore())
+        ));
+        detailFields.add(new DisplayField(
+                "Điểm giữa kỳ",
+                displayDto == null ? "Chưa chọn" : defaultText(displayDto.midtermScore())
+        ));
+        detailFields.add(new DisplayField(
+                "Điểm cuối kỳ",
+                displayDto == null ? "Chưa chọn" : defaultText(displayDto.finalScore())
+        ));
+        detailFields.add(new DisplayField(
+                "Điểm tổng kết",
+                displayDto == null ? "Chưa chọn" : defaultText(displayDto.totalScore())
+        ));
+        detailFields.add(new DisplayField(
+                "Trạng thái",
+                displayDto == null ? "Chưa chọn" : defaultText(displayDto.resultText())
+        ));
+        return detailFields;
     }
 
     private String safeSectionCode(Score score) {
@@ -645,6 +703,13 @@ public class ScoreManagementPanel extends BasePanel {
             return "";
         }
         return score.getEnrollment().getCourseSection().getSectionCode();
+    }
+
+    private String resolveSemesterText(Score score) {
+        if (score == null || score.getEnrollment() == null || score.getEnrollment().getCourseSection() == null) {
+            return "";
+        }
+        return AcademicFormatUtil.formatSemester(score.getEnrollment().getCourseSection().getSemester());
     }
 
     private String normalizeSearchText(String value) {
@@ -655,62 +720,34 @@ public class ScoreManagementPanel extends BasePanel {
         return normalized.toLowerCase(Locale.ROOT).trim();
     }
 
-    private JPanel createDetailSectionPanel(JScrollPane detailTableScrollPane) {
-        JPanel contentPanel = new JPanel(new BorderLayout(0, 12));
-        contentPanel.setOpaque(false);
+    private JPanel createDetailContentPanel(JScrollPane detailTableScrollPane) {
+        JPanel container = new JPanel(new BorderLayout(0, 12));
+        container.setOpaque(false);
 
-        JPanel titlePanel = new JPanel(new GridLayout(0, 1, 0, 4));
-        titlePanel.setOpaque(false);
-        selectedStudentLabel.setFont(selectedStudentLabel.getFont().deriveFont(Font.BOLD, 17f));
-        selectedStudentLabel.setForeground(AppColors.CARD_VALUE_TEXT);
-        selectedStudentHintLabel.setForeground(AppColors.CARD_MUTED_TEXT);
-        titlePanel.add(selectedStudentLabel);
-        titlePanel.add(selectedStudentHintLabel);
-
-        JPanel infoGridPanel = new JPanel(new GridLayout(0, 3, 12, 12));
-        infoGridPanel.setOpaque(false);
-        infoGridPanel.add(createInfoCard("Mã sinh viên", studentCodeValueLabel));
-        infoGridPanel.add(createInfoCard("Họ tên", studentNameValueLabel));
-        infoGridPanel.add(createInfoCard("Lớp", classRoomValueLabel));
-        infoGridPanel.add(createInfoCard("Khoa", facultyValueLabel));
-        infoGridPanel.add(createInfoCard("Số môn có điểm", scoreCountValueLabel));
-        infoGridPanel.add(createInfoCard("Điểm trung bình", averageScoreValueLabel));
-
-        contentPanel.add(titlePanel, BorderLayout.NORTH);
-        contentPanel.add(infoGridPanel, BorderLayout.CENTER);
-
-        JPanel sectionPanel = createSectionPanel(
-                "Thông tin điểm chi tiết",
-                "Bảng bên dưới hiển thị toàn bộ các môn học mà sinh viên đã có điểm.",
+        JPanel detailTablePanel = createSectionPanel(
+                "Bảng điểm chi tiết",
+                "Chọn một học phần trong bảng để xem thông tin điểm tương ứng.",
                 detailTableScrollPane
         );
-        sectionPanel.setMinimumSize(new Dimension(0, DETAIL_SECTION_MIN_HEIGHT));
+        detailTablePanel.setMinimumSize(new Dimension(0, DETAIL_SECTION_MIN_HEIGHT));
 
-        JPanel container = createSurfaceCard(new BorderLayout(0, 12));
-        container.add(contentPanel, BorderLayout.NORTH);
-        container.add(sectionPanel, BorderLayout.CENTER);
+        container.add(detailSummaryPanel, BorderLayout.NORTH);
+        container.add(detailTablePanel, BorderLayout.CENTER);
         return container;
     }
 
-    private JPanel createInfoCard(String label, JLabel valueLabel) {
-        JPanel cardPanel = new JPanel(new BorderLayout(0, 6));
-        cardPanel.setOpaque(true);
-        cardPanel.setBackground(AppColors.CONTENT_BACKGROUND);
-        cardPanel.setBorder(BorderFactory.createCompoundBorder(
+    private JPanel createEmptyStatePanel() {
+        JPanel emptyStatePanel = new JPanel(new BorderLayout());
+        emptyStatePanel.setOpaque(true);
+        emptyStatePanel.setBackground(AppColors.CARD_BACKGROUND);
+        emptyStatePanel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(AppColors.CARD_BORDER),
-                BorderFactory.createEmptyBorder(10, 12, 10, 12)
+                BorderFactory.createEmptyBorder(48, 24, 48, 24)
         ));
-
-        JLabel labelComponent = new JLabel(label);
-        labelComponent.setFont(labelComponent.getFont().deriveFont(Font.BOLD, 12.5f));
-        labelComponent.setForeground(AppColors.CARD_TITLE_TEXT);
-
-        valueLabel.setForeground(AppColors.CARD_VALUE_TEXT);
-        valueLabel.setFont(valueLabel.getFont().deriveFont(Font.PLAIN, 13.5f));
-
-        cardPanel.add(labelComponent, BorderLayout.NORTH);
-        cardPanel.add(valueLabel, BorderLayout.CENTER);
-        return cardPanel;
+        emptyStateLabel.setFont(emptyStateLabel.getFont().deriveFont(Font.ITALIC, 15f));
+        emptyStateLabel.setForeground(AppColors.CARD_MUTED_TEXT);
+        emptyStatePanel.add(emptyStateLabel, BorderLayout.CENTER);
+        return emptyStatePanel;
     }
 
     private JPanel createSectionPanel(String title, String description, JComponent content) {
@@ -747,12 +784,33 @@ public class ScoreManagementPanel extends BasePanel {
         return scrollPane;
     }
 
+    private JScrollPane buildDetailScrollPane(JComponent content) {
+        JScrollPane scrollPane = new JScrollPane(content);
+        scrollPane.setBorder(BorderFactory.createLineBorder(AppColors.CARD_BORDER));
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        scrollPane.getHorizontalScrollBar().setUnitIncrement(16);
+        scrollPane.getViewport().setBackground(content.getBackground());
+        return scrollPane;
+    }
+
     private JScrollPane createDetailTableScrollPane() {
         JScrollPane scrollPane = createTableScrollPane(detailTable, true);
         Dimension preferredSize = scrollPane.getPreferredSize();
         scrollPane.setPreferredSize(new Dimension(preferredSize.width, DETAIL_TABLE_VIEWPORT_HEIGHT));
         scrollPane.setMinimumSize(new Dimension(0, DETAIL_TABLE_VIEWPORT_HEIGHT));
         return scrollPane;
+    }
+
+    private void showStudentTableState(boolean hasData, String message) {
+        if (hasData) {
+            tableCardLayout.show(tableCardPanel, "table");
+            return;
+        }
+
+        emptyStateLabel.setText("<html><div style='text-align:center;'>" + defaultText(message) + "</div></html>");
+        tableCardLayout.show(tableCardPanel, "empty");
     }
 
     private JPanel createSurfaceCard(LayoutManager layoutManager) {
@@ -808,6 +866,13 @@ public class ScoreManagementPanel extends BasePanel {
 
     private String formatScore(double value) {
         return String.format(Locale.ROOT, "%.2f", value);
+    }
+
+    private String defaultText(String value) {
+        if (value == null || value.isBlank()) {
+            return "Chưa cập nhật";
+        }
+        return value;
     }
 
     private record StudentScoreSummary(

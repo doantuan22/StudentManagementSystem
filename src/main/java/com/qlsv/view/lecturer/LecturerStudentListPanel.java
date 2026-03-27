@@ -95,7 +95,7 @@ public class LecturerStudentListPanel extends BasePanel {
         JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
         splitPane.setTopComponent(new JScrollPane(table));
         
-        // Wrap detailSectionPanel vao JScrollPane de co the cuon khi noi dung dai hoac cua so nho
+        // Bọc detailSectionPanel vào JScrollPane để có thể cuộn khi nội dung dài hoặc cửa sổ nhỏ
         JScrollPane detailScrollPane = new JScrollPane(detailSectionPanel);
         detailScrollPane.setBorder(null);
         detailScrollPane.getVerticalScrollBar().setUnitIncrement(16);

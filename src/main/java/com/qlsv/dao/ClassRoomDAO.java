@@ -1,156 +1,161 @@
 package com.qlsv.dao;
 
-import com.qlsv.config.DBConnection;
+import com.qlsv.config.JpaBootstrap;
 import com.qlsv.exception.AppException;
 import com.qlsv.model.ClassRoom;
 import com.qlsv.model.Faculty;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityTransaction;
+import org.hibernate.exception.ConstraintViolationException;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.SQLIntegrityConstraintViolationException;
-import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 /**
- * DAO thao tac voi bang lop hoc.
+ * JOIN FETCH keeps Faculty available after EntityManager closes for the existing Swing flow.
  */
 public class ClassRoomDAO {
 
-    private static final String BASE_SELECT = """
-            SELECT c.id,
-                   c.class_code,
-                   c.class_name,
-                   c.academic_year,
-                   f.id AS faculty_id,
-                   f.faculty_code,
-                   f.faculty_name,
-                   f.description AS faculty_description
-            FROM class_rooms c
-            JOIN faculties f ON f.id = c.faculty_id
+    private static final String FETCH_BASE = """
+            SELECT c
+            FROM ClassRoom c
+            JOIN FETCH c.faculty
             """;
 
     public List<ClassRoom> findAll() {
-        String sql = BASE_SELECT + " ORDER BY c.id";
-        List<ClassRoom> classRooms = new ArrayList<>();
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql);
-             ResultSet resultSet = statement.executeQuery()) {
-            while (resultSet.next()) {
-                classRooms.add(mapRow(resultSet));
-            }
-            return classRooms;
-        } catch (SQLException exception) {
-            throw new AppException("Không thể tải danh sách lớp.", exception);
-        }
+        return executeRead("Không thể tải danh sách lớp.", entityManager ->
+                entityManager.createQuery(FETCH_BASE + " ORDER BY c.id", ClassRoom.class)
+                        .getResultList());
     }
 
     public Optional<ClassRoom> findById(Long id) {
-        String sql = BASE_SELECT + " WHERE c.id = ?";
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setLong(1, id);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                return resultSet.next() ? Optional.of(mapRow(resultSet)) : Optional.empty();
-            }
-        } catch (SQLException exception) {
-            throw new AppException("Không thể tìm lớp theo mã định danh.", exception);
-        }
+        return executeRead("Không thể tìm lớp theo mã định danh.", entityManager ->
+                entityManager.createQuery(FETCH_BASE + " WHERE c.id = :id", ClassRoom.class)
+                        .setParameter("id", id)
+                        .getResultStream()
+                        .findFirst());
+    }
+
+    public List<ClassRoom> findByFacultyId(Long facultyId) {
+        return executeRead("Không thể lọc lớp theo khoa.", entityManager ->
+                entityManager.createQuery(FETCH_BASE + " WHERE c.faculty.id = :facultyId ORDER BY c.id", ClassRoom.class)
+                        .setParameter("facultyId", facultyId)
+                        .getResultList());
+    }
+
+    public List<ClassRoom> findByAcademicYear(String academicYear) {
+        String normalizedAcademicYear = academicYear == null ? "" : academicYear.trim();
+        return executeRead("Không thể lọc lớp theo niên khóa.", entityManager ->
+                entityManager.createQuery(FETCH_BASE + " WHERE LOWER(c.academicYear) = LOWER(:academicYear) ORDER BY c.id",
+                                ClassRoom.class)
+                        .setParameter("academicYear", normalizedAcademicYear)
+                        .getResultList());
     }
 
     public List<ClassRoom> searchByKeyword(String keyword) {
-        String sql = BASE_SELECT + """
-                 WHERE c.class_code LIKE ?
-                    OR c.class_name LIKE ?
-                    OR c.academic_year LIKE ?
-                 ORDER BY c.id
-                """;
-        String searchValue = "%" + keyword + "%";
-        List<ClassRoom> classRooms = new ArrayList<>();
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, searchValue);
-            statement.setString(2, searchValue);
-            statement.setString(3, searchValue);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                while (resultSet.next()) {
-                    classRooms.add(mapRow(resultSet));
-                }
-                return classRooms;
-            }
-        } catch (SQLException exception) {
-            throw new AppException("Không thể tìm kiếm lớp.", exception);
-        }
+        String normalizedKeyword = "%" + (keyword == null ? "" : keyword.trim().toLowerCase()) + "%";
+        return executeRead("Không thể tìm kiếm lớp.", entityManager ->
+                entityManager.createQuery(FETCH_BASE + """
+                                WHERE LOWER(c.classCode) LIKE :keyword
+                                   OR LOWER(c.className) LIKE :keyword
+                                   OR LOWER(c.academicYear) LIKE :keyword
+                                ORDER BY c.id
+                                """, ClassRoom.class)
+                        .setParameter("keyword", normalizedKeyword)
+                        .getResultList());
     }
 
     public ClassRoom insert(ClassRoom classRoom) {
-        String sql = "INSERT INTO class_rooms(class_code, class_name, academic_year, faculty_id) VALUES (?, ?, ?, ?)";
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            statement.setString(1, classRoom.getClassCode());
-            statement.setString(2, classRoom.getClassName());
-            statement.setString(3, classRoom.getAcademicYear());
-            statement.setLong(4, classRoom.getFaculty().getId());
-            statement.executeUpdate();
-            try (ResultSet resultSet = statement.getGeneratedKeys()) {
-                if (resultSet.next()) {
-                    classRoom.setId(resultSet.getLong(1));
+        Long classRoomId = executeWrite(
+                "Không thể thêm lớp.",
+                "Không thể thêm lớp do mã lớp đã tồn tại hoặc khoa không hợp lệ.",
+                entityManager -> {
+                    ClassRoom entity = new ClassRoom();
+                    copyState(entityManager, classRoom, entity);
+                    entityManager.persist(entity);
+                    entityManager.flush();
+                    classRoom.setId(entity.getId());
+                    return entity.getId();
                 }
-            }
-            return classRoom;
-        } catch (SQLException exception) {
-            throw new AppException("Không thể thêm lớp.", exception);
-        }
+        );
+        return findById(classRoomId)
+                .orElseThrow(() -> new AppException("Không thể tải lại lớp sau khi thêm."));
     }
 
     public boolean update(ClassRoom classRoom) {
-        String sql = """
-                UPDATE class_rooms
-                SET class_code = ?, class_name = ?, academic_year = ?, faculty_id = ?
-                WHERE id = ?
-                """;
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, classRoom.getClassCode());
-            statement.setString(2, classRoom.getClassName());
-            statement.setString(3, classRoom.getAcademicYear());
-            statement.setLong(4, classRoom.getFaculty().getId());
-            statement.setLong(5, classRoom.getId());
-            return statement.executeUpdate() > 0;
-        } catch (SQLException exception) {
-            throw new AppException("Không thể cập nhật lớp.", exception);
-        }
+        return executeWrite(
+                "Không thể cập nhật lớp.",
+                "Không thể cập nhật lớp do mã lớp đã tồn tại hoặc khoa không hợp lệ.",
+                entityManager -> {
+                    ClassRoom entity = entityManager.find(ClassRoom.class, classRoom.getId());
+                    if (entity == null) {
+                        return false;
+                    }
+                    copyState(entityManager, classRoom, entity);
+                    entityManager.flush();
+                    return true;
+                }
+        );
     }
 
     public boolean delete(Long id) {
-        String sql = "DELETE FROM class_rooms WHERE id = ?";
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setLong(1, id);
-            return statement.executeUpdate() > 0;
-        } catch (SQLIntegrityConstraintViolationException exception) {
-            throw new AppException("Không thể xóa lớp vì vẫn còn sinh viên hoặc học phần đang sử dụng.", exception);
-        } catch (SQLException exception) {
-            throw new AppException("Không thể xóa lớp.", exception);
+        return executeWrite(
+                "Không thể xóa lớp.",
+                "Không thể xóa lớp vì vẫn còn sinh viên hoặc học phần đang sử dụng.",
+                entityManager -> {
+                    ClassRoom entity = entityManager.find(ClassRoom.class, id);
+                    if (entity == null) {
+                        return false;
+                    }
+                    entityManager.remove(entity);
+                    entityManager.flush();
+                    return true;
+                }
+        );
+    }
+
+    private void copyState(EntityManager entityManager, ClassRoom source, ClassRoom target) {
+        target.setClassCode(source.getClassCode());
+        target.setClassName(source.getClassName());
+        target.setAcademicYear(source.getAcademicYear());
+        target.setFaculty(resolveFacultyReference(entityManager, source.getFaculty()));
+    }
+
+    private Faculty resolveFacultyReference(EntityManager entityManager, Faculty faculty) {
+        if (faculty == null || faculty.getId() == null) {
+            return null;
+        }
+        return entityManager.getReference(Faculty.class, faculty.getId());
+    }
+
+    private <T> T executeRead(String errorMessage, Function<EntityManager, T> action) {
+        try {
+            return JpaBootstrap.executeWithEntityManager(action);
+        } catch (RuntimeException exception) {
+            throw new AppException(errorMessage, exception);
         }
     }
 
-    private ClassRoom mapRow(ResultSet resultSet) throws SQLException {
-        Faculty faculty = new Faculty(
-                resultSet.getLong("faculty_id"),
-                resultSet.getString("faculty_code"),
-                resultSet.getString("faculty_name"),
-                resultSet.getString("faculty_description")
-        );
-        return new ClassRoom(
-                resultSet.getLong("id"),
-                resultSet.getString("class_code"),
-                resultSet.getString("class_name"),
-                resultSet.getString("academic_year"),
-                faculty
-        );
+    private <T> T executeWrite(String errorMessage, String constraintMessage, Function<EntityManager, T> action) {
+        try {
+            return JpaBootstrap.executeInCurrentTransaction(action);
+        } catch (RuntimeException exception) {
+            if (isConstraintViolation(exception)) {
+                throw new AppException(constraintMessage, exception);
+            }
+            throw new AppException(errorMessage, exception);
+        }
+    }
+
+    private boolean isConstraintViolation(Throwable throwable) {
+        Throwable current = throwable;
+        while (current != null) {
+            if (current instanceof ConstraintViolationException) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
     }
 }

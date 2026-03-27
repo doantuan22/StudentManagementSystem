@@ -1,192 +1,184 @@
 package com.qlsv.dao;
 
-import com.qlsv.config.DBConnection;
+import com.qlsv.config.JpaBootstrap;
 import com.qlsv.exception.AppException;
 import com.qlsv.model.Faculty;
 import com.qlsv.model.Lecturer;
+import com.qlsv.model.User;
+import jakarta.persistence.EntityManager;
+import org.hibernate.exception.ConstraintViolationException;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
-import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 /**
- * DAO thao tac voi bang giang vien.
+ * JPA repository for Lecturer.
  */
 public class LecturerDAO {
 
-    private static final String BASE_SELECT = """
-            SELECT l.id,
-                   l.user_id,
-                   l.lecturer_code,
-                   l.full_name,
-                   l.email,
-                   l.phone,
-                   l.address,
-                   l.status,
-                   f.id AS faculty_id,
-                   f.faculty_code,
-                   f.faculty_name,
-                   f.description AS faculty_description
-            FROM lecturers l
-            JOIN faculties f ON f.id = l.faculty_id
+    private static final String FETCH_BASE = """
+            SELECT l
+            FROM Lecturer l
+            LEFT JOIN FETCH l.user
+            JOIN FETCH l.faculty
             """;
 
     public List<Lecturer> findAll() {
-        String sql = BASE_SELECT + " ORDER BY l.id";
-        List<Lecturer> lecturers = new ArrayList<>();
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql);
-             ResultSet resultSet = statement.executeQuery()) {
-            while (resultSet.next()) {
-                lecturers.add(mapRow(resultSet));
-            }
-            return lecturers;
-        } catch (SQLException exception) {
-            throw new AppException("Không thể tải danh sách giảng viên.", exception);
-        }
+        return executeRead("Không thể tải danh sách giảng viên.", entityManager ->
+                entityManager.createQuery(FETCH_BASE + " ORDER BY l.id", Lecturer.class)
+                        .getResultList());
     }
 
     public Optional<Lecturer> findById(Long id) {
-        String sql = BASE_SELECT + " WHERE l.id = ?";
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setLong(1, id);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                return resultSet.next() ? Optional.of(mapRow(resultSet)) : Optional.empty();
-            }
-        } catch (SQLException exception) {
-            throw new AppException("Không thể tìm giảng viên theo mã định danh.", exception);
-        }
+        return executeRead("Không thể tìm giảng viên theo mã định danh.", entityManager ->
+                findById(entityManager, id));
     }
 
     public Optional<Lecturer> findByUserId(Long userId) {
-        String sql = BASE_SELECT + " WHERE l.user_id = ?";
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setLong(1, userId);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                return resultSet.next() ? Optional.of(mapRow(resultSet)) : Optional.empty();
-            }
-        } catch (SQLException exception) {
-            throw new AppException("Không thể tìm giảng viên theo tài khoản người dùng.", exception);
-        }
+        return executeRead("Không thể tìm giảng viên theo tài khoản người dùng.", entityManager ->
+                entityManager.createQuery(FETCH_BASE + " WHERE l.user.id = :userId", Lecturer.class)
+                        .setParameter("userId", userId)
+                        .getResultStream()
+                        .findFirst());
+    }
+
+    public List<Lecturer> findByFacultyId(Long facultyId) {
+        return executeRead("Không thể lọc giảng viên theo khoa.", entityManager ->
+                entityManager.createQuery(FETCH_BASE + " WHERE l.faculty.id = :facultyId ORDER BY l.id", Lecturer.class)
+                        .setParameter("facultyId", facultyId)
+                        .getResultList());
     }
 
     public List<Lecturer> searchByKeyword(String keyword) {
-        String sql = BASE_SELECT + """
-                 WHERE l.lecturer_code LIKE ?
-                    OR l.full_name LIKE ?
-                    OR l.email LIKE ?
-                 ORDER BY l.id
-                """;
-        String searchValue = "%" + keyword + "%";
-        List<Lecturer> lecturers = new ArrayList<>();
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, searchValue);
-            statement.setString(2, searchValue);
-            statement.setString(3, searchValue);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                while (resultSet.next()) {
-                    lecturers.add(mapRow(resultSet));
-                }
-                return lecturers;
-            }
-        } catch (SQLException exception) {
-            throw new AppException("Không thể tìm kiếm giảng viên.", exception);
-        }
+        String normalizedKeyword = "%" + (keyword == null ? "" : keyword.trim().toLowerCase()) + "%";
+        return executeRead("Không thể tìm kiếm giảng viên.", entityManager ->
+                entityManager.createQuery(FETCH_BASE + """
+                                WHERE LOWER(l.lecturerCode) LIKE :keyword
+                                   OR LOWER(l.fullName) LIKE :keyword
+                                   OR LOWER(COALESCE(l.email, '')) LIKE :keyword
+                                ORDER BY l.id
+                                """, Lecturer.class)
+                        .setParameter("keyword", normalizedKeyword)
+                        .getResultList());
     }
 
     public Lecturer insert(Lecturer lecturer) {
-        String sql = """
-                INSERT INTO lecturers(user_id, lecturer_code, full_name, email, phone, address, faculty_id, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                """;
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            fillStatement(statement, lecturer);
-            statement.executeUpdate();
-            try (ResultSet resultSet = statement.getGeneratedKeys()) {
-                if (resultSet.next()) {
-                    lecturer.setId(resultSet.getLong(1));
-                }
-            }
-            return lecturer;
-        } catch (SQLException exception) {
-            throw new AppException("Không thể thêm giảng viên.", exception);
-        }
+        Long lecturerId = executeWrite(
+                "Không thể thêm giảng viên.",
+                "Không thể thêm giảng viên do mã giảng viên đã tồn tại hoặc khoa không hợp lệ.",
+                entityManager -> insert(entityManager, lecturer).getId()
+        );
+        return findById(lecturerId)
+                .orElseThrow(() -> new AppException("Không thể tải lại giảng viên sau khi thêm."));
     }
 
     public boolean update(Lecturer lecturer) {
-        try (Connection connection = DBConnection.getConnection()) {
-            return update(connection, lecturer);
-        } catch (SQLException exception) {
-            throw new AppException("Không thể kết nối cơ sở dữ liệu khi cập nhật giảng viên.", exception);
-        }
-    }
-
-    public boolean update(Connection connection, Lecturer lecturer) {
-        String sql = """
-                UPDATE lecturers
-                SET user_id = ?, lecturer_code = ?, full_name = ?, email = ?, phone = ?, address = ?, faculty_id = ?, status = ?
-                WHERE id = ?
-                """;
-        try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            fillStatement(statement, lecturer);
-            statement.setLong(9, lecturer.getId());
-            return statement.executeUpdate() > 0;
-        } catch (SQLException exception) {
-            throw new AppException("Không thể cập nhật giảng viên.", exception);
-        }
+        return executeWrite(
+                "Không thể cập nhật giảng viên.",
+                "Không thể cập nhật giảng viên do mã giảng viên đã tồn tại hoặc khoa không hợp lệ.",
+                entityManager -> update(entityManager, lecturer)
+        );
     }
 
     public boolean delete(Long id) {
-        String sql = "DELETE FROM lecturers WHERE id = ?";
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setLong(1, id);
-            return statement.executeUpdate() > 0;
-        } catch (SQLIntegrityConstraintViolationException exception) {
-            throw new AppException("Không thể xóa giảng viên vì vẫn còn học phần hoặc phân công giảng dạy đang tham chiếu.", exception);
-        } catch (SQLException exception) {
-            throw new AppException("Không thể xóa giảng viên.", exception);
+        return executeWrite(
+                "Không thể xóa giảng viên.",
+                "Không thể xóa giảng viên vì vẫn còn học phần hoặc phân công giảng dạy tham chiếu.",
+                entityManager -> {
+                    Lecturer entity = entityManager.find(Lecturer.class, id);
+                    if (entity == null) {
+                        return false;
+                    }
+                    entityManager.remove(entity);
+                    entityManager.flush();
+                    return true;
+                }
+        );
+    }
+
+    private Optional<Lecturer> findById(EntityManager entityManager, Long id) {
+        return entityManager.createQuery(FETCH_BASE + " WHERE l.id = :id", Lecturer.class)
+                .setParameter("id", id)
+                .getResultStream()
+                .findFirst();
+    }
+
+    private Lecturer insert(EntityManager entityManager, Lecturer lecturer) {
+        Lecturer entity = new Lecturer();
+        copyState(entityManager, lecturer, entity);
+        entityManager.persist(entity);
+        entityManager.flush();
+        lecturer.setId(entity.getId());
+        return lecturer;
+    }
+
+    private boolean update(EntityManager entityManager, Lecturer lecturer) {
+        Lecturer entity = entityManager.find(Lecturer.class, lecturer.getId());
+        if (entity == null) {
+            return false;
+        }
+        copyState(entityManager, lecturer, entity);
+        entityManager.flush();
+        return true;
+    }
+
+    private void copyState(EntityManager entityManager, Lecturer source, Lecturer target) {
+        target.setUser(resolveUserReference(entityManager, source.getUserId()));
+        target.setLecturerCode(source.getLecturerCode());
+        target.setFullName(source.getFullName());
+        target.setEmail(source.getEmail());
+        target.setPhone(source.getPhone());
+        target.setAddress(source.getAddress());
+        target.setFaculty(resolveFacultyReference(entityManager, source.getFaculty()));
+        target.setStatus(source.getStatus());
+    }
+
+    private Faculty resolveFacultyReference(EntityManager entityManager, Faculty faculty) {
+        if (faculty == null || faculty.getId() == null) {
+            return null;
+        }
+        return entityManager.getReference(Faculty.class, faculty.getId());
+    }
+
+    private User resolveUserReference(EntityManager entityManager, Long userId) {
+        if (userId == null) {
+            return null;
+        }
+        return entityManager.getReference(User.class, userId);
+    }
+
+    private <T> T executeRead(String errorMessage, Function<EntityManager, T> action) {
+        try {
+            return JpaBootstrap.executeWithEntityManager(action);
+        } catch (RuntimeException exception) {
+            throw new AppException(errorMessage, exception);
         }
     }
 
-    private void fillStatement(PreparedStatement statement, Lecturer lecturer) throws SQLException {
-        statement.setObject(1, lecturer.getUserId());
-        statement.setString(2, lecturer.getLecturerCode());
-        statement.setString(3, lecturer.getFullName());
-        statement.setString(4, lecturer.getEmail());
-        statement.setString(5, lecturer.getPhone());
-        statement.setString(6, lecturer.getAddress());
-        statement.setLong(7, lecturer.getFaculty().getId());
-        statement.setString(8, lecturer.getStatus());
+    private <T> T executeWrite(String errorMessage, String constraintMessage, Function<EntityManager, T> action) {
+        try {
+            return JpaBootstrap.executeInCurrentTransaction(action);
+        } catch (RuntimeException exception) {
+            if (isConstraintViolation(exception)) {
+                throw new AppException(constraintMessage, exception);
+            }
+            throw new AppException(errorMessage, exception);
+        }
     }
 
-    private Lecturer mapRow(ResultSet resultSet) throws SQLException {
-        Faculty faculty = new Faculty(
-                resultSet.getLong("faculty_id"),
-                resultSet.getString("faculty_code"),
-                resultSet.getString("faculty_name"),
-                resultSet.getString("faculty_description")
-        );
-        return new Lecturer(
-                resultSet.getLong("id"),
-                resultSet.getObject("user_id", Long.class),
-                resultSet.getString("lecturer_code"),
-                resultSet.getString("full_name"),
-                resultSet.getString("email"),
-                resultSet.getString("phone"),
-                resultSet.getString("address"),
-                faculty,
-                resultSet.getString("status")
-        );
+    private boolean isConstraintViolation(Throwable throwable) {
+        Throwable current = throwable;
+        while (current != null) {
+            if (current instanceof ConstraintViolationException) {
+                return true;
+            }
+            if (current instanceof SQLIntegrityConstraintViolationException) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
     }
 }

@@ -1,17 +1,50 @@
 package com.qlsv.model;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+
 import java.util.Objects;
 
+@Entity
+@Table(name = "lecturers")
 public class Lecturer {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Long userId;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", unique = true)
+    private User user;
+
+    @Column(name = "lecturer_code", nullable = false, unique = true, length = 50)
     private String lecturerCode;
+
+    @Column(name = "full_name", nullable = false, length = 150)
     private String fullName;
+
+    @Column(name = "email", length = 150)
     private String email;
+
+    @Column(name = "phone", length = 30)
     private String phone;
+
+    @Column(name = "address", length = 255)
     private String address;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "faculty_id", nullable = false)
     private Faculty faculty;
+
+    @Column(name = "status", nullable = false, length = 30)
     private String status;
 
     public Lecturer() {
@@ -20,7 +53,7 @@ public class Lecturer {
     public Lecturer(Long id, Long userId, String lecturerCode, String fullName, String email, String phone,
                     String address, Faculty faculty, String status) {
         this.id = id;
-        this.userId = userId;
+        setUserId(userId);
         this.lecturerCode = lecturerCode;
         this.fullName = fullName;
         this.email = email;
@@ -39,11 +72,26 @@ public class Lecturer {
     }
 
     public Long getUserId() {
-        return userId;
+        return user == null ? null : user.getId();
     }
 
     public void setUserId(Long userId) {
-        this.userId = userId;
+        if (userId == null) {
+            this.user = null;
+            return;
+        }
+        if (this.user == null) {
+            this.user = new User();
+        }
+        this.user.setId(userId);
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 
     public String getLecturerCode() {

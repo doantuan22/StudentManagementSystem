@@ -1,218 +1,346 @@
 package com.qlsv.dao;
 
-import com.qlsv.config.DBConnection;
+import com.qlsv.config.JpaBootstrap;
 import com.qlsv.exception.AppException;
+import com.qlsv.model.CourseSection;
 import com.qlsv.model.Enrollment;
+import com.qlsv.model.Room;
 import com.qlsv.model.Score;
+import jakarta.persistence.EntityManager;
+import org.hibernate.exception.ConstraintViolationException;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
-import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 
 /**
- * DAO thao tac voi bang diem.
+ * Score is loaded via JPA; course section room/schedule text are hydrated as compatibility fields for existing DTO/UI flows.
  */
 public class ScoreDAO {
 
-    private final EnrollmentDAO enrollmentDAO = new EnrollmentDAO();
+    private static final String FETCH_BASE = """
+            SELECT DISTINCT score
+            FROM Score score
+            JOIN FETCH score.enrollment enrollment
+            JOIN FETCH enrollment.student student
+            JOIN FETCH student.faculty studentFaculty
+            JOIN FETCH student.classRoom classRoom
+            JOIN FETCH classRoom.faculty classFaculty
+            JOIN FETCH enrollment.courseSection courseSection
+            JOIN FETCH courseSection.subject subject
+            JOIN FETCH subject.faculty subjectFaculty
+            JOIN FETCH courseSection.lecturer lecturer
+            """;
 
     public List<Score> findAll() {
-        String sql = """
-                SELECT id, enrollment_id, process_score, midterm_score, final_score, total_score, result
-                FROM scores
-                ORDER BY id
-                """;
-        List<Score> scores = new ArrayList<>();
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql);
-             ResultSet resultSet = statement.executeQuery()) {
-            while (resultSet.next()) {
-                scores.add(mapRow(resultSet));
-            }
+        return executeRead("Không thể tải danh sách điểm.", entityManager -> {
+            List<Score> scores = entityManager.createQuery(
+                            FETCH_BASE + " ORDER BY score.id",
+                            Score.class
+                    )
+                    .getResultList();
+            hydrateCourseSectionCompatibility(entityManager, scores);
             return scores;
-        } catch (SQLException exception) {
-            throw new AppException("Không thể tải danh sách điểm.", exception);
-        }
+        });
     }
 
     public Optional<Score> findById(Long id) {
-        String sql = """
-                SELECT id, enrollment_id, process_score, midterm_score, final_score, total_score, result
-                FROM scores
-                WHERE id = ?
-                """;
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setLong(1, id);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                return resultSet.next() ? Optional.of(mapRow(resultSet)) : Optional.empty();
-            }
-        } catch (SQLException exception) {
-            throw new AppException("Không thể tìm điểm theo mã định danh.", exception);
-        }
+        return executeRead("Không thể tìm điểm theo mã định danh.", entityManager -> {
+            List<Score> scores = entityManager.createQuery(
+                            FETCH_BASE + " WHERE score.id = :id",
+                            Score.class
+                    )
+                    .setParameter("id", id)
+                    .getResultList();
+            hydrateCourseSectionCompatibility(entityManager, scores);
+            return scores.stream().findFirst();
+        });
     }
 
     public Optional<Score> findByEnrollmentId(Long enrollmentId) {
-        String sql = """
-                SELECT id, enrollment_id, process_score, midterm_score, final_score, total_score, result
-                FROM scores
-                WHERE enrollment_id = ?
-                """;
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setLong(1, enrollmentId);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                return resultSet.next() ? Optional.of(mapRow(resultSet)) : Optional.empty();
-            }
-        } catch (SQLException exception) {
-            throw new AppException("Không thể tìm điểm theo đăng ký học phần.", exception);
-        }
+        return executeRead("Không thể tìm điểm theo đăng ký học phần.", entityManager -> {
+            List<Score> scores = entityManager.createQuery(
+                            FETCH_BASE + " WHERE enrollment.id = :enrollmentId",
+                            Score.class
+                    )
+                    .setParameter("enrollmentId", enrollmentId)
+                    .getResultList();
+            hydrateCourseSectionCompatibility(entityManager, scores);
+            return scores.stream().findFirst();
+        });
     }
 
     public List<Score> findByStudentId(Long studentId) {
-        String sql = """
-                SELECT s.id, s.enrollment_id, s.process_score, s.midterm_score, s.final_score, s.total_score, s.result
-                FROM scores s
-                JOIN enrollments e ON e.id = s.enrollment_id
-                WHERE e.student_id = ?
-                ORDER BY s.id
-                """;
-        List<Score> scores = new ArrayList<>();
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setLong(1, studentId);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                while (resultSet.next()) {
-                    scores.add(mapRow(resultSet));
-                }
-                return scores;
-            }
-        } catch (SQLException exception) {
-            throw new AppException("Không thể tải điểm của sinh viên.", exception);
-        }
+        return executeRead("Không thể tải điểm của sinh viên.", entityManager -> {
+            List<Score> scores = entityManager.createQuery(
+                            FETCH_BASE + " WHERE student.id = :studentId ORDER BY score.id",
+                            Score.class
+                    )
+                    .setParameter("studentId", studentId)
+                    .getResultList();
+            hydrateCourseSectionCompatibility(entityManager, scores);
+            return scores;
+        });
     }
 
     public List<Score> findByLecturerId(Long lecturerId) {
-        String sql = """
-                SELECT s.id, s.enrollment_id, s.process_score, s.midterm_score, s.final_score, s.total_score, s.result
-                FROM scores s
-                JOIN enrollments e ON e.id = s.enrollment_id
-                JOIN course_sections cs ON cs.id = e.course_section_id
-                WHERE cs.lecturer_id = ?
-                ORDER BY s.id
-                """;
-        List<Score> scores = new ArrayList<>();
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setLong(1, lecturerId);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                while (resultSet.next()) {
-                    scores.add(mapRow(resultSet));
-                }
-                return scores;
-            }
-        } catch (SQLException exception) {
-            throw new AppException("Không thể tải điểm của giảng viên phụ trách.", exception);
-        }
+        return executeRead("Không thể tải điểm của giảng viên phụ trách.", entityManager -> {
+            List<Score> scores = entityManager.createQuery(
+                            FETCH_BASE + " WHERE lecturer.id = :lecturerId ORDER BY score.id",
+                            Score.class
+                    )
+                    .setParameter("lecturerId", lecturerId)
+                    .getResultList();
+            hydrateCourseSectionCompatibility(entityManager, scores);
+            return scores;
+        });
     }
 
     public List<Score> findByCourseSectionId(Long courseSectionId) {
-        String sql = """
-                SELECT s.id, s.enrollment_id, s.process_score, s.midterm_score, s.final_score, s.total_score, s.result
-                FROM scores s
-                JOIN enrollments e ON e.id = s.enrollment_id
-                WHERE e.course_section_id = ?
-                ORDER BY s.id
-                """;
-        List<Score> scores = new ArrayList<>();
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setLong(1, courseSectionId);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                while (resultSet.next()) {
-                    scores.add(mapRow(resultSet));
-                }
-                return scores;
-            }
-        } catch (SQLException exception) {
-            throw new AppException("Không thể tải bảng điểm theo học phần.", exception);
-        }
+        return executeRead("Không thể tải bảng điểm theo học phần.", entityManager -> {
+            List<Score> scores = entityManager.createQuery(
+                            FETCH_BASE + " WHERE courseSection.id = :courseSectionId ORDER BY score.id",
+                            Score.class
+                    )
+                    .setParameter("courseSectionId", courseSectionId)
+                    .getResultList();
+            hydrateCourseSectionCompatibility(entityManager, scores);
+            return scores;
+        });
+    }
+
+    public List<Score> findByClassRoomId(Long classRoomId) {
+        return executeRead("Không thể tải bảng điểm theo lớp học.", entityManager -> {
+            List<Score> scores = entityManager.createQuery(
+                            FETCH_BASE + " WHERE classRoom.id = :classRoomId ORDER BY score.id",
+                            Score.class
+                    )
+                    .setParameter("classRoomId", classRoomId)
+                    .getResultList();
+            hydrateCourseSectionCompatibility(entityManager, scores);
+            return scores;
+        });
+    }
+
+    public List<Score> searchByKeyword(String keyword) {
+        String normalizedKeyword = "%" + (keyword == null ? "" : keyword.trim().toLowerCase()) + "%";
+        return executeRead("Không thể tìm kiếm điểm.", entityManager -> {
+            List<Score> scores = entityManager.createQuery("""
+                            SELECT DISTINCT score
+                            FROM Score score
+                            JOIN FETCH score.enrollment enrollment
+                            JOIN FETCH enrollment.student student
+                            JOIN FETCH student.faculty studentFaculty
+                            JOIN FETCH student.classRoom classRoom
+                            JOIN FETCH classRoom.faculty classFaculty
+                            JOIN FETCH enrollment.courseSection courseSection
+                            JOIN FETCH courseSection.subject subject
+                            JOIN FETCH subject.faculty subjectFaculty
+                            JOIN FETCH courseSection.lecturer lecturer
+                            WHERE LOWER(student.studentCode) LIKE :keyword
+                               OR LOWER(student.fullName) LIKE :keyword
+                               OR LOWER(COALESCE(student.email, '')) LIKE :keyword
+                               OR LOWER(courseSection.sectionCode) LIKE :keyword
+                               OR LOWER(subject.subjectCode) LIKE :keyword
+                               OR LOWER(subject.subjectName) LIKE :keyword
+                               OR LOWER(lecturer.lecturerCode) LIKE :keyword
+                               OR LOWER(lecturer.fullName) LIKE :keyword
+                               OR LOWER(COALESCE(score.result, '')) LIKE :keyword
+                            ORDER BY score.id
+                            """, Score.class)
+                    .setParameter("keyword", normalizedKeyword)
+                    .getResultList();
+            hydrateCourseSectionCompatibility(entityManager, scores);
+            return scores;
+        });
     }
 
     public Score insert(Score score) {
-        String sql = """
-                INSERT INTO scores(enrollment_id, process_score, midterm_score, final_score, total_score, result)
-                VALUES (?, ?, ?, ?, ?, ?)
-                """;
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            fillStatement(statement, score);
-            statement.executeUpdate();
-            try (ResultSet resultSet = statement.getGeneratedKeys()) {
-                if (resultSet.next()) {
-                    score.setId(resultSet.getLong(1));
+        Long scoreId = executeWrite(
+                "Không thể thêm điểm.",
+                "Không thể thêm điểm do đăng ký học phần không hợp lệ hoặc đã tồn tại điểm.",
+                entityManager -> {
+                    Score entity = new Score();
+                    copyState(entityManager, score, entity);
+                    entityManager.persist(entity);
+                    entityManager.flush();
+                    return entity.getId();
                 }
-            }
-            return score;
-        } catch (SQLException exception) {
-            throw new AppException("Không thể thêm điểm.", exception);
-        }
+        );
+        return findById(scoreId)
+                .orElseThrow(() -> new AppException("Không thể tải lại điểm sau khi thêm."));
     }
 
     public boolean update(Score score) {
-        String sql = """
-                UPDATE scores
-                SET enrollment_id = ?, process_score = ?, midterm_score = ?, final_score = ?, total_score = ?, result = ?
-                WHERE id = ?
-                """;
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            fillStatement(statement, score);
-            statement.setLong(7, score.getId());
-            return statement.executeUpdate() > 0;
-        } catch (SQLException exception) {
-            throw new AppException("Không thể cập nhật điểm.", exception);
-        }
+        return executeWrite(
+                "Không thể cập nhật điểm.",
+                "Không thể cập nhật điểm do đăng ký học phần không hợp lệ hoặc dữ liệu điểm bị trùng.",
+                entityManager -> {
+                    Score entity = entityManager.find(Score.class, score.getId());
+                    if (entity == null) {
+                        return false;
+                    }
+                    copyState(entityManager, score, entity);
+                    entityManager.flush();
+                    return true;
+                }
+        );
     }
 
     public boolean delete(Long id) {
-        String sql = "DELETE FROM scores WHERE id = ?";
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setLong(1, id);
-            return statement.executeUpdate() > 0;
-        } catch (SQLIntegrityConstraintViolationException exception) {
-            throw new AppException("Không thể xóa điểm do có ràng buộc dữ liệu liên quan.", exception);
-        } catch (SQLException exception) {
-            throw new AppException("Không thể xóa điểm.", exception);
+        return executeWrite(
+                "Không thể xóa điểm.",
+                "Không thể xóa điểm do có ràng buộc dữ liệu liên quan.",
+                entityManager -> {
+                    Score entity = entityManager.find(Score.class, id);
+                    if (entity == null) {
+                        return false;
+                    }
+                    entityManager.remove(entity);
+                    entityManager.flush();
+                    return true;
+                }
+        );
+    }
+
+    private void copyState(EntityManager entityManager, Score source, Score target) {
+        target.setEnrollment(resolveEnrollmentReference(entityManager, source.getEnrollment()));
+        target.setProcessScore(source.getProcessScore());
+        target.setMidtermScore(source.getMidtermScore());
+        target.setFinalScore(source.getFinalScore());
+        target.setTotalScore(source.getTotalScore());
+        target.setResult(source.getResult());
+    }
+
+    private Enrollment resolveEnrollmentReference(EntityManager entityManager, Enrollment enrollment) {
+        if (enrollment == null || enrollment.getId() == null) {
+            return null;
+        }
+        return entityManager.getReference(Enrollment.class, enrollment.getId());
+    }
+
+    private void hydrateCourseSectionCompatibility(EntityManager entityManager, List<Score> scores) {
+        if (scores == null || scores.isEmpty()) {
+            return;
+        }
+
+        Map<Long, List<CourseSection>> sectionsById = new HashMap<>();
+        for (Score score : scores) {
+            if (score.getEnrollment() == null || score.getEnrollment().getCourseSection() == null) {
+                continue;
+            }
+            CourseSection courseSection = score.getEnrollment().getCourseSection();
+            if (courseSection.getId() == null) {
+                continue;
+            }
+            courseSection.applyScheduleCompatibility(null, null);
+            sectionsById.computeIfAbsent(courseSection.getId(), ignored -> new ArrayList<>()).add(courseSection);
+        }
+
+        if (sectionsById.isEmpty()) {
+            return;
+        }
+
+        List<Object[]> rows = entityManager.createQuery("""
+                        SELECT schedule.courseSection.id,
+                               schedule.dayOfWeek,
+                               schedule.startPeriod,
+                               schedule.endPeriod,
+                               room.id,
+                               room.roomCode,
+                               room.roomName
+                        FROM Schedule schedule
+                        JOIN schedule.room room
+                        WHERE schedule.courseSection.id IN :courseSectionIds
+                        ORDER BY schedule.courseSection.id, schedule.dayOfWeek, schedule.startPeriod, schedule.id
+                        """, Object[].class)
+                .setParameter("courseSectionIds", sectionsById.keySet())
+                .getResultList();
+
+        Map<Long, Room> firstRooms = new HashMap<>();
+        Map<Long, StringBuilder> textBuilders = new HashMap<>();
+        for (Object[] row : rows) {
+            Long courseSectionId = toLong(row[0]);
+            List<CourseSection> courseSections = sectionsById.get(courseSectionId);
+            if (courseSections == null || courseSections.isEmpty()) {
+                continue;
+            }
+
+            Room room = new Room(
+                    toLong(row[4]),
+                    row[5] == null ? null : String.valueOf(row[5]),
+                    row[6] == null ? null : String.valueOf(row[6])
+            );
+            firstRooms.putIfAbsent(courseSectionId, room);
+
+            StringBuilder builder = textBuilders.computeIfAbsent(courseSectionId, ignored -> new StringBuilder());
+            if (builder.length() > 0) {
+                builder.append("; ");
+            }
+            builder.append(row[1])
+                    .append(" tiết ")
+                    .append(row[2])
+                    .append("-")
+                    .append(row[3])
+                    .append(" phòng ")
+                    .append(room.getRoomName());
+        }
+
+        for (Map.Entry<Long, StringBuilder> entry : textBuilders.entrySet()) {
+            List<CourseSection> courseSections = sectionsById.get(entry.getKey());
+            if (courseSections == null) {
+                continue;
+            }
+            for (CourseSection courseSection : courseSections) {
+                courseSection.applyScheduleCompatibility(firstRooms.get(entry.getKey()), entry.getValue().toString());
+            }
         }
     }
 
-    private void fillStatement(PreparedStatement statement, Score score) throws SQLException {
-        statement.setLong(1, score.getEnrollment().getId());
-        statement.setDouble(2, score.getProcessScore());
-        statement.setDouble(3, score.getMidtermScore());
-        statement.setDouble(4, score.getFinalScore());
-        statement.setDouble(5, score.getTotalScore());
-        statement.setString(6, score.getResult());
+    private Long toLong(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof Number number) {
+            return number.longValue();
+        }
+        return Long.parseLong(String.valueOf(value));
     }
 
-    private Score mapRow(ResultSet resultSet) throws SQLException {
-        Enrollment enrollment = enrollmentDAO.findById(resultSet.getLong("enrollment_id")).orElse(null);
-        return new Score(
-                resultSet.getLong("id"),
-                enrollment,
-                resultSet.getDouble("process_score"),
-                resultSet.getDouble("midterm_score"),
-                resultSet.getDouble("final_score"),
-                resultSet.getDouble("total_score"),
-                resultSet.getString("result")
-        );
+    private <T> T executeRead(String errorMessage, Function<EntityManager, T> action) {
+        try {
+            return JpaBootstrap.executeWithEntityManager(action);
+        } catch (RuntimeException exception) {
+            throw new AppException(errorMessage, exception);
+        }
+    }
+
+    private <T> T executeWrite(String errorMessage, String constraintMessage, Function<EntityManager, T> action) {
+        try {
+            return JpaBootstrap.executeInCurrentTransaction(action);
+        } catch (RuntimeException exception) {
+            if (isConstraintViolation(exception)) {
+                throw new AppException(constraintMessage, exception);
+            }
+            throw new AppException(errorMessage, exception);
+        }
+    }
+
+    private boolean isConstraintViolation(Throwable throwable) {
+        Throwable current = throwable;
+        while (current != null) {
+            if (current instanceof ConstraintViolationException) {
+                return true;
+            }
+            if (current instanceof SQLIntegrityConstraintViolationException) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
     }
 }

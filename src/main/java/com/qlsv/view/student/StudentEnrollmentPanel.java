@@ -1,10 +1,11 @@
 package com.qlsv.view.student;
 
-import com.qlsv.controller.CourseSectionController;
-import com.qlsv.controller.EnrollmentController;
+import com.qlsv.controller.StudentEnrollmentScreenController;
+import com.qlsv.dto.CourseSectionDisplayDto;
+import com.qlsv.dto.EnrollmentDisplayDto;
+import com.qlsv.dto.StudentEnrollmentDataDto;
 import com.qlsv.model.CourseSection;
 import com.qlsv.model.Enrollment;
-import com.qlsv.utils.DisplayTextUtil;
 import com.qlsv.utils.DialogUtil;
 import com.qlsv.view.common.AppColors;
 import com.qlsv.view.common.BasePanel;
@@ -32,19 +33,18 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 public class StudentEnrollmentPanel extends BasePanel {
 
-    private final EnrollmentController enrollmentController = new EnrollmentController();
-    private final CourseSectionController courseSectionController = new CourseSectionController();
+    private static final String ALL_SEMESTERS = "Tất cả học kỳ";
+
+    private final StudentEnrollmentScreenController screenController = new StudentEnrollmentScreenController();
 
     private final JTextField searchField = new JTextField();
-    private final JComboBox<String> semesterFilterComboBox = new JComboBox<>(new String[]{"Tất cả học kỳ"});
+    private final JComboBox<String> semesterFilterComboBox = new JComboBox<>(new String[]{ALL_SEMESTERS});
     private final JLabel availableSummaryLabel = new JLabel("Đang tải dữ liệu...");
     private final JLabel registeredSummaryLabel = new JLabel("Đang tải dữ liệu...");
 
-    private final List<CourseSection> allCourseSections = new ArrayList<>();
     private final List<CourseSection> displayedCourseSections = new ArrayList<>();
     private final List<Enrollment> currentEnrollments = new ArrayList<>();
 
@@ -79,7 +79,6 @@ public class StudentEnrollmentPanel extends BasePanel {
         titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 22f));
         titleLabel.setForeground(AppColors.CARD_VALUE_TEXT);
 
-
         JPanel titlePanel = new JPanel(new BorderLayout(0, 6));
         titlePanel.setOpaque(false);
         titlePanel.add(titleLabel, BorderLayout.NORTH);
@@ -96,10 +95,14 @@ public class StudentEnrollmentPanel extends BasePanel {
         styleActionButton(registerButton, AppColors.BUTTON_SUCCESS);
         styleActionButton(cancelButton, AppColors.BUTTON_DANGER);
 
-        filterButton.addActionListener(event -> applyFilters());
+        filterButton.addActionListener(event -> reloadData());
         registerButton.addActionListener(event -> registerSelectedCourseSection());
         cancelButton.addActionListener(event -> cancelSelectedEnrollment());
-        reloadButton.addActionListener(event -> reloadData());
+        reloadButton.addActionListener(event -> {
+            searchField.setText("");
+            semesterFilterComboBox.setSelectedItem(ALL_SEMESTERS);
+            reloadData();
+        });
 
         JPanel filterFieldsPanel = new JPanel(new GridBagLayout());
         filterFieldsPanel.setOpaque(false);
@@ -131,7 +134,6 @@ public class StudentEnrollmentPanel extends BasePanel {
         gbc.gridx = 5;
         gbc.insets = new Insets(0, 0, 0, 0);
         filterFieldsPanel.add(reloadButton, gbc);
-        
 
         JPanel actionPanel = new JPanel(new BorderLayout());
         actionPanel.setOpaque(false);
@@ -186,9 +188,8 @@ public class StudentEnrollmentPanel extends BasePanel {
             DialogUtil.showError(this, "Hãy chọn một học phần trong danh sách để đăng ký.");
             return;
         }
-        CourseSection selectedCourseSection = displayedCourseSections.get(selectedRow);
         try {
-            enrollmentController.registerCurrentStudent(selectedCourseSection.getId());
+            screenController.registerCourseSection(displayedCourseSections.get(selectedRow));
             DialogUtil.showInfo(this, "Đăng ký học phần thành công.");
             reloadData();
         } catch (Exception exception) {
@@ -202,9 +203,8 @@ public class StudentEnrollmentPanel extends BasePanel {
             DialogUtil.showError(this, "Hãy chọn học phần đã đăng ký cần hủy.");
             return;
         }
-        Enrollment enrollment = currentEnrollments.get(selectedRow);
         try {
-            enrollmentController.cancelCurrentStudentEnrollment(enrollment.getId());
+            screenController.cancelEnrollment(currentEnrollments.get(selectedRow));
             DialogUtil.showInfo(this, "Hủy đăng ký học phần thành công.");
             reloadData();
         } catch (Exception exception) {
@@ -215,106 +215,70 @@ public class StudentEnrollmentPanel extends BasePanel {
     @Override
     public void reloadData() {
         try {
-            loadCourseSections();
-            loadCurrentEnrollments();
-            buildSemesterFilter();
-            applyFilters();
+            StudentEnrollmentDataDto data = screenController.loadData(
+                    searchField.getText(),
+                    semesterFilterComboBox.getSelectedItem() == null ? ALL_SEMESTERS : semesterFilterComboBox.getSelectedItem().toString()
+            );
+
+            syncSemesterOptions(data.semesterOptions());
+            displayedCourseSections.clear();
+            displayedCourseSections.addAll(data.displayedCourseSections());
+            currentEnrollments.clear();
+            currentEnrollments.addAll(data.currentEnrollments());
+
+            refillCourseTable(data.availableCourseRows());
+            refillEnrollmentTable(data.enrollmentRows());
+            availableSummaryLabel.setText(data.availableSummary());
+            registeredSummaryLabel.setText(data.registeredSummary());
+
+            hideColumn(courseSectionTable, 0);
+            hideColumn(enrollmentTable, 0);
         } catch (Exception exception) {
             DialogUtil.showError(this, exception.getMessage());
         }
     }
 
-    private void loadCourseSections() {
-        allCourseSections.clear();
-        allCourseSections.addAll(courseSectionController.getAllCourseSectionsForSelection());
+    private void syncSemesterOptions(List<String> semesterOptions) {
+        Object selected = semesterFilterComboBox.getSelectedItem();
+        semesterFilterComboBox.removeAllItems();
+        for (String option : semesterOptions) {
+            semesterFilterComboBox.addItem(option);
+        }
+
+        String preferred = selected == null ? ALL_SEMESTERS : selected.toString();
+        boolean exists = semesterOptions.stream().anyMatch(option -> option.equalsIgnoreCase(preferred));
+        semesterFilterComboBox.setSelectedItem(exists ? preferred : ALL_SEMESTERS);
     }
 
-    private void loadCurrentEnrollments() {
-        currentEnrollments.clear();
-        currentEnrollments.addAll(enrollmentController.getCurrentStudentEnrollments());
-
-        enrollmentTableModel.setRowCount(0);
-        for (Enrollment enrollment : currentEnrollments) {
-            enrollmentTableModel.addRow(new Object[]{
-                    enrollment.getId(),
-                    enrollment.getCourseSection() == null ? "" : enrollment.getCourseSection().getSectionCode(),
-                    enrollment.getCourseSection() == null || enrollment.getCourseSection().getSubject() == null
-                            ? "" : enrollment.getCourseSection().getSubject().getSubjectName(),
-                    enrollment.getCourseSection() == null || enrollment.getCourseSection().getLecturer() == null
-                            ? "" : enrollment.getCourseSection().getLecturer().getFullName(),
-                    DisplayTextUtil.formatStatus(enrollment.getStatus()),
-                    DisplayTextUtil.formatDateTime(enrollment.getEnrolledAt())
+    private void refillCourseTable(List<CourseSectionDisplayDto> rows) {
+        courseSectionTableModel.setRowCount(0);
+        for (CourseSectionDisplayDto row : rows) {
+            courseSectionTableModel.addRow(new Object[]{
+                    row.id(),
+                    row.sectionCode(),
+                    row.subjectName(),
+                    row.credits(),
+                    row.slotsText(),
+                    row.lecturerName(),
+                    row.semester(),
+                    row.schoolYear(),
+                    row.scheduleText()
             });
         }
     }
 
-    private void buildSemesterFilter() {
-        Object selected = semesterFilterComboBox.getSelectedItem();
-        semesterFilterComboBox.removeAllItems();
-        semesterFilterComboBox.addItem("Tất cả học kỳ");
-
-        List<String> added = new ArrayList<>();
-        for (CourseSection courseSection : allCourseSections) {
-            String semester = courseSection.getSemester();
-            if (semester != null && !semester.isBlank() && !added.contains(semester)) {
-                added.add(semester);
-                semesterFilterComboBox.addItem(semester);
-            }
+    private void refillEnrollmentTable(List<EnrollmentDisplayDto> rows) {
+        enrollmentTableModel.setRowCount(0);
+        for (EnrollmentDisplayDto row : rows) {
+            enrollmentTableModel.addRow(new Object[]{
+                    row.id(),
+                    row.sectionCode(),
+                    row.subjectName(),
+                    row.lecturerName(),
+                    row.statusText(),
+                    row.enrolledAtText()
+            });
         }
-
-        if (selected != null) {
-            semesterFilterComboBox.setSelectedItem(selected.toString());
-        }
-    }
-
-    private void applyFilters() {
-        String keyword = searchField.getText() == null ? "" : searchField.getText().trim().toLowerCase(Locale.ROOT);
-        String semesterFilter = semesterFilterComboBox.getSelectedItem() == null
-                ? "Tất cả học kỳ" : semesterFilterComboBox.getSelectedItem().toString();
-
-        displayedCourseSections.clear();
-        courseSectionTableModel.setRowCount(0);
-
-        for (CourseSection courseSection : allCourseSections) {
-            boolean matchesKeyword = keyword.isBlank()
-                    || containsIgnoreCase(courseSection.getSectionCode(), keyword)
-                    || (courseSection.getSubject() != null && containsIgnoreCase(courseSection.getSubject().getSubjectName(), keyword))
-                    || (courseSection.getLecturer() != null && containsIgnoreCase(courseSection.getLecturer().getFullName(), keyword));
-
-            boolean matchesSemester = "Tất cả học kỳ".equalsIgnoreCase(semesterFilter)
-                    || semesterFilter.equalsIgnoreCase(DisplayTextUtil.defaultText(courseSection.getSemester()));
-
-            if (matchesKeyword && matchesSemester) {
-                displayedCourseSections.add(courseSection);
-                int currentEnrollmentsCount = enrollmentController.countEnrollmentsByCourseSection(courseSection.getId());
-                String slots = currentEnrollmentsCount + "/" + courseSection.getMaxStudents();
-
-                courseSectionTableModel.addRow(new Object[]{
-                        courseSection.getId(),
-                        courseSection.getSectionCode(),
-                        courseSection.getSubject() == null ? "" : courseSection.getSubject().getSubjectName(),
-                        courseSection.getSubject() == null ? "" : courseSection.getSubject().getCredits(),
-                        slots,
-                        courseSection.getLecturer() == null ? "" : courseSection.getLecturer().getFullName(),
-                        DisplayTextUtil.defaultText(courseSection.getSemester()),
-                        DisplayTextUtil.defaultText(courseSection.getSchoolYear()),
-                        DisplayTextUtil.defaultText(courseSection.getScheduleText())
-                });
-            }
-        }
-
-        updateSummaryLabels();
-        hideColumn(courseSectionTable, 0);
-        hideColumn(enrollmentTable, 0);
-    }
-
-    private boolean containsIgnoreCase(String source, String keyword) {
-        return source != null && source.toLowerCase(Locale.ROOT).contains(keyword);
-    }
-
-    private void updateSummaryLabels() {
-        availableSummaryLabel.setText(displayedCourseSections.size() + " học phần phù hợp");
-        registeredSummaryLabel.setText(currentEnrollments.size() + " học phần đang theo dõi");
     }
 
     private JLabel createCaptionLabel(String text) {

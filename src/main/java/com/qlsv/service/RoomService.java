@@ -1,5 +1,6 @@
 package com.qlsv.service;
 
+import com.qlsv.config.JpaBootstrap;
 import com.qlsv.dao.RoomDAO;
 import com.qlsv.exception.AppException;
 import com.qlsv.model.Role;
@@ -27,31 +28,43 @@ public class RoomService {
 
     public void saveRoom(Room room) {
         permissionService.requireAnyRole(Role.ADMIN);
-        validateRoom(room);
-        if (room.getId() == null) {
-            roomDAO.insert(room);
-        } else {
-            roomDAO.update(room);
-        }
+        JpaBootstrap.executeInTransaction(
+                "KhÃ´ng thá»ƒ lÆ°u phÃ²ng há»c.",
+                ignored -> {
+                    validateRoom(room);
+                    if (room.getId() == null) {
+                        roomDAO.insert(room);
+                    } else {
+                        roomDAO.update(room);
+                    }
+                    return null;
+                }
+        );
     }
 
     public void deleteRoom(Long id) {
         permissionService.requireAnyRole(Role.ADMIN);
         if (id == null || id <= 0) {
-            throw new AppException("Dữ liệu không hợp lệ để xóa phòng học.");
+            throw new AppException("Dá»¯ liá»‡u khÃ´ng há»£p lá»‡ Ä‘á»ƒ xÃ³a phÃ²ng há»c.");
         }
-        roomDAO.delete(id);
+        JpaBootstrap.executeInTransaction(
+                "KhÃ´ng thá»ƒ xÃ³a phÃ²ng há»c.",
+                ignored -> {
+                    roomDAO.delete(id);
+                    return null;
+                }
+        );
     }
 
     private void validateRoom(Room room) {
         if (room == null) {
-            throw new AppException("Dữ liệu phòng học không hợp lệ.");
+            throw new AppException("Dá»¯ liá»‡u phÃ²ng há»c khÃ´ng há»£p lá»‡.");
         }
         if (room.getRoomCode() == null || room.getRoomCode().isBlank()) {
-            throw new AppException("Vui lòng nhập mã phòng học.");
+            throw new AppException("Vui lÃ²ng nháº­p mÃ£ phÃ²ng há»c.");
         }
         if (room.getRoomName() == null || room.getRoomName().isBlank()) {
-            throw new AppException("Vui lòng nhập tên phòng học.");
+            throw new AppException("Vui lÃ²ng nháº­p tÃªn phÃ²ng há»c.");
         }
     }
 }

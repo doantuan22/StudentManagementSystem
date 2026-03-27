@@ -1,121 +1,135 @@
 package com.qlsv.dao;
 
-import com.qlsv.config.DBConnection;
+import com.qlsv.config.JpaBootstrap;
 import com.qlsv.exception.AppException;
 import com.qlsv.model.Room;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityTransaction;
+import org.hibernate.exception.ConstraintViolationException;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.SQLIntegrityConstraintViolationException;
-import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 public class RoomDAO {
 
     public List<Room> findAll() {
-        String sql = "SELECT id, room_code, room_name FROM rooms ORDER BY id";
-        List<Room> rooms = new ArrayList<>();
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql);
-             ResultSet resultSet = statement.executeQuery()) {
-            while (resultSet.next()) {
-                rooms.add(mapRow(resultSet));
-            }
-            return rooms;
-        } catch (SQLException exception) {
-            throw new AppException("Không thể tải danh sách phòng học.", exception);
-        }
+        return executeRead("Không thể tải danh sách phòng học.", entityManager ->
+                entityManager.createQuery("""
+                                SELECT r
+                                FROM Room r
+                                ORDER BY r.id
+                                """, Room.class)
+                        .getResultList());
     }
 
     public Optional<Room> findById(Long id) {
-        String sql = "SELECT id, room_code, room_name FROM rooms WHERE id = ?";
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setLong(1, id);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                return resultSet.next() ? Optional.of(mapRow(resultSet)) : Optional.empty();
-            }
-        } catch (SQLException exception) {
-            throw new AppException("Không thể tìm kiếm phòng học theo mã định danh.", exception);
-        }
+        return executeRead("Không thể tìm phòng học theo mã định danh.", entityManager ->
+                entityManager.createQuery("""
+                                SELECT r
+                                FROM Room r
+                                WHERE r.id = :id
+                                """, Room.class)
+                        .setParameter("id", id)
+                        .getResultStream()
+                        .findFirst());
     }
 
     public List<Room> searchByKeyword(String keyword) {
-        String sql = "SELECT id, room_code, room_name FROM rooms WHERE room_code LIKE ? OR room_name LIKE ? ORDER BY id";
-        String searchValue = "%" + keyword + "%";
-        List<Room> rooms = new ArrayList<>();
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, searchValue);
-            statement.setString(2, searchValue);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                while (resultSet.next()) {
-                    rooms.add(mapRow(resultSet));
-                }
-                return rooms;
-            }
-        } catch (SQLException exception) {
-            throw new AppException("Không thể tìm kiếm phòng học.", exception);
-        }
+        String normalizedKeyword = "%" + (keyword == null ? "" : keyword.trim().toLowerCase()) + "%";
+        return executeRead("Không thể tìm kiếm phòng học.", entityManager ->
+                entityManager.createQuery("""
+                                SELECT r
+                                FROM Room r
+                                WHERE LOWER(r.roomCode) LIKE :keyword
+                                   OR LOWER(r.roomName) LIKE :keyword
+                                ORDER BY r.id
+                                """, Room.class)
+                        .setParameter("keyword", normalizedKeyword)
+                        .getResultList());
     }
 
     public Room insert(Room room) {
-        String sql = "INSERT INTO rooms(room_code, room_name) VALUES (?, ?)";
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            statement.setString(1, room.getRoomCode());
-            statement.setString(2, room.getRoomName());
-            statement.executeUpdate();
-            try (ResultSet resultSet = statement.getGeneratedKeys()) {
-                if (resultSet.next()) {
-                    room.setId(resultSet.getLong(1));
+        Long roomId = executeWrite(
+                "Không thể thêm phòng học.",
+                "Mã phòng học đã tồn tại trong hệ thống.",
+                entityManager -> {
+                    Room entity = new Room();
+                    copyState(room, entity);
+                    entityManager.persist(entity);
+                    entityManager.flush();
+                    room.setId(entity.getId());
+                    return entity.getId();
                 }
-            }
-            return room;
-        } catch (SQLIntegrityConstraintViolationException exception) {
-            throw new AppException("Mã phòng học đã tồn tại trong hệ thống.", exception);
-        } catch (SQLException exception) {
-            throw new AppException("Không thể thêm phòng học.", exception);
-        }
+        );
+        return findById(roomId)
+                .orElseThrow(() -> new AppException("Không thể tải lại phòng học sau khi thêm."));
     }
 
     public boolean update(Room room) {
-        String sql = "UPDATE rooms SET room_code = ?, room_name = ? WHERE id = ?";
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, room.getRoomCode());
-            statement.setString(2, room.getRoomName());
-            statement.setLong(3, room.getId());
-            return statement.executeUpdate() > 0;
-        } catch (SQLIntegrityConstraintViolationException exception) {
-            throw new AppException("Mã phòng học đã tồn tại trong hệ thống.", exception);
-        } catch (SQLException exception) {
-            throw new AppException("Không thể cập nhật phòng học.", exception);
-        }
+        return executeWrite(
+                "Không thể cập nhật phòng học.",
+                "Mã phòng học đã tồn tại trong hệ thống.",
+                entityManager -> {
+                    Room entity = entityManager.find(Room.class, room.getId());
+                    if (entity == null) {
+                        return false;
+                    }
+                    copyState(room, entity);
+                    entityManager.flush();
+                    return true;
+                }
+        );
     }
 
     public boolean delete(Long id) {
-        String sql = "DELETE FROM rooms WHERE id = ?";
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setLong(1, id);
-            return statement.executeUpdate() > 0;
-        } catch (SQLIntegrityConstraintViolationException exception) {
-            throw new AppException("Không thể xóa phòng học vì đang được tham chiếu bởi học phần hoặc lịch học.", exception);
-        } catch (SQLException exception) {
-            throw new AppException("Không thể xóa phòng học.", exception);
+        return executeWrite(
+                "Không thể xóa phòng học.",
+                "Không thể xóa phòng học vì đang được tham chiếu bởi học phần hoặc lịch học.",
+                entityManager -> {
+                    Room entity = entityManager.find(Room.class, id);
+                    if (entity == null) {
+                        return false;
+                    }
+                    entityManager.remove(entity);
+                    entityManager.flush();
+                    return true;
+                }
+        );
+    }
+
+    private void copyState(Room source, Room target) {
+        target.setRoomCode(source.getRoomCode());
+        target.setRoomName(source.getRoomName());
+    }
+
+    private <T> T executeRead(String errorMessage, Function<EntityManager, T> action) {
+        try {
+            return JpaBootstrap.executeWithEntityManager(action);
+        } catch (RuntimeException exception) {
+            throw new AppException(errorMessage, exception);
         }
     }
 
-    private Room mapRow(ResultSet resultSet) throws SQLException {
-        return new Room(
-                resultSet.getLong("id"),
-                resultSet.getString("room_code"),
-                resultSet.getString("room_name")
-        );
+    private <T> T executeWrite(String errorMessage, String constraintMessage, Function<EntityManager, T> action) {
+        try {
+            return JpaBootstrap.executeInCurrentTransaction(action);
+        } catch (RuntimeException exception) {
+            if (isConstraintViolation(exception)) {
+                throw new AppException(constraintMessage, exception);
+            }
+            throw new AppException(errorMessage, exception);
+        }
+    }
+
+    private boolean isConstraintViolation(Throwable throwable) {
+        Throwable current = throwable;
+        while (current != null) {
+            if (current instanceof ConstraintViolationException) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
     }
 }

@@ -1,13 +1,36 @@
 package com.qlsv.model;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+
 import java.util.Objects;
 
+@Entity
+@Table(name = "class_rooms")
 public class ClassRoom {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "class_code", nullable = false, unique = true, length = 50)
     private String classCode;
+
+    @Column(name = "class_name", nullable = false, length = 150)
     private String className;
+
+    @Column(name = "academic_year", nullable = false, length = 50)
     private String academicYear;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "faculty_id", nullable = false)
     private Faculty faculty;
 
     public ClassRoom() {

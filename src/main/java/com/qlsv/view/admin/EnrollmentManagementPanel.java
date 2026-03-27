@@ -1,14 +1,12 @@
 package com.qlsv.view.admin;
 
-import com.qlsv.controller.ClassRoomController;
-import com.qlsv.controller.CourseSectionController;
-import com.qlsv.controller.EnrollmentController;
-import com.qlsv.controller.StudentController;
+import com.qlsv.controller.DisplayField;
+import com.qlsv.controller.EnrollmentManagementScreenController;
+import com.qlsv.dto.EnrollmentDisplayDto;
 import com.qlsv.model.ClassRoom;
 import com.qlsv.model.CourseSection;
 import com.qlsv.model.Enrollment;
 import com.qlsv.model.Student;
-import com.qlsv.utils.DisplayTextUtil;
 import com.qlsv.view.common.AbstractCrudPanel;
 import com.qlsv.view.common.DetailSectionPanel;
 import com.qlsv.view.common.FilterOption;
@@ -22,7 +20,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
-import java.time.LocalDateTime;
 import java.util.List;
 
 public class EnrollmentManagementPanel extends AbstractCrudPanel<Enrollment> {
@@ -33,10 +30,7 @@ public class EnrollmentManagementPanel extends AbstractCrudPanel<Enrollment> {
     private static final String FILTER_CLASS_ROOM = "Theo lớp";
     private static final String FILTER_STUDENT = "Theo sinh viên";
 
-    private final EnrollmentController enrollmentController = new EnrollmentController();
-    private final StudentController studentController = new StudentController();
-    private final CourseSectionController courseSectionController = new CourseSectionController();
-    private final ClassRoomController classRoomController = new ClassRoomController();
+    private final EnrollmentManagementScreenController screenController = new EnrollmentManagementScreenController();
 
     private final JComboBox<String> filterTypeComboBox = new JComboBox<>(
             new String[]{FILTER_NONE, FILTER_ALL, FILTER_SECTION_CODE, FILTER_CLASS_ROOM, FILTER_STUDENT}
@@ -64,37 +58,26 @@ public class EnrollmentManagementPanel extends AbstractCrudPanel<Enrollment> {
 
     @Override
     protected List<Enrollment> loadItems() {
-        if (!filterReady) {
-            return List.of();
-        }
-
-        String filterType = (String) filterTypeComboBox.getSelectedItem();
-        return switch (filterType == null ? FILTER_NONE : filterType) {
-            case FILTER_ALL -> enrollmentController.getAllEnrollments();
-            case FILTER_SECTION_CODE -> {
-                CourseSection courseSection = getSelectedFilterValue(CourseSection.class);
-                yield courseSection == null ? List.of() : enrollmentController.getEnrollmentsByCourseSection(courseSection.getId());
-            }
-            case FILTER_CLASS_ROOM -> {
-                ClassRoom classRoom = getSelectedFilterValue(ClassRoom.class);
-                yield classRoom == null ? List.of() : enrollmentController.getEnrollmentsByClassRoom(classRoom.getId());
-            }
-            case FILTER_STUDENT -> {
-                Student student = getSelectedFilterValue(Student.class);
-                yield student == null ? List.of() : enrollmentController.getEnrollmentsByStudent(student.getId());
-            }
-            default -> List.of();
-        };
+        return screenController.loadItems(
+                filterReady,
+                (String) filterTypeComboBox.getSelectedItem(),
+                getSelectedFilterValue(Object.class),
+                FILTER_ALL,
+                FILTER_SECTION_CODE,
+                FILTER_CLASS_ROOM,
+                FILTER_STUDENT
+        );
     }
 
     @Override
     protected Object[] toRow(Enrollment item) {
+        EnrollmentDisplayDto displayDto = screenController.toDisplayDto(item);
         return new Object[]{
-                item.getId(),
-                item.getStudent() == null ? "" : item.getStudent().getFullName(),
-                item.getCourseSection() == null ? "" : item.getCourseSection().getSectionCode(),
-                DisplayTextUtil.formatStatus(item.getStatus()),
-                DisplayTextUtil.formatDateTime(item.getEnrolledAt())
+                displayDto.id(),
+                displayDto.studentName(),
+                displayDto.sectionCode(),
+                displayDto.statusText(),
+                displayDto.enrolledAtText()
         };
     }
 
@@ -112,25 +95,16 @@ public class EnrollmentManagementPanel extends AbstractCrudPanel<Enrollment> {
             return;
         }
 
-        detailSectionPanel.showFields(new String[][]{
-                {"Mã sinh viên", selectedItem.getStudent() == null ? "Chưa cập nhật" : DisplayTextUtil.defaultText(selectedItem.getStudent().getStudentCode())},
-                {"Sinh viên", selectedItem.getStudent() == null ? "Chưa cập nhật" : DisplayTextUtil.defaultText(selectedItem.getStudent().getFullName())},
-                {"Lớp", selectedItem.getStudent() == null || selectedItem.getStudent().getClassRoom() == null
-                        ? "Chưa cập nhật" : DisplayTextUtil.defaultText(selectedItem.getStudent().getClassRoom().getClassName())},
-                {"Mã học phần", selectedItem.getCourseSection() == null ? "Chưa cập nhật" : DisplayTextUtil.defaultText(selectedItem.getCourseSection().getSectionCode())},
-                {"Môn học", selectedItem.getCourseSection() == null || selectedItem.getCourseSection().getSubject() == null
-                        ? "Chưa cập nhật" : DisplayTextUtil.defaultText(selectedItem.getCourseSection().getSubject().getSubjectName())},
-                {"Phòng học", selectedItem.getCourseSection() == null
-                        ? "Chưa cập nhật" : DisplayTextUtil.defaultText(selectedItem.getCourseSection().getRoom())},
-                {"Trạng thái", DisplayTextUtil.formatStatus(selectedItem.getStatus())},
-                {"Thời gian đăng ký", DisplayTextUtil.formatDateTime(selectedItem.getEnrolledAt())}
-        });
+        List<DisplayField> detailFields = screenController.buildDetailFields(selectedItem);
+        detailSectionPanel.showFields(detailFields.stream()
+                .map(field -> new String[]{field.label(), field.value()})
+                .toArray(String[][]::new));
     }
 
     @Override
     protected Enrollment promptForEntity(Enrollment existingItem) {
-        JComboBox<Student> studentComboBox = new JComboBox<>(studentController.getStudentsForSelection().toArray(new Student[0]));
-        JComboBox<CourseSection> sectionComboBox = new JComboBox<>(courseSectionController.getAllCourseSectionsForSelection().toArray(new CourseSection[0]));
+        JComboBox<Student> studentComboBox = new JComboBox<>(screenController.loadStudents().toArray(new Student[0]));
+        JComboBox<CourseSection> sectionComboBox = new JComboBox<>(screenController.loadCourseSections().toArray(new CourseSection[0]));
         JComboBox<FilterOption<String>> statusComboBox = new JComboBox<>(new DefaultComboBoxModel<>(new FilterOption[]{
                 new FilterOption<>("Đã đăng ký", "REGISTERED"),
                 new FilterOption<>("Đã hủy", "CANCELLED")
@@ -165,25 +139,25 @@ public class EnrollmentManagementPanel extends AbstractCrudPanel<Enrollment> {
             return null;
         }
 
-        Enrollment enrollment = existingItem == null ? new Enrollment() : existingItem;
-        enrollment.setStudent((Student) studentComboBox.getSelectedItem());
-        enrollment.setCourseSection((CourseSection) sectionComboBox.getSelectedItem());
         FilterOption<String> selectedStatus = (FilterOption<String>) statusComboBox.getSelectedItem();
-        enrollment.setStatus(selectedStatus == null ? "REGISTERED" : selectedStatus.value());
-        if (enrollment.getEnrolledAt() == null) {
-            enrollment.setEnrolledAt(LocalDateTime.now());
-        }
-        return enrollment;
+        return screenController.applyFormData(
+                existingItem,
+                new EnrollmentManagementScreenController.EnrollmentFormData(
+                        (Student) studentComboBox.getSelectedItem(),
+                        (CourseSection) sectionComboBox.getSelectedItem(),
+                        selectedStatus == null ? "REGISTERED" : selectedStatus.value()
+                )
+        );
     }
 
     @Override
     protected void saveEntity(Enrollment item) {
-        enrollmentController.saveEnrollment(item);
+        screenController.saveEnrollment(item);
     }
 
     @Override
     protected void deleteEntity(Enrollment item) {
-        enrollmentController.deleteEnrollment(item.getId());
+        screenController.deleteEnrollment(item);
     }
 
     private JPanel buildFilterPanel() {
@@ -219,7 +193,7 @@ public class EnrollmentManagementPanel extends AbstractCrudPanel<Enrollment> {
         if (FILTER_SECTION_CODE.equals(filterType)) {
             filterValueComboBox.setEnabled(true);
             filterValueComboBox.addItem(new FilterOption<>("Chọn học phần", null));
-            for (CourseSection courseSection : courseSectionController.getAllCourseSectionsForSelection()) {
+            for (CourseSection courseSection : screenController.loadCourseSections()) {
                 filterValueComboBox.addItem(new FilterOption<>(courseSection.getSectionCode(), courseSection));
             }
             return;
@@ -228,7 +202,7 @@ public class EnrollmentManagementPanel extends AbstractCrudPanel<Enrollment> {
         if (FILTER_CLASS_ROOM.equals(filterType)) {
             filterValueComboBox.setEnabled(true);
             filterValueComboBox.addItem(new FilterOption<>("Chọn lớp", null));
-            for (ClassRoom classRoom : classRoomController.getClassRoomsForSelection()) {
+            for (ClassRoom classRoom : screenController.loadClassRooms()) {
                 filterValueComboBox.addItem(new FilterOption<>(classRoom.getClassCode() + " - " + classRoom.getClassName(), classRoom));
             }
             return;
@@ -237,7 +211,7 @@ public class EnrollmentManagementPanel extends AbstractCrudPanel<Enrollment> {
         if (FILTER_STUDENT.equals(filterType)) {
             filterValueComboBox.setEnabled(true);
             filterValueComboBox.addItem(new FilterOption<>("Chọn sinh viên", null));
-            for (Student student : studentController.getStudentsForSelection()) {
+            for (Student student : screenController.loadStudents()) {
                 filterValueComboBox.addItem(new FilterOption<>(student.getStudentCode() + " - " + student.getFullName(), student));
             }
             return;

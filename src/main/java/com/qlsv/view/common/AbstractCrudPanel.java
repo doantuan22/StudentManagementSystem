@@ -140,8 +140,8 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
         editButton.addActionListener(event -> handleEdit());
         deleteButton.addActionListener(event -> handleDelete());
         reloadButton.addActionListener(event -> refreshData());
-        searchButton.addActionListener(event -> applySearch());
-        searchField.addActionListener(event -> applySearch());
+        searchButton.addActionListener(event -> handleSearch());
+        searchField.addActionListener(event -> handleSearch());
     }
 
     protected abstract String[] getColumnNames();
@@ -168,6 +168,19 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
 
     protected String getEmptyStateMessage() {
         return "Không có dữ liệu để hiển thị.";
+    }
+
+    protected List<T> performSearch(String keyword, List<T> loadedItems) {
+        if (keyword == null || keyword.isBlank()) {
+            return new ArrayList<>(loadedItems);
+        }
+        List<T> filteredItems = new ArrayList<>();
+        for (T item : loadedItems) {
+            if (matchesSearch(item, keyword)) {
+                filteredItems.add(item);
+            }
+        }
+        return filteredItems;
     }
 
     protected void onSelectionChanged(T selectedItem) {
@@ -228,17 +241,15 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
 
     private void applySearch() {
         String keyword = searchField.getText() == null ? "" : searchField.getText().trim();
-        if (keyword.isBlank()) {
-            bindRows(allItems);
-            return;
+        bindRows(performSearch(keyword, allItems));
+    }
+
+    private void handleSearch() {
+        try {
+            applySearch();
+        } catch (Exception exception) {
+            DialogUtil.showError(this, exception.getMessage());
         }
-        List<T> filteredItems = new ArrayList<>();
-        for (T item : allItems) {
-            if (matchesSearch(item, keyword)) {
-                filteredItems.add(item);
-            }
-        }
-        bindRows(filteredItems);
     }
 
     private void bindRows(List<T> items) {

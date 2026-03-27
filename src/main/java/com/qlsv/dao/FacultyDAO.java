@@ -1,128 +1,152 @@
 package com.qlsv.dao;
 
-import com.qlsv.config.DBConnection;
+import com.qlsv.config.JpaBootstrap;
 import com.qlsv.exception.AppException;
 import com.qlsv.model.Faculty;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityTransaction;
+import org.hibernate.exception.ConstraintViolationException;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.SQLIntegrityConstraintViolationException;
-import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 /**
- * DAO thao tac voi bang khoa.
+ * JPA repository for Faculty.
  */
 public class FacultyDAO {
 
     public List<Faculty> findAll() {
-        String sql = "SELECT id, faculty_code, faculty_name, description FROM faculties ORDER BY id";
-        List<Faculty> faculties = new ArrayList<>();
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql);
-             ResultSet resultSet = statement.executeQuery()) {
-            while (resultSet.next()) {
-                faculties.add(mapRow(resultSet));
-            }
-            return faculties;
-        } catch (SQLException exception) {
-            throw new AppException("Không thể tải danh sách khoa.", exception);
-        }
+        return executeRead("Không thể tải danh sách khoa.", entityManager ->
+                entityManager.createQuery("""
+                                SELECT f
+                                FROM Faculty f
+                                ORDER BY f.id
+                                """, Faculty.class)
+                        .getResultList());
     }
 
     public Optional<Faculty> findById(Long id) {
-        String sql = "SELECT id, faculty_code, faculty_name, description FROM faculties WHERE id = ?";
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setLong(1, id);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                return resultSet.next() ? Optional.of(mapRow(resultSet)) : Optional.empty();
-            }
-        } catch (SQLException exception) {
-            throw new AppException("Không thể tìm khoa theo mã định danh.", exception);
-        }
+        return executeRead("Không thể tìm khoa theo mã định danh.", entityManager ->
+                entityManager.createQuery("""
+                                SELECT f
+                                FROM Faculty f
+                                WHERE f.id = :id
+                                """, Faculty.class)
+                        .setParameter("id", id)
+                        .getResultStream()
+                        .findFirst());
+    }
+
+    public Optional<Faculty> findByCode(String facultyCode) {
+        String normalizedCode = facultyCode == null ? "" : facultyCode.trim();
+        return executeRead("Không thể tìm khoa theo mã khoa.", entityManager ->
+                entityManager.createQuery("""
+                                SELECT f
+                                FROM Faculty f
+                                WHERE LOWER(f.facultyCode) = LOWER(:facultyCode)
+                                """, Faculty.class)
+                        .setParameter("facultyCode", normalizedCode)
+                        .getResultStream()
+                        .findFirst());
     }
 
     public List<Faculty> searchByKeyword(String keyword) {
-        String sql = """
-                SELECT id, faculty_code, faculty_name, description
-                FROM faculties
-                WHERE faculty_code LIKE ? OR faculty_name LIKE ?
-                ORDER BY id
-                """;
-        String searchValue = "%" + keyword + "%";
-        List<Faculty> faculties = new ArrayList<>();
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, searchValue);
-            statement.setString(2, searchValue);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                while (resultSet.next()) {
-                    faculties.add(mapRow(resultSet));
-                }
-                return faculties;
-            }
-        } catch (SQLException exception) {
-            throw new AppException("Không thể tìm kiếm khoa.", exception);
-        }
+        String normalizedKeyword = "%" + (keyword == null ? "" : keyword.trim().toLowerCase()) + "%";
+        return executeRead("Không thể tìm kiếm khoa.", entityManager ->
+                entityManager.createQuery("""
+                                SELECT f
+                                FROM Faculty f
+                                WHERE LOWER(f.facultyCode) LIKE :keyword
+                                   OR LOWER(f.facultyName) LIKE :keyword
+                                ORDER BY f.id
+                                """, Faculty.class)
+                        .setParameter("keyword", normalizedKeyword)
+                        .getResultList());
     }
 
     public Faculty insert(Faculty faculty) {
-        String sql = "INSERT INTO faculties(faculty_code, faculty_name, description) VALUES (?, ?, ?)";
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            statement.setString(1, faculty.getFacultyCode());
-            statement.setString(2, faculty.getFacultyName());
-            statement.setString(3, faculty.getDescription());
-            statement.executeUpdate();
-            try (ResultSet resultSet = statement.getGeneratedKeys()) {
-                if (resultSet.next()) {
-                    faculty.setId(resultSet.getLong(1));
+        Long facultyId = executeWrite(
+                "Không thể thêm khoa.",
+                "Không thể thêm khoa do mã khoa đã tồn tại hoặc dữ liệu không hợp lệ.",
+                entityManager -> {
+                    Faculty entity = new Faculty();
+                    copyState(faculty, entity);
+                    entityManager.persist(entity);
+                    entityManager.flush();
+                    faculty.setId(entity.getId());
+                    return entity.getId();
                 }
-            }
-            return faculty;
-        } catch (SQLException exception) {
-            throw new AppException("Không thể thêm khoa.", exception);
-        }
+        );
+        return findById(facultyId)
+                .orElseThrow(() -> new AppException("Không thể tải lại khoa sau khi thêm."));
     }
 
     public boolean update(Faculty faculty) {
-        String sql = "UPDATE faculties SET faculty_code = ?, faculty_name = ?, description = ? WHERE id = ?";
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, faculty.getFacultyCode());
-            statement.setString(2, faculty.getFacultyName());
-            statement.setString(3, faculty.getDescription());
-            statement.setLong(4, faculty.getId());
-            return statement.executeUpdate() > 0;
-        } catch (SQLException exception) {
-            throw new AppException("Không thể cập nhật khoa.", exception);
-        }
+        return executeWrite(
+                "Không thể cập nhật khoa.",
+                "Không thể cập nhật khoa do mã khoa đã tồn tại hoặc dữ liệu không hợp lệ.",
+                entityManager -> {
+                    Faculty entity = entityManager.find(Faculty.class, faculty.getId());
+                    if (entity == null) {
+                        return false;
+                    }
+                    copyState(faculty, entity);
+                    entityManager.flush();
+                    return true;
+                }
+        );
     }
 
     public boolean delete(Long id) {
-        String sql = "DELETE FROM faculties WHERE id = ?";
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setLong(1, id);
-            return statement.executeUpdate() > 0;
-        } catch (SQLIntegrityConstraintViolationException exception) {
-            throw new AppException("Không thể xóa khoa vì vẫn còn lớp, giảng viên, sinh viên hoặc môn học đang tham chiếu.", exception);
-        } catch (SQLException exception) {
-            throw new AppException("Không thể xóa khoa.", exception);
+        return executeWrite(
+                "Không thể xóa khoa.",
+                "Không thể xóa khoa vì vẫn còn lớp, giảng viên, sinh viên hoặc môn học tham chiếu.",
+                entityManager -> {
+                    Faculty entity = entityManager.find(Faculty.class, id);
+                    if (entity == null) {
+                        return false;
+                    }
+                    entityManager.remove(entity);
+                    entityManager.flush();
+                    return true;
+                }
+        );
+    }
+
+    private void copyState(Faculty source, Faculty target) {
+        target.setFacultyCode(source.getFacultyCode());
+        target.setFacultyName(source.getFacultyName());
+        target.setDescription(source.getDescription());
+    }
+
+    private <T> T executeRead(String errorMessage, Function<EntityManager, T> action) {
+        try {
+            return JpaBootstrap.executeWithEntityManager(action);
+        } catch (RuntimeException exception) {
+            throw new AppException(errorMessage, exception);
         }
     }
 
-    private Faculty mapRow(ResultSet resultSet) throws SQLException {
-        return new Faculty(
-                resultSet.getLong("id"),
-                resultSet.getString("faculty_code"),
-                resultSet.getString("faculty_name"),
-                resultSet.getString("description")
-        );
+    private <T> T executeWrite(String errorMessage, String constraintMessage, Function<EntityManager, T> action) {
+        try {
+            return JpaBootstrap.executeInCurrentTransaction(action);
+        } catch (RuntimeException exception) {
+            if (isConstraintViolation(exception)) {
+                throw new AppException(constraintMessage, exception);
+            }
+            throw new AppException(errorMessage, exception);
+        }
+    }
+
+    private boolean isConstraintViolation(Throwable throwable) {
+        Throwable current = throwable;
+        while (current != null) {
+            if (current instanceof ConstraintViolationException) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
     }
 }

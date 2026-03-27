@@ -1,5 +1,6 @@
 package com.qlsv.service;
 
+import com.qlsv.config.JpaBootstrap;
 import com.qlsv.dao.CourseSectionDAO;
 import com.qlsv.model.CourseSection;
 import com.qlsv.security.RolePermission;
@@ -28,12 +29,8 @@ public class CourseSectionService {
     }
 
     public List<CourseSection> findByFacultyId(Long facultyId) {
-        return findAllForAdmin().stream()
-                .filter(courseSection -> courseSection.getSubject() != null
-                        && courseSection.getSubject().getFaculty() != null
-                        && courseSection.getSubject().getFaculty().getId() != null
-                        && courseSection.getSubject().getFaculty().getId().equals(facultyId))
-                .toList();
+        permissionService.requirePermission(RolePermission.MANAGE_COURSE_SECTIONS);
+        return courseSectionDAO.findByFacultyId(facultyId);
     }
 
     public List<CourseSection> findByRoom(Long roomId) {
@@ -42,21 +39,27 @@ public class CourseSectionService {
     }
 
     public List<CourseSection> findBySectionCode(String sectionCode) {
-        return findAllForAdmin().stream()
-                .filter(courseSection -> courseSection.getSectionCode() != null
-                        && courseSection.getSectionCode().equalsIgnoreCase(sectionCode == null ? "" : sectionCode.trim()))
-                .toList();
+        permissionService.requirePermission(RolePermission.MANAGE_COURSE_SECTIONS);
+        return courseSectionDAO.findBySectionCode(sectionCode);
     }
 
     public CourseSection save(CourseSection courseSection) {
         permissionService.requirePermission(RolePermission.MANAGE_COURSE_SECTIONS);
-        validate(courseSection);
-        return courseSection.getId() == null ? courseSectionDAO.insert(courseSection) : updateAndReturn(courseSection);
+        return JpaBootstrap.executeInTransaction(
+                "KhÃ´ng thá»ƒ lÆ°u há»c pháº§n.",
+                ignored -> {
+                    validate(courseSection);
+                    return courseSection.getId() == null ? courseSectionDAO.insert(courseSection) : updateAndReturn(courseSection);
+                }
+        );
     }
 
     public boolean delete(Long id) {
         permissionService.requirePermission(RolePermission.MANAGE_COURSE_SECTIONS);
-        return courseSectionDAO.delete(id);
+        return JpaBootstrap.executeInTransaction(
+                "KhÃ´ng thá»ƒ xÃ³a há»c pháº§n.",
+                ignored -> courseSectionDAO.delete(id)
+        );
     }
 
     private CourseSection updateAndReturn(CourseSection courseSection) {

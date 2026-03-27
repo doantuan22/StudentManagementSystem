@@ -16,7 +16,7 @@ public class PermissionService {
 
     public void requirePermission(String permission) {
         requireLogin();
-        // Kiem tra quyen tap trung de service va UI cung dung mot quy tac.
+        // Kiểm tra quyền tập trung để service và UI cùng dùng một quy tắc.
         if (!hasPermission(permission)) {
             throw new AuthorizationException("Bạn không có quyền thực hiện thao tác này.");
         }

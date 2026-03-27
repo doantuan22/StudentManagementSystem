@@ -1,15 +1,43 @@
 package com.qlsv.model;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+
 import java.util.Objects;
 
+@Entity
+@Table(name = "users")
 public class User {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "username", nullable = false, unique = true, length = 50)
     private String username;
+
+    @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
+
+    @Column(name = "full_name", nullable = false, length = 150)
     private String fullName;
+
+    @Column(name = "email", length = 150)
     private String email;
-    private Role role;
+
+    // Keep a real FK mapping for JPA, while getRole()/setRole() still expose the enum used across the app.
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "role_id", nullable = false)
+    private RoleEntity roleEntity;
+
+    @Column(name = "active", nullable = false)
     private boolean active;
 
     public User() {
@@ -21,7 +49,7 @@ public class User {
         this.passwordHash = passwordHash;
         this.fullName = fullName;
         this.email = email;
-        this.role = role;
+        setRole(role);
         this.active = active;
     }
 
@@ -66,11 +94,19 @@ public class User {
     }
 
     public Role getRole() {
-        return role;
+        return roleEntity == null ? null : roleEntity.toRoleEnum();
     }
 
     public void setRole(Role role) {
-        this.role = role;
+        this.roleEntity = RoleEntity.fromEnum(role);
+    }
+
+    public RoleEntity getRoleEntity() {
+        return roleEntity;
+    }
+
+    public void setRoleEntity(RoleEntity roleEntity) {
+        this.roleEntity = roleEntity;
     }
 
     public boolean isActive() {

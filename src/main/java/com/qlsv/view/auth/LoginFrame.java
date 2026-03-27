@@ -2,6 +2,7 @@ package com.qlsv.view.auth;
 
 import com.qlsv.controller.LoginController;
 import com.qlsv.model.User;
+import com.qlsv.navigation.AppNavigator;
 import com.qlsv.utils.DialogUtil;
 import com.qlsv.view.common.AppColors;
 import com.qlsv.view.common.BaseFrame;
@@ -13,7 +14,6 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
@@ -42,10 +42,17 @@ public class LoginFrame extends BaseFrame {
     private static final double TOP_SPACER_WEIGHT = 0.40;
     private static final double BOTTOM_SPACER_WEIGHT = 0.60;
 
-    private final LoginController loginController = new LoginController();
+    private final LoginController loginController;
+    private final AppNavigator navigator;
 
-    public LoginFrame() {
+    public LoginFrame(AppNavigator navigator) {
+        this(navigator, new LoginController());
+    }
+
+    LoginFrame(AppNavigator navigator, LoginController loginController) {
         super("Đăng nhập");
+        this.navigator = navigator;
+        this.loginController = loginController;
         setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
         setMinimumSize(new Dimension(440, 560));
         setLocationRelativeTo(null);
@@ -114,9 +121,11 @@ public class LoginFrame extends BaseFrame {
 
         loginButton.addActionListener(event -> {
             try {
-                User user = loginController.login(usernameField.getText(), new String(passwordField.getPassword()));
-                JFrame dashboardFrame = loginController.openDashboard(user);
-                dashboardFrame.setVisible(true);
+                User user = loginController.login(
+                        usernameField.getText(),
+                        new String(passwordField.getPassword())
+                );
+                navigator.showDashboard(user);
                 dispose();
             } catch (Exception exception) {
                 DialogUtil.showError(this, exception.getMessage());
@@ -138,7 +147,6 @@ public class LoginFrame extends BaseFrame {
         appLabel.setHorizontalAlignment(SwingConstants.CENTER);
         appLabel.setForeground(AppColors.LOGIN_PRIMARY);
         appLabel.setFont(new Font("Segoe UI", Font.BOLD, 34));
-
 
         JLabel subTitleLabel = new JLabel("HỆ THỐNG QUẢN LÝ SINH VIÊN");
         subTitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);

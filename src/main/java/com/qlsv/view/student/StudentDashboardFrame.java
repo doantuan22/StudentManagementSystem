@@ -2,7 +2,7 @@ package com.qlsv.view.student;
 
 import com.qlsv.controller.LoginController;
 import com.qlsv.model.User;
-import com.qlsv.view.auth.LoginFrame;
+import com.qlsv.navigation.AppNavigator;
 import com.qlsv.view.common.AppColors;
 import com.qlsv.view.common.BaseFrame;
 import com.qlsv.view.common.BasePanel;
@@ -16,10 +16,17 @@ import java.awt.CardLayout;
 
 public class StudentDashboardFrame extends BaseFrame {
 
-    private final LoginController loginController = new LoginController();
+    private final LoginController loginController;
+    private final AppNavigator navigator;
 
-    public StudentDashboardFrame(User user) {
+    public StudentDashboardFrame(User user, AppNavigator navigator) {
+        this(user, navigator, new LoginController());
+    }
+
+    StudentDashboardFrame(User user, AppNavigator navigator, LoginController loginController) {
         super("Trang sinh viên");
+        this.navigator = navigator;
+        this.loginController = loginController;
         initComponents(user);
     }
 
@@ -28,7 +35,7 @@ public class StudentDashboardFrame extends BaseFrame {
         styleHeaderActionButton(logoutButton);
         logoutButton.addActionListener(event -> {
             loginController.logout();
-            new LoginFrame().setVisible(true);
+            navigator.showLogin();
             dispose();
         });
 

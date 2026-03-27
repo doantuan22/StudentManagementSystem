@@ -1,238 +1,349 @@
 package com.qlsv.dao;
 
-import com.qlsv.config.DBConnection;
+import com.qlsv.config.JpaBootstrap;
 import com.qlsv.exception.AppException;
 import com.qlsv.model.CourseSection;
 import com.qlsv.model.Lecturer;
 import com.qlsv.model.Room;
 import com.qlsv.model.Subject;
+import jakarta.persistence.EntityManager;
+import org.hibernate.exception.ConstraintViolationException;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
-import java.sql.Statement;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 
 /**
- * DAO thao tac voi bang hoc phan mo.
+ * CourseSection is loaded via JPA; scheduleText and room stay as compatibility fields and should be removed later.
  */
 public class CourseSectionDAO {
 
-    private static final String BASE_SELECT = """
-            SELECT cs.id,
-                   cs.section_code,
-                   cs.subject_id,
-                   cs.lecturer_id,
-                   (
-                       SELECT sc.room_id
-                       FROM schedules sc
-                       WHERE sc.course_section_id = cs.id
-                       ORDER BY sc.day_of_week, sc.start_period, sc.id
-                       LIMIT 1
-                   ) AS room_id,
-                   cs.semester,
-                   cs.school_year,
-                   (
-                       SELECT GROUP_CONCAT(
-                                  CONCAT(sc.day_of_week, ' tiet ', sc.start_period, '-', sc.end_period, ' phong ', rr.room_name)
-                                  ORDER BY sc.day_of_week, sc.start_period, sc.id
-                                  SEPARATOR '; '
-                              )
-                       FROM schedules sc
-                       JOIN rooms rr ON rr.id = sc.room_id
-                       WHERE sc.course_section_id = cs.id
-                   ) AS schedule_text,
-                   cs.max_students
-            FROM course_sections cs
+    private static final String FETCH_BASE = """
+            SELECT DISTINCT cs
+            FROM CourseSection cs
+            JOIN FETCH cs.subject s
+            JOIN FETCH s.faculty
+            JOIN FETCH cs.lecturer l
             """;
 
-    private final SubjectDAO subjectDAO = new SubjectDAO();
-    private final LecturerDAO lecturerDAO = new LecturerDAO();
-    private final RoomDAO roomDAO = new RoomDAO();
-
     public List<CourseSection> findAll() {
-        String sql = BASE_SELECT + " ORDER BY cs.id";
-        List<CourseSection> courseSections = new ArrayList<>();
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql);
-             ResultSet resultSet = statement.executeQuery()) {
-            while (resultSet.next()) {
-                courseSections.add(mapRow(resultSet));
-            }
+        return executeRead("Không thể tải danh sách học phần.", entityManager -> {
+            List<CourseSection> courseSections = entityManager.createQuery(
+                            FETCH_BASE + " ORDER BY cs.id",
+                            CourseSection.class
+                    )
+                    .getResultList();
+            hydrateScheduleCompatibility(entityManager, courseSections);
             return courseSections;
-        } catch (SQLException exception) {
-            throw new AppException("Khong the tai danh sach hoc phan.", exception);
-        }
+        });
     }
 
     public Optional<CourseSection> findById(Long id) {
-        String sql = BASE_SELECT + " WHERE cs.id = ?";
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setLong(1, id);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                return resultSet.next() ? Optional.of(mapRow(resultSet)) : Optional.empty();
-            }
-        } catch (SQLException exception) {
-            throw new AppException("Khong the tim hoc phan theo ma dinh danh.", exception);
-        }
+        return executeRead("Không thể tìm học phần theo mã định danh.", entityManager -> {
+            List<CourseSection> courseSections = entityManager.createQuery(
+                            FETCH_BASE + " WHERE cs.id = :id",
+                            CourseSection.class
+                    )
+                    .setParameter("id", id)
+                    .getResultList();
+            hydrateScheduleCompatibility(entityManager, courseSections);
+            return courseSections.stream().findFirst();
+        });
     }
 
     public List<CourseSection> findByLecturerId(Long lecturerId) {
-        String sql = BASE_SELECT + " WHERE cs.lecturer_id = ? ORDER BY cs.id";
-        List<CourseSection> courseSections = new ArrayList<>();
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setLong(1, lecturerId);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                while (resultSet.next()) {
-                    courseSections.add(mapRow(resultSet));
-                }
-                return courseSections;
-            }
-        } catch (SQLException exception) {
-            throw new AppException("Khong the tai hoc phan cua giang vien.", exception);
-        }
+        return executeRead("Không thể tải học phần của giảng viên.", entityManager -> {
+            List<CourseSection> courseSections = entityManager.createQuery(
+                            FETCH_BASE + " WHERE cs.lecturer.id = :lecturerId ORDER BY cs.id",
+                            CourseSection.class
+                    )
+                    .setParameter("lecturerId", lecturerId)
+                    .getResultList();
+            hydrateScheduleCompatibility(entityManager, courseSections);
+            return courseSections;
+        });
+    }
+
+    public List<CourseSection> findByFacultyId(Long facultyId) {
+        return executeRead("Không thể tải học phần theo khoa.", entityManager -> {
+            List<CourseSection> courseSections = entityManager.createQuery(
+                            FETCH_BASE + " WHERE s.faculty.id = :facultyId ORDER BY cs.id",
+                            CourseSection.class
+                    )
+                    .setParameter("facultyId", facultyId)
+                    .getResultList();
+            hydrateScheduleCompatibility(entityManager, courseSections);
+            return courseSections;
+        });
+    }
+
+    public List<CourseSection> findBySectionCode(String sectionCode) {
+        String normalizedSectionCode = sectionCode == null ? "" : sectionCode.trim();
+        return executeRead("Không thể tải học phần theo mã học phần.", entityManager -> {
+            List<CourseSection> courseSections = entityManager.createQuery(
+                            FETCH_BASE + " WHERE LOWER(cs.sectionCode) = LOWER(:sectionCode) ORDER BY cs.id",
+                            CourseSection.class
+                    )
+                    .setParameter("sectionCode", normalizedSectionCode)
+                    .getResultList();
+            hydrateScheduleCompatibility(entityManager, courseSections);
+            return courseSections;
+        });
     }
 
     public List<CourseSection> findByRoomId(Long roomId) {
-        String sql = BASE_SELECT + """
-                WHERE EXISTS (
-                    SELECT 1
-                    FROM schedules sc
-                    WHERE sc.course_section_id = cs.id
-                      AND sc.room_id = ?
-                )
-                ORDER BY cs.id
-                """;
-        List<CourseSection> courseSections = new ArrayList<>();
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setLong(1, roomId);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                while (resultSet.next()) {
-                    courseSections.add(mapRow(resultSet));
-                }
-                return courseSections;
-            }
-        } catch (SQLException exception) {
-            throw new AppException("Khong the tai hoc phan theo phong hoc.", exception);
-        }
+        return executeRead("Không thể tải học phần theo phòng học.", entityManager -> {
+            List<CourseSection> courseSections = entityManager.createQuery("""
+                            SELECT DISTINCT cs
+                            FROM CourseSection cs
+                            JOIN FETCH cs.subject s
+                            JOIN FETCH s.faculty
+                            JOIN FETCH cs.lecturer l
+                            WHERE EXISTS (
+                                SELECT 1
+                                FROM Schedule sc
+                                WHERE sc.courseSection = cs
+                                  AND sc.room.id = :roomId
+                            )
+                            ORDER BY cs.id
+                            """, CourseSection.class)
+                    .setParameter("roomId", roomId)
+                    .getResultList();
+            hydrateScheduleCompatibility(entityManager, courseSections);
+            return courseSections;
+        });
     }
 
     public List<CourseSection> searchByKeyword(String keyword) {
-        String sql = BASE_SELECT + """
-                 WHERE cs.section_code LIKE ? OR cs.semester LIKE ? OR cs.school_year LIKE ?
-                 ORDER BY cs.id
-                """;
-        String searchValue = "%" + keyword + "%";
-        List<CourseSection> courseSections = new ArrayList<>();
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, searchValue);
-            statement.setString(2, searchValue);
-            statement.setString(3, searchValue);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                while (resultSet.next()) {
-                    courseSections.add(mapRow(resultSet));
-                }
-                return courseSections;
-            }
-        } catch (SQLException exception) {
-            throw new AppException("Khong the tim kiem hoc phan.", exception);
-        }
+        String normalizedKeyword = "%" + (keyword == null ? "" : keyword.trim().toLowerCase()) + "%";
+        return executeRead("Không thể tìm kiếm học phần.", entityManager -> {
+            List<CourseSection> courseSections = entityManager.createQuery("""
+                            SELECT DISTINCT cs
+                            FROM CourseSection cs
+                            JOIN FETCH cs.subject s
+                            JOIN FETCH s.faculty
+                            JOIN FETCH cs.lecturer l
+                            WHERE LOWER(cs.sectionCode) LIKE :keyword
+                               OR LOWER(cs.semester) LIKE :keyword
+                               OR LOWER(cs.schoolYear) LIKE :keyword
+                               OR LOWER(s.subjectCode) LIKE :keyword
+                               OR LOWER(s.subjectName) LIKE :keyword
+                               OR LOWER(l.lecturerCode) LIKE :keyword
+                               OR LOWER(l.fullName) LIKE :keyword
+                               OR EXISTS (
+                                    SELECT 1
+                                    FROM Schedule sc
+                                    JOIN sc.room r
+                                    WHERE sc.courseSection = cs
+                                      AND (
+                                            LOWER(r.roomCode) LIKE :keyword
+                                         OR LOWER(r.roomName) LIKE :keyword
+                                      )
+                               )
+                            ORDER BY cs.id
+                            """, CourseSection.class)
+                    .setParameter("keyword", normalizedKeyword)
+                    .getResultList();
+            hydrateScheduleCompatibility(entityManager, courseSections);
+            return courseSections;
+        });
     }
 
     public CourseSection insert(CourseSection courseSection) {
-        String sql = """
-                INSERT INTO course_sections(section_code, subject_id, lecturer_id, semester, school_year, max_students)
-                VALUES (?, ?, ?, ?, ?, ?)
-                """;
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            fillStatement(statement, courseSection);
-            statement.executeUpdate();
-            try (ResultSet resultSet = statement.getGeneratedKeys()) {
-                if (resultSet.next()) {
-                    courseSection.setId(resultSet.getLong(1));
+        Long courseSectionId = executeWrite(
+                "Không thể thêm học phần.",
+                "Không thể thêm học phần do mã học phần đã tồn tại hoặc môn học/giảng viên không hợp lệ.",
+                entityManager -> {
+                    CourseSection entity = new CourseSection();
+                    copyState(entityManager, courseSection, entity);
+                    entityManager.persist(entity);
+                    entityManager.flush();
+                    courseSection.setId(entity.getId());
+                    return entity.getId();
                 }
-            }
-            return courseSection;
-        } catch (SQLException exception) {
-            throw new AppException("Khong the them hoc phan.", exception);
-        }
+        );
+        return findById(courseSectionId)
+                .orElseThrow(() -> new AppException("Không thể tải lại học phần sau khi thêm."));
     }
 
     public boolean update(CourseSection courseSection) {
-        String sql = """
-                UPDATE course_sections
-                SET section_code = ?, subject_id = ?, lecturer_id = ?, semester = ?, school_year = ?, max_students = ?
-                WHERE id = ?
-                """;
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            fillStatement(statement, courseSection);
-            statement.setLong(7, courseSection.getId());
-            return statement.executeUpdate() > 0;
-        } catch (SQLException exception) {
-            throw new AppException("Khong the cap nhat hoc phan.", exception);
-        }
+        return executeWrite(
+                "Không thể cập nhật học phần.",
+                "Không thể cập nhật học phần do mã học phần đã tồn tại hoặc môn học/giảng viên không hợp lệ.",
+                entityManager -> {
+                    CourseSection entity = entityManager.find(CourseSection.class, courseSection.getId());
+                    if (entity == null) {
+                        return false;
+                    }
+                    copyState(entityManager, courseSection, entity);
+                    entityManager.flush();
+                    return true;
+                }
+        );
     }
 
     public boolean delete(Long id) {
-        String sql = "DELETE FROM course_sections WHERE id = ?";
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setLong(1, id);
-            return statement.executeUpdate() > 0;
-        } catch (SQLIntegrityConstraintViolationException exception) {
-            throw new AppException("Khong the xoa hoc phan vi van con lich hoc, dang ky hoc phan hoac diem lien quan.",
-                    exception);
-        } catch (SQLException exception) {
-            throw new AppException("Khong the xoa hoc phan.", exception);
-        }
+        return executeWrite(
+                "Không thể xóa học phần.",
+                "Không thể xóa học phần vì vẫn còn lịch học, đăng ký học phần hoặc điểm liên quan.",
+                entityManager -> {
+                    CourseSection entity = entityManager.find(CourseSection.class, id);
+                    if (entity == null) {
+                        return false;
+                    }
+                    entityManager.remove(entity);
+                    entityManager.flush();
+                    return true;
+                }
+        );
     }
 
     public int countEnrollments(Long courseSectionId) {
-        String sql = "SELECT COUNT(1) FROM enrollments WHERE course_section_id = ?";
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setLong(1, courseSectionId);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                return resultSet.next() ? resultSet.getInt(1) : 0;
+        return executeRead("Không thể đếm số lượng đăng ký của học phần.", entityManager -> {
+            Long count = entityManager.createQuery("""
+                            SELECT COUNT(e)
+                            FROM Enrollment e
+                            WHERE e.courseSection.id = :courseSectionId
+                            """, Long.class)
+                    .setParameter("courseSectionId", courseSectionId)
+                    .getSingleResult();
+            return count == null ? 0 : count.intValue();
+        });
+    }
+
+    private void copyState(EntityManager entityManager, CourseSection source, CourseSection target) {
+        target.setSectionCode(source.getSectionCode());
+        target.setSemester(source.getSemester());
+        target.setSchoolYear(source.getSchoolYear());
+        target.setMaxStudents(source.getMaxStudents());
+        target.setSubject(resolveSubjectReference(entityManager, source.getSubject()));
+        target.setLecturer(resolveLecturerReference(entityManager, source.getLecturer()));
+    }
+
+    private Subject resolveSubjectReference(EntityManager entityManager, Subject subject) {
+        if (subject == null || subject.getId() == null) {
+            return null;
+        }
+        return entityManager.getReference(Subject.class, subject.getId());
+    }
+
+    private Lecturer resolveLecturerReference(EntityManager entityManager, Lecturer lecturer) {
+        if (lecturer == null || lecturer.getId() == null) {
+            return null;
+        }
+        return entityManager.getReference(Lecturer.class, lecturer.getId());
+    }
+
+    private void hydrateScheduleCompatibility(EntityManager entityManager, List<CourseSection> courseSections) {
+        if (courseSections == null || courseSections.isEmpty()) {
+            return;
+        }
+
+        Map<Long, CourseSection> sectionsById = new HashMap<>();
+        for (CourseSection courseSection : courseSections) {
+            // Compatibility - remove later when legacy screens stop reading room/scheduleText from CourseSection.
+            courseSection.applyScheduleCompatibility(null, null);
+            if (courseSection.getId() != null) {
+                sectionsById.put(courseSection.getId(), courseSection);
             }
-        } catch (SQLException exception) {
-            throw new AppException("Khong the dem so luong dang ky cua hoc phan.", exception);
+        }
+
+        List<Object[]> rows = entityManager.createQuery("""
+                        SELECT sc.courseSection.id,
+                               sc.dayOfWeek,
+                               sc.startPeriod,
+                               sc.endPeriod,
+                               r.id,
+                               r.roomCode,
+                               r.roomName
+                        FROM Schedule sc
+                        JOIN sc.room r
+                        WHERE sc.courseSection.id IN :courseSectionIds
+                        ORDER BY sc.courseSection.id, sc.dayOfWeek, sc.startPeriod, sc.id
+                        """, Object[].class)
+                .setParameter("courseSectionIds", sectionsById.keySet())
+                .getResultList();
+
+        Map<Long, Room> firstRooms = new HashMap<>();
+        Map<Long, StringBuilder> textBuilders = new HashMap<>();
+        for (Object[] row : rows) {
+            Long courseSectionId = toLong(row[0]);
+            CourseSection courseSection = sectionsById.get(courseSectionId);
+            if (courseSection == null) {
+                continue;
+            }
+
+            Room room = new Room(
+                    toLong(row[4]),
+                    row[5] == null ? null : String.valueOf(row[5]),
+                    row[6] == null ? null : String.valueOf(row[6])
+            );
+            firstRooms.putIfAbsent(courseSectionId, room);
+
+            StringBuilder builder = textBuilders.computeIfAbsent(courseSectionId, ignored -> new StringBuilder());
+            if (builder.length() > 0) {
+                builder.append("; ");
+            }
+            builder.append(row[1])
+                    .append(" tiết ")
+                    .append(row[2])
+                    .append("-")
+                    .append(row[3])
+                    .append(" phòng ")
+                    .append(room.getRoomName());
+        }
+
+        for (Map.Entry<Long, StringBuilder> entry : textBuilders.entrySet()) {
+            CourseSection courseSection = sectionsById.get(entry.getKey());
+            if (courseSection != null) {
+                courseSection.applyScheduleCompatibility(firstRooms.get(entry.getKey()), entry.getValue().toString());
+            }
         }
     }
 
-    private void fillStatement(PreparedStatement statement, CourseSection courseSection) throws SQLException {
-        statement.setString(1, courseSection.getSectionCode());
-        statement.setLong(2, courseSection.getSubject().getId());
-        statement.setLong(3, courseSection.getLecturer().getId());
-        statement.setString(4, courseSection.getSemester());
-        statement.setString(5, courseSection.getSchoolYear());
-        statement.setInt(6, courseSection.getMaxStudents());
+    private Long toLong(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof Number number) {
+            return number.longValue();
+        }
+        return Long.parseLong(String.valueOf(value));
     }
 
-    private CourseSection mapRow(ResultSet resultSet) throws SQLException {
-        Subject subject = subjectDAO.findById(resultSet.getLong("subject_id")).orElse(null);
-        Lecturer lecturer = lecturerDAO.findById(resultSet.getLong("lecturer_id")).orElse(null);
-        Long roomId = resultSet.getObject("room_id", Long.class);
-        Room room = roomId == null ? null : roomDAO.findById(roomId).orElse(null);
-        return new CourseSection(
-                resultSet.getLong("id"),
-                resultSet.getString("section_code"),
-                subject,
-                lecturer,
-                room,
-                resultSet.getString("semester"),
-                resultSet.getString("school_year"),
-                resultSet.getString("schedule_text"),
-                resultSet.getInt("max_students"));
+    private <T> T executeRead(String errorMessage, Function<EntityManager, T> action) {
+        try {
+            return JpaBootstrap.executeWithEntityManager(action);
+        } catch (RuntimeException exception) {
+            throw new AppException(errorMessage, exception);
+        }
+    }
+
+    private <T> T executeWrite(String errorMessage, String constraintMessage, Function<EntityManager, T> action) {
+        try {
+            return JpaBootstrap.executeInCurrentTransaction(action);
+        } catch (RuntimeException exception) {
+            if (isConstraintViolation(exception)) {
+                throw new AppException(constraintMessage, exception);
+            }
+            throw new AppException(errorMessage, exception);
+        }
+    }
+
+    private boolean isConstraintViolation(Throwable throwable) {
+        Throwable current = throwable;
+        while (current != null) {
+            if (current instanceof ConstraintViolationException) {
+                return true;
+            }
+            if (current instanceof SQLIntegrityConstraintViolationException) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
     }
 }

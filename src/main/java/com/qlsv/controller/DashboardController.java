@@ -2,21 +2,22 @@ package com.qlsv.controller;
 
 import com.qlsv.model.Role;
 import com.qlsv.model.User;
-import com.qlsv.view.admin.AdminDashboardFrame;
-import com.qlsv.view.lecturer.LecturerDashboardFrame;
-import com.qlsv.view.student.StudentDashboardFrame;
-
-import javax.swing.JFrame;
 
 public class DashboardController {
 
-    public JFrame openDashboard(User user) {
+    public DashboardDestination resolveDashboard(User user) {
         if (user.getRole() == Role.ADMIN) {
-            return new AdminDashboardFrame(user);
+            return DashboardDestination.ADMIN;
         }
         if (user.getRole() == Role.LECTURER) {
-            return new LecturerDashboardFrame(user);
+            return DashboardDestination.LECTURER;
         }
-        return new StudentDashboardFrame(user);
+        return DashboardDestination.STUDENT;
+    }
+
+    public enum DashboardDestination {
+        ADMIN,
+        LECTURER,
+        STUDENT
     }
 }

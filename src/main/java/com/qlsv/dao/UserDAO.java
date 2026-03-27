@@ -1,223 +1,219 @@
 package com.qlsv.dao;
 
-import com.qlsv.config.DBConnection;
+import com.qlsv.config.JpaBootstrap;
 import com.qlsv.exception.AppException;
 import com.qlsv.model.Role;
+import com.qlsv.model.RoleEntity;
 import com.qlsv.model.User;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityTransaction;
+import org.hibernate.exception.ConstraintViolationException;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 /**
- * DAO xử lý CRUD tài khoản đăng nhập.
+ * Auth queries always JOIN FETCH role so detached User objects still expose getRole() safely in Swing/UI code.
  */
 public class UserDAO {
 
-    private static final String BASE_SELECT = """
-            SELECT u.id,
-                   u.username,
-                   u.password_hash,
-                   u.full_name,
-                   u.email,
-                   u.active,
-                   r.role_code
-            FROM users u
-            JOIN roles r ON r.id = u.role_id
+    private static final String FETCH_BASE = """
+            SELECT u
+            FROM User u
+            JOIN FETCH u.roleEntity
             """;
 
     public List<User> findAll() {
-        String sql = BASE_SELECT + " ORDER BY u.id";
-        List<User> users = new ArrayList<>();
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql);
-             ResultSet resultSet = statement.executeQuery()) {
-            while (resultSet.next()) {
-                users.add(mapRow(resultSet));
-            }
-            return users;
-        } catch (SQLException exception) {
-            throw new AppException("Không thể tải danh sách người dùng.", exception);
-        }
+        return executeRead("Không thể tải danh sách người dùng.", entityManager ->
+                entityManager.createQuery(FETCH_BASE + " ORDER BY u.id", User.class)
+                        .getResultList());
     }
 
     public Optional<User> findById(Long id) {
-        String sql = BASE_SELECT + " WHERE u.id = ?";
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setLong(1, id);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                if (resultSet.next()) {
-                    return Optional.of(mapRow(resultSet));
-                }
-                return Optional.empty();
-            }
-        } catch (SQLException exception) {
-            throw new AppException("Không thể tìm người dùng theo mã định danh.", exception);
-        }
+        return executeRead("Không thể tìm người dùng theo mã định danh.", entityManager ->
+                findById(entityManager, id));
     }
 
     public Optional<User> findByUsername(String username) {
-        String sql = BASE_SELECT + " WHERE u.username = ?";
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, username);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                if (resultSet.next()) {
-                    return Optional.of(mapRow(resultSet));
-                }
-                return Optional.empty();
-            }
-        } catch (SQLException exception) {
-            throw new AppException("Không thể tìm người dùng theo tên đăng nhập.", exception);
-        }
+        String normalizedUsername = username == null ? "" : username.trim();
+        return executeRead("Không thể tìm người dùng theo tên đăng nhập.", entityManager ->
+                findByUsername(entityManager, normalizedUsername));
     }
 
     public List<User> searchByKeyword(String keyword) {
-        String sql = BASE_SELECT + """
-                 WHERE u.username LIKE ?
-                    OR u.full_name LIKE ?
-                    OR u.email LIKE ?
-                 ORDER BY u.id
-                """;
-        String searchValue = "%" + keyword + "%";
-        List<User> users = new ArrayList<>();
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, searchValue);
-            statement.setString(2, searchValue);
-            statement.setString(3, searchValue);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                while (resultSet.next()) {
-                    users.add(mapRow(resultSet));
-                }
-                return users;
-            }
-        } catch (SQLException exception) {
-            throw new AppException("Không thể tìm kiếm người dùng.", exception);
-        }
+        String normalizedKeyword = "%" + (keyword == null ? "" : keyword.trim().toLowerCase()) + "%";
+        return executeRead("Không thể tìm kiếm người dùng.", entityManager ->
+                entityManager.createQuery(FETCH_BASE + """
+                                WHERE LOWER(u.username) LIKE :keyword
+                                   OR LOWER(u.fullName) LIKE :keyword
+                                   OR LOWER(COALESCE(u.email, '')) LIKE :keyword
+                                ORDER BY u.id
+                                """, User.class)
+                        .setParameter("keyword", normalizedKeyword)
+                        .getResultList());
     }
 
     public User insert(User user) {
-        String sql = """
-                INSERT INTO users(username, password_hash, full_name, email, role_id, active)
-                VALUES (?, ?, ?, ?, (SELECT id FROM roles WHERE role_code = ?), ?)
-                """;
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
-            // Truy van CRUD chinh duoc gom trong DAO, UI khong thao tac SQL truc tiep.
-            statement.setString(1, user.getUsername());
-            statement.setString(2, user.getPasswordHash());
-            statement.setString(3, user.getFullName());
-            statement.setString(4, user.getEmail());
-            statement.setString(5, user.getRole().getCode());
-            statement.setBoolean(6, user.isActive());
-            statement.executeUpdate();
-            try (ResultSet resultSet = statement.getGeneratedKeys()) {
-                if (resultSet.next()) {
-                    user.setId(resultSet.getLong(1));
-                }
-            }
-            return user;
-        } catch (SQLException exception) {
-            throw new AppException("Không thể thêm người dùng.", exception);
-        }
-    }
-
-    public User insert(Connection connection, User user) throws SQLException {
-        String sql = """
-                INSERT INTO users(username, password_hash, full_name, email, role_id, active)
-                VALUES (?, ?, ?, ?, (SELECT id FROM roles WHERE role_code = ?), ?)
-                """;
-        try (PreparedStatement statement = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
-            statement.setString(1, user.getUsername());
-            statement.setString(2, user.getPasswordHash());
-            statement.setString(3, user.getFullName());
-            statement.setString(4, user.getEmail());
-            statement.setString(5, user.getRole().getCode());
-            statement.setBoolean(6, user.isActive());
-            statement.executeUpdate();
-            try (ResultSet resultSet = statement.getGeneratedKeys()) {
-                if (resultSet.next()) {
-                    user.setId(resultSet.getLong(1));
-                }
-            }
-            return user;
-        }
+        Long userId = executeWrite(
+                "Không thể thêm người dùng.",
+                "Không thể thêm người dùng do tên đăng nhập đã tồn tại hoặc vai trò không hợp lệ.",
+                entityManager -> insert(entityManager, user).getId()
+        );
+        return findById(userId)
+                .orElseThrow(() -> new AppException("Không thể tải lại người dùng sau khi thêm."));
     }
 
     public boolean update(User user) {
-        String sql = """
-                UPDATE users
-                SET username = ?,
-                    password_hash = ?,
-                    full_name = ?,
-                    email = ?,
-                    role_id = (SELECT id FROM roles WHERE role_code = ?),
-                    active = ?
-                WHERE id = ?
-                """;
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, user.getUsername());
-            statement.setString(2, user.getPasswordHash());
-            statement.setString(3, user.getFullName());
-            statement.setString(4, user.getEmail());
-            statement.setString(5, user.getRole().getCode());
-            statement.setBoolean(6, user.isActive());
-            statement.setLong(7, user.getId());
-            return statement.executeUpdate() > 0;
-        } catch (SQLException exception) {
-            throw new AppException("Không thể cập nhật người dùng.", exception);
-        }
+        return executeWrite(
+                "Không thể cập nhật người dùng.",
+                "Không thể cập nhật người dùng do tên đăng nhập đã tồn tại hoặc vai trò không hợp lệ.",
+                entityManager -> update(entityManager, user)
+        );
     }
 
     public boolean delete(Long id) {
-        String sql = "DELETE FROM users WHERE id = ?";
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setLong(1, id);
-            return statement.executeUpdate() > 0;
-        } catch (SQLException exception) {
-            throw new AppException("Không thể xóa người dùng.", exception);
-        }
-    }
-
-    /**
-     * Cập nhật họ tên của người dùng.
-     * Sử dụng Connection truyền vào để hỗ trợ transaction.
-     */
-    public void updateFullName(Connection connection, Long userId, String fullName) throws SQLException {
-        String sql = "UPDATE users SET full_name = ? WHERE id = ?";
-        try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, fullName);
-            statement.setLong(2, userId);
-            statement.executeUpdate();
-        }
-    }
-
-    public void updateEmail(Connection connection, Long userId, String email) throws SQLException {
-        String sql = "UPDATE users SET email = ? WHERE id = ?";
-        try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, email);
-            statement.setLong(2, userId);
-            statement.executeUpdate();
-        }
-    }
-
-    private User mapRow(ResultSet resultSet) throws SQLException {
-        return new User(
-                resultSet.getLong("id"),
-                resultSet.getString("username"),
-                resultSet.getString("password_hash"),
-                resultSet.getString("full_name"),
-                resultSet.getString("email"),
-                Role.fromCode(resultSet.getString("role_code")),
-                resultSet.getBoolean("active")
+        return executeWrite(
+                "Không thể xóa người dùng.",
+                "Không thể xóa người dùng vì vẫn còn giảng viên hoặc sinh viên đang liên kết.",
+                entityManager -> {
+                    User entity = entityManager.find(User.class, id);
+                    if (entity == null) {
+                        return false;
+                    }
+                    entityManager.remove(entity);
+                    entityManager.flush();
+                    return true;
+                }
         );
+    }
+
+    public boolean updateFullName(Long userId, String fullName) {
+        return executeWrite(
+                "Không thể cập nhật họ tên người dùng.",
+                "Không thể cập nhật họ tên người dùng.",
+                entityManager -> updateFullName(entityManager, userId, fullName)
+        );
+    }
+
+    public boolean updateEmail(Long userId, String email) {
+        return executeWrite(
+                "Không thể cập nhật email người dùng.",
+                "Không thể cập nhật email người dùng.",
+                entityManager -> updateEmail(entityManager, userId, email)
+        );
+    }
+
+    private Optional<User> findById(EntityManager entityManager, Long id) {
+        return entityManager.createQuery(FETCH_BASE + " WHERE u.id = :id", User.class)
+                .setParameter("id", id)
+                .getResultStream()
+                .findFirst();
+    }
+
+    private Optional<User> findByUsername(EntityManager entityManager, String username) {
+        return entityManager.createQuery(FETCH_BASE + " WHERE LOWER(u.username) = LOWER(:username)", User.class)
+                .setParameter("username", username == null ? "" : username.trim())
+                .getResultStream()
+                .findFirst();
+    }
+
+    private User insert(EntityManager entityManager, User user) {
+        User entity = new User();
+        copyState(entityManager, user, entity);
+        entityManager.persist(entity);
+        entityManager.flush();
+        user.setId(entity.getId());
+        user.setRoleEntity(entity.getRoleEntity());
+        return user;
+    }
+
+    private boolean update(EntityManager entityManager, User user) {
+        User entity = entityManager.find(User.class, user.getId());
+        if (entity == null) {
+            return false;
+        }
+        copyState(entityManager, user, entity);
+        entityManager.flush();
+        return true;
+    }
+
+    private boolean updateFullName(EntityManager entityManager, Long userId, String fullName) {
+        User entity = entityManager.find(User.class, userId);
+        if (entity == null) {
+            return false;
+        }
+        entity.setFullName(fullName);
+        entityManager.flush();
+        return true;
+    }
+
+    private boolean updateEmail(EntityManager entityManager, Long userId, String email) {
+        User entity = entityManager.find(User.class, userId);
+        if (entity == null) {
+            return false;
+        }
+        entity.setEmail(email);
+        entityManager.flush();
+        return true;
+    }
+
+    private void copyState(EntityManager entityManager, User source, User target) {
+        target.setUsername(source.getUsername());
+        target.setPasswordHash(source.getPasswordHash());
+        target.setFullName(source.getFullName());
+        target.setEmail(source.getEmail());
+        target.setActive(source.isActive());
+        target.setRoleEntity(resolveRoleEntity(entityManager, source.getRoleEntity(), source.getRole()));
+    }
+
+    private RoleEntity resolveRoleEntity(EntityManager entityManager, RoleEntity roleEntity, Role role) {
+        Role resolvedRole = role != null ? role : roleEntity == null ? null : roleEntity.toRoleEnum();
+        if (resolvedRole == null) {
+            throw new AppException("Không thể lưu User khi chưa có vai trò hợp lệ.");
+        }
+        return entityManager.createQuery("""
+                        SELECT r
+                        FROM RoleEntity r
+                        WHERE UPPER(r.roleCode) = UPPER(:roleCode)
+                        """, RoleEntity.class)
+                .setParameter("roleCode", resolvedRole.getCode())
+                .getResultStream()
+                .findFirst()
+                .orElseThrow(() -> new AppException("Không tìm thấy vai trò " + resolvedRole.getCode() + " trong bảng roles."));
+    }
+
+    private <T> T executeRead(String errorMessage, Function<EntityManager, T> action) {
+        try {
+            return JpaBootstrap.executeWithEntityManager(action);
+        } catch (RuntimeException exception) {
+            throw new AppException(errorMessage, exception);
+        }
+    }
+
+    private <T> T executeWrite(String errorMessage, String constraintMessage, Function<EntityManager, T> action) {
+        try {
+            return JpaBootstrap.executeInCurrentTransaction(action);
+        } catch (RuntimeException exception) {
+            if (isConstraintViolation(exception)) {
+                throw new AppException(constraintMessage, exception);
+            }
+            throw new AppException(errorMessage, exception);
+        }
+    }
+
+    private boolean isConstraintViolation(Throwable throwable) {
+        Throwable current = throwable;
+        while (current != null) {
+            if (current instanceof ConstraintViolationException) {
+                return true;
+            }
+            if (current instanceof SQLIntegrityConstraintViolationException) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
     }
 }

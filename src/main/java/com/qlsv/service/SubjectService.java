@@ -1,5 +1,6 @@
 package com.qlsv.service;
 
+import com.qlsv.config.JpaBootstrap;
 import com.qlsv.dao.SubjectDAO;
 import com.qlsv.model.Subject;
 import com.qlsv.security.RolePermission;
@@ -23,22 +24,27 @@ public class SubjectService {
     }
 
     public List<Subject> findByFacultyId(Long facultyId) {
-        return findAll().stream()
-                .filter(subject -> subject.getFaculty() != null
-                        && subject.getFaculty().getId() != null
-                        && subject.getFaculty().getId().equals(facultyId))
-                .toList();
+        permissionService.requirePermission(RolePermission.MANAGE_SUBJECTS);
+        return subjectDAO.findByFacultyId(facultyId);
     }
 
     public Subject save(Subject subject) {
         permissionService.requirePermission(RolePermission.MANAGE_SUBJECTS);
-        validate(subject);
-        return subject.getId() == null ? subjectDAO.insert(subject) : updateAndReturn(subject);
+        return JpaBootstrap.executeInTransaction(
+                "KhÃ´ng thá»ƒ lÆ°u mÃ´n há»c.",
+                ignored -> {
+                    validate(subject);
+                    return subject.getId() == null ? subjectDAO.insert(subject) : updateAndReturn(subject);
+                }
+        );
     }
 
     public boolean delete(Long id) {
         permissionService.requirePermission(RolePermission.MANAGE_SUBJECTS);
-        return subjectDAO.delete(id);
+        return JpaBootstrap.executeInTransaction(
+                "KhÃ´ng thá»ƒ xÃ³a mÃ´n há»c.",
+                ignored -> subjectDAO.delete(id)
+        );
     }
 
     private Subject updateAndReturn(Subject subject) {
@@ -47,11 +53,11 @@ public class SubjectService {
     }
 
     private void validate(Subject subject) {
-        ValidationUtil.requireWithinLength(subject.getSubjectCode(), 50, "Mã môn học");
-        ValidationUtil.requireNotBlank(subject.getSubjectName(), "Tên môn học không được để trống.");
-        ValidationUtil.requirePositive(subject.getCredits(), "Số tín chỉ phải lớn hơn 0.");
+        ValidationUtil.requireWithinLength(subject.getSubjectCode(), 50, "MÃ£ mÃ´n há»c");
+        ValidationUtil.requireNotBlank(subject.getSubjectName(), "TÃªn mÃ´n há»c khÃ´ng Ä‘Æ°á»£c Ä‘á»ƒ trá»‘ng.");
+        ValidationUtil.requirePositive(subject.getCredits(), "Sá»‘ tÃ­n chá»‰ pháº£i lá»›n hÆ¡n 0.");
         if (subject.getFaculty() == null || subject.getFaculty().getId() == null) {
-            throw new IllegalArgumentException("Môn học phải thuộc một khoa.");
+            throw new IllegalArgumentException("MÃ´n há»c pháº£i thuá»™c má»™t khoa.");
         }
     }
 }

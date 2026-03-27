@@ -1,131 +1,132 @@
 # Student Management System
 
-Project Java Swing + JDBC + MySQL 8 de test he thong quan ly sinh vien theo 3 vai tro: `ADMIN`, `LECTURER`, `STUDENT`.
+Project Java Swing + Hibernate/JPA + JPQL + MySQL 8 cho hệ thống quản lý sinh viên theo 3 vai trò: `ADMIN`, `LECTURER`, `STUDENT`.
 
-Trang thai hien tai:
+Trạng thái hiện tại:
 
-- Da hoan thien phan lon luong chinh de test he thong.
-- Da bo sung schema database, du lieu mau, phan quyen, CRUD, dang ky hoc phan, diem, lich hoc va bao cao co ban.
-- UI Swing du dung de test chuc nang, khong tap trung vao giao dien dep.
+- Đã hoàn thiện phần lớn luồng chính để test hệ thống.
+- Đã bổ sung schema database, dữ liệu mẫu, phân quyền, CRUD, đăng ký học phần, điểm, lịch học và báo cáo cơ bản.
+- UI Swing đủ dùng để test chức năng, không tập trung vào giao diện đẹp.
 
-## Cong nghe su dung
+## Công nghệ sử dụng
 
 - Java 17
 - Maven
 - Java Swing
-- JDBC
+- Hibernate / JPA
+- JPQL
 - MySQL 8
 - iText PDF
 
-## Cau truc project
+## Cấu trúc project
 
-- `database/`: script tao database, du lieu mau, views, indexes va truy van test
-- `src/main/java/com/qlsv/config`: doc config, ket noi DB, session
-- `src/main/java/com/qlsv/model`: model du lieu va DTO thong ke
-- `src/main/java/com/qlsv/dao`: JDBC CRUD va truy van tong hop
-- `src/main/java/com/qlsv/service`: xu ly nghiep vu, validate, phan quyen, tinh diem, chan trung lich
-- `src/main/java/com/qlsv/controller`: lop noi giua UI va service
+- `database/`: script tạo database, dữ liệu mẫu, views, indexes và truy vấn test
+- `src/main/java/com/qlsv/config`: đọc config, kết nối DB, session
+- `src/main/java/com/qlsv/model`: model dữ liệu và DTO thống kê
+- `src/main/java/com/qlsv/dao`: JPA/JPQL cho các module nghiệp vụ chính, DAO JDBC chỉ còn lại ở phần báo cáo/hạ tầng ngoài scope
+- `src/main/java/com/qlsv/service`: xử lý nghiệp vụ, validate, phân quyền, tính điểm, chặn trùng lịch
+- `src/main/java/com/qlsv/controller`: lớp nối giữa UI và service
 - `src/main/java/com/qlsv/view`: Swing frame/panel/dialog
-- `src/main/java/com/qlsv/security`: hash mat khau va mapping quyen
+- `src/main/java/com/qlsv/security`: hash mật khẩu và mapping quyền
 - `src/main/java/com/qlsv/utils`: dialog, validate, PDF export
 - `src/main/resources`: `application.properties`
 
-## Cac chuc nang da hoan thanh
+## Các chức năng đã hoàn thành
 
-### 1. Khoi dong, config va ket noi DB
+### 1. Khởi động, config và kết nối DB
 
-- Doc `db.url`, `db.username`, `db.password`, `app.name` tu `application.properties`
-- Kiem tra ket noi MySQL ngay luc khoi dong trong `Main`
-- Quan ly session dang nhap bang `SessionManager`
+- Đọc `db.url`, `db.username`, `db.password`, `app.name` từ `application.properties`
+- Kiểm tra kết nối MySQL ngay lúc khởi động trong `Main`
+- Quản lý session đăng nhập bằng `SessionManager`
 
-### 2. Dang nhap va phan quyen
+### 2. Đăng nhập và phân quyền
 
-- Dang nhap bang `username/password`
-- Mat khau luu dang SHA-256
-- Phan quyen theo enum `Role { ADMIN, LECTURER, STUDENT }`
-- Dieu huong dung dashboard theo role
-- Dang xuat va xoa session
-- Kiem tra quyen tap trung tai `AuthManager` + `RolePermission` + `PermissionService`
+- Đăng nhập bằng `username/password`
+- Mật khẩu lưu dạng SHA-256
+- Phân quyền theo enum `Role { ADMIN, LECTURER, STUDENT }`
+- Điều hướng đúng dashboard theo role
+- Đăng xuất và xóa session
+- Kiểm tra quyền tập trung tại `AuthManager` + `RolePermission` + `PermissionService`
 
 ### 3. CRUD admin
 
-- Quan ly sinh vien
-- Quan ly giang vien
-- Quan ly khoa
-- Quan ly lop
-- Quan ly mon hoc
-- Quan ly hoc phan
-- Quan ly enrollment
-- Quan ly diem
-- Quan ly lich hoc
+- Quản lý sinh viên
+- Quản lý giảng viên
+- Quản lý khoa
+- Quản lý lớp
+- Quản lý môn học
+- Quản lý học phần
+- Quản lý enrollment
+- Quản lý điểm
+- Quản lý lịch học
 
-Tat ca cac panel CRUD da co:
+Tất cả các panel CRUD đã có:
 
 - JTable
-- Them / sua / xoa
-- Tai lai du lieu
-- Tim kiem client-side tren du lieu da nap
+- Thêm / sửa / xóa
+- Tải lại dữ liệu
+- Tìm kiếm client-side trên dữ liệu đã nạp
 
-### 4. Module sinh vien
+### 4. Module sinh viên
 
-- Xem ho so ca nhan
-- Dang ky hoc phan
-- Huy dang ky hoc phan cua chinh minh
-- Xem hoc phan da dang ky
-- Xem bang diem ca nhan
-- Xem lich hoc
+- Xem hồ sơ cá nhân
+- Đăng ký học phần
+- Hủy đăng ký học phần của chính mình
+- Xem học phần đã đăng ký
+- Xem bảng điểm cá nhân
+- Xem lịch học
 
-### 5. Module giang vien
+### 5. Module giảng viên
 
-- Xem ho so ca nhan
-- Xem hoc phan phu trach
-- Xem danh sach sinh vien thuoc hoc phan minh day
-- Nhap / cap nhat diem cho hoc phan duoc phan cong
-- Xem lich day
+- Xem hồ sơ cá nhân
+- Xem học phần phụ trách
+- Xem danh sách sinh viên thuộc học phần mình dạy
+- Nhập / cập nhật điểm cho học phần được phân công
+- Xem lịch dạy
 
-### 6. Dang ky hoc phan
+### 6. Đăng ký học phần
 
-- Tach ro `Subject` / `CourseSection` / `Enrollment`
-- Chan dang ky trung hoc phan
-- Chan vuot si so toi da
-- Chan trung lich dua tren bang `schedules`
-- Cho phep admin tao enrollment thu cong
-- Cho phep student dang ky va huy hoc phan cua chinh minh
+- Tách rõ `Subject` / `CourseSection` / `Enrollment`
+- Chặn đăng ký trùng học phần
+- Chặn vượt sĩ số tối đa
+- Chặn trùng lịch dựa trên bảng `schedules`
+- Cho phép admin tạo enrollment thủ công
+- Cho phép student đăng ký và hủy học phần của chính mình
 
-### 7. Quan ly diem
+### 7. Quản lý điểm
 
-- Admin xem va quan ly toan bo diem
-- Giang vien chi nhap / sua diem cho hoc phan minh phu trach
-- Tu dong tinh:
+- Admin xem và quản lý toàn bộ điểm
+- Giảng viên chỉ nhập / sửa điểm cho học phần mình phụ trách
+- Tự động tính:
 
 ```text
 totalScore = processScore * 0.3 + midtermScore * 0.2 + finalScore * 0.5
 ```
 
-- Tu dong xac dinh:
-  - `PASS` neu `totalScore >= 5.0`
-  - `FAIL` neu `< 5.0`
+- Tự động xác định:
+  - `PASS` nếu `totalScore >= 5.0`
+  - `FAIL` nếu `< 5.0`
 
-### 8. Lich hoc / lich day
+### 8. Lịch học / lịch dạy
 
-- Them bang `schedules`
-- Admin quan ly lich hoc theo hoc phan
-- Student xem lich hoc cua minh
-- Lecturer xem lich day cua minh
-- Chan trung lich theo giang vien, phong hoc va sinh vien
+- Thêm bảng `schedules`
+- Admin quản lý lịch học theo học phần
+- Student xem lịch học của mình
+- Lecturer xem lịch dạy của mình
+- Chặn trùng lịch theo giảng viên, phòng học và sinh viên
 
-### 9. Bao cao co ban
+### 9. Báo cáo cơ bản
 
-- Danh sach sinh vien theo lop
-- Danh sach giang vien theo khoa
-- Danh sach sinh vien trong hoc phan
-- Bang diem theo hoc phan
-- Thong ke nhanh tong sinh vien / giang vien / mon hoc / hoc phan / enrollment
-- Xuat PDF tu man hinh bao cao
+- Danh sách sinh viên theo lớp
+- Danh sách giảng viên theo khoa
+- Danh sách sinh viên trong học phần
+- Bảng điểm theo học phần
+- Thống kê nhanh tổng sinh viên / giảng viên / môn học / học phần / enrollment
+- Xuất PDF từ màn hình báo cáo
 
-## Nhung thay doi moi da thuc hien
+## Những thay đổi mới đã thực hiện
 
-### Da sua / hoan thien cac file chinh
+### Đã sửa / hoàn thiện các file chính
 
 - `src/main/java/com/qlsv/Main.java`
 - `src/main/java/com/qlsv/config/DBConnection.java`
@@ -184,7 +185,7 @@ totalScore = processScore * 0.3 + midtermScore * 0.2 + finalScore * 0.5
 - `database/03_verify_data.sql`
 - `database/README.md`
 
-### Da them file / module moi
+### Đã thêm file / module mới
 
 - `src/main/java/com/qlsv/dao/ReportDAO.java`
 - `src/main/java/com/qlsv/model/SystemStatistics.java`
@@ -194,22 +195,22 @@ totalScore = processScore * 0.3 + midtermScore * 0.2 + finalScore * 0.5
 - `src/main/java/com/qlsv/service/RoomService.java`
 - `src/main/java/com/qlsv/view/admin/RoomManagementPanel.java`
 
-### Da bo sung module
+### Đã bổ sung module
 
-- Module `schedule` day du o muc dung de test
-- Module `report` va `system statistics`
-- Luong xuat PDF cho bao cao
+- Module `schedule` đầy đủ ở mức dùng để test
+- Module `report` và `system statistics`
+- Luồng xuất PDF cho báo cáo
 - Validate email / phone / score
-- Chan trung lich cho dang ky hoc phan
-- Footer / dashboard role-based day du hon
+- Chặn trùng lịch cho đăng ký học phần
+- Footer / dashboard role-based đầy đủ hơn
 
-## Huong dan cau hinh `application.properties`
+## Hướng dẫn cấu hình `application.properties`
 
-Mo file:
+Mở file:
 
 - `src/main/resources/application.properties`
 
-Noi dung mac dinh:
+Nội dung mặc định:
 
 ```properties
 db.url=jdbc:mysql://localhost:3306/student_management
@@ -218,11 +219,11 @@ db.password=123456
 app.name=Student Management System
 ```
 
-Can sua lai `db.username` / `db.password` neu MySQL cua ban dung tai khoan khac.
+Cần sửa lại `db.username` / `db.password` nếu MySQL của bạn dùng tài khoản khác.
 
-## Huong dan tao database
+## Hướng dẫn tạo database
 
-### Thu tu chay SQL khuyen nghi
+### Thứ tự chạy SQL khuyến nghị
 
 Các script tạo DB hiện đang được gộp theo luồng sau (chuẩn bị MySQL trước):
 
@@ -233,7 +234,7 @@ Các script tạo DB hiện đang được gộp theo luồng sau (chuẩn bị 
 
 Lưu ý: `02_seed_full_data.sql` là script `INSERT INTO` (không dùng `ON DUPLICATE KEY`), nên nếu DB đã có dữ liệu bạn nên reset bằng `00_drop_old_database.sql` trước khi chạy lại để tránh trùng khóa.
 
-### Cac bang chinh
+### Các bảng chính
 
 - `roles`
 - `users`
@@ -249,13 +250,13 @@ Lưu ý: `02_seed_full_data.sql` là script `INSERT INTO` (không dùng `ON DUPL
 - `enrollments`
 - `scores`
 
-## Tai khoan mau de test
+## Tài khoản mẫu để test
 
-Tat ca tai khoan deu dung mat khau:
+Tất cả tài khoản đều dùng mật khẩu:
 
 - Password: `123456`
 
-Danh sach:
+Danh sách:
 
 - `admin`
 - `gv001`
@@ -265,17 +266,17 @@ Danh sach:
 - `sv2200002`
 - `sv2200003`
 
-## Cach chay project
+## Cách chạy project
 
-### Cach 1: Chay bang IDE
+### Cách 1: Chạy bằng IDE
 
 1. Clone repo
-2. Import project Maven vao IntelliJ IDEA / Eclipse / NetBeans
-3. Dam bao MySQL dang chay va database da import xong (chạy các script trong `database/`)
-4. Cap nhat `src/main/resources/application.properties` (đặc biệt `db.url`, `db.username`, `db.password`)
-5. Mo file `src/main/java/com/qlsv/Main.java` và Run `main`
+2. Import project Maven vào IntelliJ IDEA / Eclipse / NetBeans
+3. Đảm bảo MySQL đang chạy và database đã import xong (chạy các script trong `database/`)
+4. Cập nhật `src/main/resources/application.properties` (đặc biệt `db.url`, `db.username`, `db.password`)
+5. Mở file `src/main/java/com/qlsv/Main.java` và Run `main`
 
-### Cach 2: Compile / run thu cong tren Windows PowerShell
+### Cách 2: Compile / run thủ công trên Windows PowerShell
 
 ```powershell
 mvn clean compile
@@ -283,7 +284,7 @@ mvn clean compile
 
 Sau khi compile xong, bạn có thể Run `com.qlsv.Main` từ IDE (hoặc tự thiết lập classpath theo Maven).
 
-Neu may da cai Maven va muon chi compile nhanh (không bao gồm run):
+Nếu máy đã cài Maven và muốn chỉ compile nhanh (không bao gồm run):
 
 ```powershell
 mvn clean compile
@@ -300,41 +301,56 @@ mvn clean compile
   - `Main` luôn mở `LoginFrame` ngay cả khi DB không kết nối được/thiếu schema, thay vì “silent fail” hoặc dừng luồng app.
   - `DBConnection` bổ sung log chi tiết khi không connect được MySQL hoặc thiếu table/cột schema, để dễ debug từ IDE khác.
 
-## Ghi chu ky thuat quan trong
+## Ghi chú kỹ thuật quan trọng
 
-- Mat khau dang nhap duoc hash bang SHA-256
-- Kiem tra phan quyen tap trung tai `RolePermission` + `PermissionService`
-- `ScoreService` tu dong tinh diem tong ket va `PASS/FAIL`
-- `ScheduleService` + `ScheduleDAO` xu ly kiem tra trung lich
-- `AbstractCrudPanel` la lop chung cho nhieu man hinh CRUD
-- `ReportDAO` tong hop du lieu bao cao de UI khong truy van truc tiep
-- `DBConnection` kiem tra ket noi MySQL ngay khi khoi dong
+- Mật khẩu đăng nhập được hash bằng SHA-256
+- Kiểm tra phân quyền tập trung tại `RolePermission` + `PermissionService`
+- `ScoreService` tự động tính điểm tổng kết và `PASS/FAIL`
+- `ScheduleService` + `ScheduleDAO` xử lý kiểm tra trùng lịch
+- `AbstractCrudPanel` là lớp chung cho nhiều màn hình CRUD
+- `ReportDAO` tổng hợp dữ liệu báo cáo để UI không truy vấn trực tiếp
+- `DBConnection` kiểm tra kết nối MySQL ngay khi khởi động
 
-## Gioi han hien tai / phan chua toi uu
+## Trạng thái Hibernate/JPA
 
-- Chua co luong tao tai khoan login moi day du tren UI; khi them sinh vien / giang vien moi, truong `user_id` van la lien ket toi `users` co san
-- Tim kiem trong cac man hinh CRUD hien dang la loc tren tap du lieu da nap, chua day het qua truy van DB rieng cho moi panel
-- UI Swing giu muc don gian de test, chua toi uu bo cuc hay trai nghiem nguoi dung
-- Chua co bo unit test / integration test tu dong
-- `CourseSection` va `Schedule` dang tach thanh 2 man hinh rieng: tao hoc phan truoc, sau do gan lich chi tiet trong `Quan ly lich hoc`
+- Đã migrate sang JPA/JPQL: `Faculty`, `Room`, `ClassRoom`, `Subject`, `User/Auth`, `Student`, `CourseSection`, `Schedule`, `Enrollment`, `Score`
+- Core flow đã chạy theo hướng `JPA-first`; luồng tạo/cập nhật `Student` và `Lecturer` đồng bộ `User` bằng transaction JPA, không còn rely vào trigger trong code
+- Transaction strategy:
+  - `@Transactional` được đánh dấu tại service layer cho các use-case ghi
+  - các flow ghi nhiều bảng như `Student -> User` và `Lecturer -> User` được gom về 1 transaction JPA rõ ràng ở service
+- Compatibility tạm thời:
+  - `CourseSection.room`
+  - `CourseSection.scheduleText`
+  - placeholder `Score` cho enrollment chưa có bản ghi điểm
+- Native query còn lại:
+  - Không còn native query trong service/DAO nghiệp vụ đã migrate
+  - JDBC chỉ còn ở `ReportDAO` và `DBConnection` cho phần báo cáo/kiểm tra kết nối ngoài scope cleanup hiện tại
 
-## Trang thai hien tai cua project
+## Giới hạn hiện tại / phần chưa tối ưu
 
-Project da o muc:
+- Chưa có luồng tạo tài khoản login mới đầy đủ trên UI; khi thêm sinh viên / giảng viên mới, trường `user_id` vẫn là liên kết tới `users` có sẵn
+- Tìm kiếm trong các màn hình CRUD hiện đang là lọc trên tập dữ liệu đã nạp, chưa đẩy hết qua truy vấn DB riêng cho mỗi panel
+- UI Swing giữ mức đơn giản để test, chưa tối ưu bố cục hay trải nghiệm người dùng
+- Chưa có bộ unit test / integration test tự động
+- `CourseSection` và `Schedule` đang tách thành 2 màn hình riêng: tạo học phần trước, sau đó gán lịch chi tiết trong `Quản lý lịch học`
 
-- Build duoc
-- Co du lieu mau de test
-- Dang nhap / phan quyen duoc
-- CRUD chinh da co
-- Dang ky hoc phan co chan trung va chan vuot si so
-- Nhap diem / tinh diem / PASS-FAIL da chay theo cong thuc yeu cau
-- Xem lich hoc / lich day co ban da hoan thanh
-- Bao cao co ban va xuat PDF da co
+## Trạng thái hiện tại của project
 
-Day la ban phat trien du de test he thong end-to-end tren cau truc project hien co ma khong pha vo kien truc ban dau.
+Project đã ở mức:
 
-## Cap nhat UI admin va nien khoa sinh vien
+- Build được
+- Có dữ liệu mẫu để test
+- Đăng nhập / phân quyền được
+- CRUD chính đã có
+- Đăng ký học phần có chặn trùng và chặn vượt sĩ số
+- Nhập điểm / tính điểm / PASS-FAIL đã chạy theo công thức yêu cầu
+- Xem lịch học / lịch dạy cơ bản đã hoàn thành
+- Báo cáo cơ bản và xuất PDF đã có
 
-- Da nang cap cac man hinh ADMIN theo bo cuc `bo loc -> bang danh sach -> chi tiet`, trong do cac man hinh sinh vien, giang vien, mon hoc va cac man hinh CRUD bang du lieu khac deu chi hien du lieu sau khi chon dieu kien loc phu hop.
-- Da Viet hoa giao dien theo tieng Viet co dau, bao gom tieu de frame, nut bam, cot bang, thong bao va cac panel thong tin chi tiet.
-- Da sua dong bo ho ten (full_name) giua bang users va students/lecturers khi admin cap nhat thong tin.
+Đây là bản phát triển đủ để test hệ thống end-to-end trên cấu trúc project hiện có mà không phá vỡ kiến trúc ban đầu.
+
+## Cập nhật UI admin và niên khóa sinh viên
+
+- Đã nâng cấp các màn hình ADMIN theo bố cục `bộ lọc -> bảng danh sách -> chi tiết`, trong đó các màn hình sinh viên, giảng viên, môn học và các màn hình CRUD bảng dữ liệu khác đều chỉ hiện dữ liệu sau khi chọn điều kiện lọc phù hợp.
+- Đã Việt hóa giao diện theo tiếng Việt có dấu, bao gồm tiêu đề frame, nút bấm, cột bảng, thông báo và các panel thông tin chi tiết.
+- Đã sửa đồng bộ họ tên (full_name) giữa bảng users và students/lecturers khi admin cập nhật thông tin.

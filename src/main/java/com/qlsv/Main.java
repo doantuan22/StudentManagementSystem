@@ -1,32 +1,54 @@
 package com.qlsv;
 
-import com.qlsv.config.DBConnection;
+import com.qlsv.config.JpaBootstrap;
+import com.qlsv.navigation.AppNavigator;
+import com.qlsv.navigation.SwingAppNavigator;
 import com.qlsv.utils.DialogUtil;
-import com.qlsv.view.auth.LoginFrame;
 
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
 
 public class Main {
 
     public static void main(String[] args) {
-        // Khoi dong chuong trinh tai mot diem duy nhat, sau do mo man hinh dang nhap.
         SwingUtilities.invokeLater(() -> {
             try {
                 UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             } catch (Exception ignored) {
             }
-            // Kiểm tra DB lúc khởi động để hiển thị thông báo rõ ràng,
-            // nhưng KHÔNG chặn luồng app (vẫn mở màn hình đăng nhập).
-            boolean canConnect = DBConnection.canConnect();
-            if (!canConnect) {
-                DialogUtil.showError(null, "Không kết nối được cơ sở dữ liệu. Hãy kiểm tra MySQL và file application.properties.");
-            } else if (!DBConnection.hasRequiredTables()) {
-                DialogUtil.showError(
-                        null,
-                        "Cơ sở dữ liệu hiện tại chưa có đầy đủ schema mới");
-            }
-            new LoginFrame().setVisible(true);
+
+            startApplication(
+                    new SwingAppNavigator(),
+                    JpaBootstrap::canBootstrap,
+                    JpaBootstrap::hasRequiredSchema,
+                    message -> DialogUtil.showError(null, message)
+            );
         });
+    }
+
+    static void startApplication(AppNavigator navigator,
+                                 BooleanSupplier canBootstrapCheck,
+                                 BooleanSupplier schemaCheck,
+                                 Consumer<String> errorHandler) {
+        if (!isStartupReady(canBootstrapCheck, schemaCheck, errorHandler)) {
+            return;
+        }
+        navigator.showLogin();
+    }
+
+    static boolean isStartupReady(BooleanSupplier canBootstrapCheck,
+                                  BooleanSupplier schemaCheck,
+                                  Consumer<String> errorHandler) {
+        if (!canBootstrapCheck.getAsBoolean()) {
+            errorHandler.accept("Khong ket noi duoc co so du lieu. Hay kiem tra MySQL va file application.properties.");
+            return false;
+        }
+        if (!schemaCheck.getAsBoolean()) {
+            errorHandler.accept("Co so du lieu hien tai chua co day du schema moi");
+            return false;
+        }
+        return true;
     }
 }

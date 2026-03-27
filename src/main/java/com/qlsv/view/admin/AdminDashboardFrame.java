@@ -2,7 +2,7 @@ package com.qlsv.view.admin;
 
 import com.qlsv.controller.LoginController;
 import com.qlsv.model.User;
-import com.qlsv.view.auth.LoginFrame;
+import com.qlsv.navigation.AppNavigator;
 import com.qlsv.view.common.AppColors;
 import com.qlsv.view.common.BaseFrame;
 import com.qlsv.view.common.BasePanel;
@@ -17,10 +17,17 @@ import java.awt.Cursor;
 
 public class AdminDashboardFrame extends BaseFrame {
 
-    private final LoginController loginController = new LoginController();
+    private final LoginController loginController;
+    private final AppNavigator navigator;
 
-    public AdminDashboardFrame(User user) {
+    public AdminDashboardFrame(User user, AppNavigator navigator) {
+        this(user, navigator, new LoginController());
+    }
+
+    AdminDashboardFrame(User user, AppNavigator navigator, LoginController loginController) {
         super("Trang quản trị");
+        this.navigator = navigator;
+        this.loginController = loginController;
         initComponents(user);
     }
 
@@ -29,7 +36,7 @@ public class AdminDashboardFrame extends BaseFrame {
         configureHeaderButton(logoutButton);
         logoutButton.addActionListener(event -> {
             loginController.logout();
-            new LoginFrame().setVisible(true);
+            navigator.showLogin();
             dispose();
         });
 

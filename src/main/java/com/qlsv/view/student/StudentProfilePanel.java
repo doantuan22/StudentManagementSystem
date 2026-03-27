@@ -1,10 +1,9 @@
 package com.qlsv.view.student;
 
-import com.qlsv.controller.StudentController;
-import com.qlsv.model.Student;
+import com.qlsv.controller.StudentProfileScreenController;
+import com.qlsv.dto.StudentProfileDto;
 import com.qlsv.utils.DialogUtil;
 import com.qlsv.utils.DisplayTextUtil;
-import com.qlsv.utils.ValidationUtil;
 import com.qlsv.view.common.AppColors;
 import com.qlsv.view.common.BasePanel;
 
@@ -41,10 +40,10 @@ public class StudentProfilePanel extends BasePanel {
     private static final int INPUT_HEIGHT = 38;
     private static final int TEXT_AREA_HEIGHT = 96;
 
-    private final StudentController studentController = new StudentController();
+    private final StudentProfileScreenController screenController = new StudentProfileScreenController();
     private final JPanel contentPanel = new JPanel();
 
-    private Student currentStudent;
+    private StudentProfileDto currentStudent;
     private boolean isEditing;
     private JTextField emailField;
     private JTextField phoneField;
@@ -76,7 +75,7 @@ public class StudentProfilePanel extends BasePanel {
     @Override
     public void reloadData() {
         try {
-            currentStudent = studentController.getCurrentStudent();
+            currentStudent = screenController.loadCurrentStudent();
             isEditing = false;
             renderProfile();
         } catch (Exception exception) {
@@ -171,14 +170,10 @@ public class StudentProfilePanel extends BasePanel {
         summaryPanel.setOpaque(false);
         summaryPanel.setBorder(BorderFactory.createEmptyBorder(CARD_GAP, 0, 0, 0));
 
-        summaryPanel.add(createBadge("MSSV", DisplayTextUtil.defaultText(currentStudent.getStudentCode())));
-        summaryPanel.add(createBadge("Lớp", currentStudent.getClassRoom() == null
-                ? "Chưa cập nhật"
-                : currentStudent.getClassRoom().getClassName()));
-        summaryPanel.add(createBadge("Khoa", currentStudent.getFaculty() == null
-                ? "Chưa cập nhật"
-                : currentStudent.getFaculty().getFacultyName()));
-        summaryPanel.add(createBadge("Trạng thái", DisplayTextUtil.formatStatus(currentStudent.getStatus())));
+        summaryPanel.add(createBadge("MSSV", currentStudent.studentCode()));
+        summaryPanel.add(createBadge("Lớp", currentStudent.classRoomName()));
+        summaryPanel.add(createBadge("Khoa", currentStudent.facultyName()));
+        summaryPanel.add(createBadge("Trạng thái", currentStudent.statusText()));
         return summaryPanel;
     }
 
@@ -222,17 +217,13 @@ public class StudentProfilePanel extends BasePanel {
         );
 
         JPanel fieldsPanel = createFieldsPanel();
-        fieldsPanel.add(createReadOnlyField("Mã số sinh viên", DisplayTextUtil.defaultText(currentStudent.getStudentCode())));
+        fieldsPanel.add(createReadOnlyField("Mã số sinh viên", currentStudent.studentCode()));
         fieldsPanel.add(Box.createVerticalStrut(SECTION_GAP));
-        fieldsPanel.add(createReadOnlyField("Lớp học", currentStudent.getClassRoom() == null
-                ? "Chưa cập nhật"
-                : currentStudent.getClassRoom().getClassName()));
+        fieldsPanel.add(createReadOnlyField("Lớp học", currentStudent.classRoomName()));
         fieldsPanel.add(Box.createVerticalStrut(SECTION_GAP));
-        fieldsPanel.add(createReadOnlyField("Khoa / Viện", currentStudent.getFaculty() == null
-                ? "Chưa cập nhật"
-                : currentStudent.getFaculty().getFacultyName()));
+        fieldsPanel.add(createReadOnlyField("Khoa / Viện", currentStudent.facultyName()));
         fieldsPanel.add(Box.createVerticalStrut(SECTION_GAP));
-        fieldsPanel.add(createReadOnlyField("Khóa học", DisplayTextUtil.defaultText(currentStudent.getAcademicYear())));
+        fieldsPanel.add(createReadOnlyField("Khóa học", currentStudent.academicYear()));
 
         card.add(fieldsPanel, BorderLayout.CENTER);
         return card;
@@ -246,11 +237,11 @@ public class StudentProfilePanel extends BasePanel {
         );
 
         JPanel fieldsPanel = createFieldsPanel();
-        fieldsPanel.add(createReadOnlyField("Họ và tên", DisplayTextUtil.defaultText(currentStudent.getFullName())));
+        fieldsPanel.add(createReadOnlyField("Họ và tên", currentStudent.fullName()));
         fieldsPanel.add(Box.createVerticalStrut(SECTION_GAP));
-        fieldsPanel.add(createReadOnlyField("Giới tính", DisplayTextUtil.formatGender(currentStudent.getGender())));
+        fieldsPanel.add(createReadOnlyField("Giới tính", currentStudent.genderText()));
         fieldsPanel.add(Box.createVerticalStrut(SECTION_GAP));
-        fieldsPanel.add(createReadOnlyField("Ngày sinh", DisplayTextUtil.formatDate(currentStudent.getDateOfBirth())));
+        fieldsPanel.add(createReadOnlyField("Ngày sinh", currentStudent.dateOfBirthText()));
 
         card.add(fieldsPanel, BorderLayout.CENTER);
         return card;
@@ -269,9 +260,9 @@ public class StudentProfilePanel extends BasePanel {
         content.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         if (isEditing) {
-            emailField = createTextField(currentStudent.getEmail());
-            phoneField = createTextField(currentStudent.getPhone());
-            addressArea = createTextArea(currentStudent.getAddress());
+            emailField = createTextField(currentStudent.email());
+            phoneField = createTextField(currentStudent.phone());
+            addressArea = createTextArea(currentStudent.address());
 
             content.add(createInputField("Email liên lạc", emailField));
             content.add(Box.createVerticalStrut(SECTION_GAP));
@@ -298,11 +289,11 @@ public class StudentProfilePanel extends BasePanel {
             actionFooter.add(cancelButton);
             content.add(actionFooter);
         } else {
-            content.add(createReadOnlyField("Email liên lạc", DisplayTextUtil.defaultText(currentStudent.getEmail())));
+            content.add(createReadOnlyField("Email liên lạc", currentStudent.email()));
             content.add(Box.createVerticalStrut(SECTION_GAP));
-            content.add(createReadOnlyField("Số điện thoại", DisplayTextUtil.defaultText(currentStudent.getPhone())));
+            content.add(createReadOnlyField("Số điện thoại", currentStudent.phone()));
             content.add(Box.createVerticalStrut(SECTION_GAP));
-            content.add(createReadOnlyField("Địa chỉ thường trú", DisplayTextUtil.defaultText(currentStudent.getAddress())));
+            content.add(createReadOnlyField("Địa chỉ thường trú", currentStudent.address()));
         }
 
         card.add(content, BorderLayout.CENTER);
@@ -447,24 +438,16 @@ public class StudentProfilePanel extends BasePanel {
 
     private void handleSave() {
         try {
-            String email = ValidationUtil.requireEmail(emailField.getText().trim(), "Email");
-            String phone = ValidationUtil.requirePhone(phoneField.getText().trim(), "So dien thoai");
-            String address = normalizeAddress(addressArea.getText());
-
-            currentStudent = studentController.updateCurrentStudentContactInfo(email, phone, address);
+            currentStudent = screenController.updateCurrentStudentContactInfo(
+                    emailField.getText(),
+                    phoneField.getText(),
+                    addressArea.getText()
+            );
             DialogUtil.showInfo(this, "Cap nhat thong tin thanh cong.");
             reloadData();
         } catch (Exception exception) {
             DialogUtil.showError(this, exception.getMessage());
         }
-    }
-
-    private String normalizeAddress(String address) {
-        String normalizedAddress = address == null ? "" : address.trim();
-        if (normalizedAddress.length() > 255) {
-            throw new IllegalArgumentException("Dia chi khong duoc vuot qua 255 ky tu.");
-        }
-        return normalizedAddress;
     }
 
     private void styleFilledButton(JButton button, Color background) {

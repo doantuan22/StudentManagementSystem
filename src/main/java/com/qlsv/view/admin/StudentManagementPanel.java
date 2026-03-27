@@ -1,8 +1,8 @@
 package com.qlsv.view.admin;
 
-import com.qlsv.controller.ClassRoomController;
-import com.qlsv.controller.FacultyController;
-import com.qlsv.controller.StudentController;
+import com.qlsv.controller.DisplayField;
+import com.qlsv.controller.StudentManagementScreenController;
+import com.qlsv.dto.StudentDisplayDto;
 import com.qlsv.model.ClassRoom;
 import com.qlsv.model.Faculty;
 import com.qlsv.model.Student;
@@ -21,7 +21,6 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
-import java.time.LocalDate;
 import java.util.List;
 
 public class StudentManagementPanel extends AbstractCrudPanel<Student> {
@@ -32,9 +31,7 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
     private static final String FILTER_CLASS_ROOM = "Theo lớp";
     private static final String FILTER_ACADEMIC_YEAR = "Theo niên khóa";
 
-    private final StudentController studentController = new StudentController();
-    private final FacultyController facultyController = new FacultyController();
-    private final ClassRoomController classRoomController = new ClassRoomController();
+    private final StudentManagementScreenController screenController = new StudentManagementScreenController();
 
     private final JComboBox<String> filterTypeComboBox = new JComboBox<>(
             new String[]{FILTER_NONE, FILTER_ALL, FILTER_FACULTY, FILTER_CLASS_ROOM, FILTER_ACADEMIC_YEAR}
@@ -76,41 +73,47 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
 
     @Override
     protected List<Student> loadItems() {
-        if (!filterReady) {
-            return List.of();
-        }
-
-        String filterType = (String) filterTypeComboBox.getSelectedItem();
-        return switch (filterType == null ? FILTER_NONE : filterType) {
-            case FILTER_ALL -> studentController.getAllStudents();
-            case FILTER_FACULTY -> {
-                Faculty faculty = getSelectedFilterValue(Faculty.class);
-                yield faculty == null ? List.of() : studentController.getStudentsByFaculty(faculty.getId());
-            }
-            case FILTER_CLASS_ROOM -> {
-                ClassRoom classRoom = getSelectedFilterValue(ClassRoom.class);
-                yield classRoom == null ? List.of() : studentController.getStudentsByClassRoom(classRoom.getId());
-            }
-            case FILTER_ACADEMIC_YEAR -> {
-                String academicYear = getSelectedFilterValue(String.class);
-                yield academicYear == null ? List.of() : studentController.getStudentsByAcademicYear(academicYear);
-            }
-            default -> List.of();
-        };
+        return screenController.loadItems(
+                filterReady,
+                (String) filterTypeComboBox.getSelectedItem(),
+                getSelectedFilterValue(Object.class),
+                FILTER_ALL,
+                FILTER_FACULTY,
+                FILTER_CLASS_ROOM,
+                FILTER_ACADEMIC_YEAR
+        );
     }
 
     @Override
     protected Object[] toRow(Student item) {
+        StudentDisplayDto displayDto = screenController.toDisplayDto(item);
         return new Object[]{
-                item.getId(),
-                item.getStudentCode(),
-                item.getFullName(),
-                item.getEmail(),
-                item.getClassRoom() == null ? "" : item.getClassRoom().getClassName(),
-                item.getFaculty() == null ? "" : item.getFaculty().getFacultyName(),
-                item.getAcademicYear(),
-                DisplayTextUtil.formatStatus(item.getStatus())
+                displayDto.id(),
+                displayDto.studentCode(),
+                displayDto.fullName(),
+                displayDto.email(),
+                displayDto.classRoomName(),
+                displayDto.facultyName(),
+                displayDto.academicYear(),
+                displayDto.statusText()
         };
+    }
+
+    @Override
+    protected List<Student> performSearch(String keyword, List<Student> loadedItems) {
+        if (keyword == null || keyword.isBlank()) {
+            return loadedItems;
+        }
+        return screenController.searchItems(
+                filterReady,
+                (String) filterTypeComboBox.getSelectedItem(),
+                getSelectedFilterValue(Object.class),
+                FILTER_ALL,
+                FILTER_FACULTY,
+                FILTER_CLASS_ROOM,
+                FILTER_ACADEMIC_YEAR,
+                keyword
+        );
     }
 
     @Override
@@ -128,9 +131,9 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
         }
 
         Student displayStudent = selectedItem;
-        if (selectedItem.getId() != null) {
-            try {
-                displayStudent = studentController.getStudentById(selectedItem.getId());
+        try {
+            displayStudent = screenController.resolveSelection(selectedItem);
+            if (displayStudent != null) {
                 selectedItem.setEmail(displayStudent.getEmail());
                 selectedItem.setPhone(displayStudent.getPhone());
                 selectedItem.setAddress(displayStudent.getAddress());
@@ -139,25 +142,15 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
                 if (selectedRow >= 0) {
                     getTable().setValueAt(displayStudent.getEmail(), selectedRow, 3);
                 }
-            } catch (Exception ignored) {
-                displayStudent = selectedItem;
             }
+        } catch (Exception ignored) {
+            displayStudent = selectedItem;
         }
 
-        detailSectionPanel.showFields(new String[][]{
-                {"Mã sinh viên", DisplayTextUtil.defaultText(displayStudent.getStudentCode())},
-                {"Họ và tên", DisplayTextUtil.defaultText(displayStudent.getFullName())},
-                {"Giới tính", DisplayTextUtil.formatGender(displayStudent.getGender())},
-                {"Ngày sinh", DisplayTextUtil.formatDate(displayStudent.getDateOfBirth())},
-                {"Số điện thoại", DisplayTextUtil.defaultText(displayStudent.getPhone())},
-                {"Email", DisplayTextUtil.defaultText(displayStudent.getEmail())},
-                {"Khoa", displayStudent.getFaculty() == null ? "Chưa cập nhật" : DisplayTextUtil.defaultText(displayStudent.getFaculty().getFacultyName())},
-                {"Lớp", displayStudent.getClassRoom() == null ? "Chưa cập nhật" : DisplayTextUtil.defaultText(displayStudent.getClassRoom().getClassName())},
-                {"Niên khóa", DisplayTextUtil.defaultText(displayStudent.getAcademicYear())},
-                {"Trạng thái", DisplayTextUtil.formatStatus(displayStudent.getStatus())},
-                {"Địa chỉ", DisplayTextUtil.defaultText(displayStudent.getAddress())},
-                {"ID người dùng", DisplayTextUtil.formatUserReference(displayStudent.getUserId())}
-        });
+        List<DisplayField> detailFields = screenController.buildDetailFields(displayStudent);
+        detailSectionPanel.showFields(detailFields.stream()
+                .map(field -> new String[]{field.label(), field.value()})
+                .toArray(String[][]::new));
     }
 
     @Override
@@ -171,14 +164,14 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
         JTextField addressField = new JTextField(existingItem == null ? "" : existingItem.getAddress());
         JTextField academicYearField = new JTextField(existingItem == null ? "" : existingItem.getAcademicYear());
 
-        JComboBox<Faculty> facultyComboBox = new JComboBox<>(facultyController.getFacultiesForSelection().toArray(new Faculty[0]));
+        JComboBox<Faculty> facultyComboBox = new JComboBox<>(screenController.loadFaculties().toArray(new Faculty[0]));
         JComboBox<ClassRoom> classRoomComboBox = new JComboBox<>();
         JComboBox<FilterOption<String>> statusComboBox = new JComboBox<>(new DefaultComboBoxModel<>(new FilterOption[]{
                 new FilterOption<>("Đang hoạt động", "ACTIVE"),
                 new FilterOption<>("Ngừng hoạt động", "INACTIVE")
         }));
 
-        List<ClassRoom> allClassRooms = classRoomController.getClassRoomsForSelection();
+        List<ClassRoom> allClassRooms = screenController.loadClassRooms();
 
         if (existingItem != null) {
             genderComboBox.setSelectedItem(DisplayTextUtil.formatGender(existingItem.getGender()));
@@ -237,30 +230,33 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
             return null;
         }
 
-        Student student = existingItem == null ? new Student() : existingItem;
-        student.setStudentCode(codeField.getText().trim());
-        student.setFullName(nameField.getText().trim());
-        student.setGender((String) genderComboBox.getSelectedItem());
-        student.setDateOfBirth(birthField.getText().isBlank() ? null : LocalDate.parse(birthField.getText().trim()));
-        student.setEmail(emailField.getText().trim());
-        student.setPhone(phoneField.getText().trim());
-        student.setAddress(addressField.getText().trim());
-        student.setFaculty((Faculty) facultyComboBox.getSelectedItem());
-        student.setClassRoom((ClassRoom) classRoomComboBox.getSelectedItem());
-        student.setAcademicYear(academicYearField.getText().trim());
         FilterOption<String> selectedStatus = (FilterOption<String>) statusComboBox.getSelectedItem();
-        student.setStatus(selectedStatus == null ? "ACTIVE" : selectedStatus.value());
-        return student;
+        return screenController.applyFormData(
+                existingItem,
+                new StudentManagementScreenController.StudentFormData(
+                        codeField.getText(),
+                        nameField.getText(),
+                        (String) genderComboBox.getSelectedItem(),
+                        birthField.getText(),
+                        emailField.getText(),
+                        phoneField.getText(),
+                        addressField.getText(),
+                        (Faculty) facultyComboBox.getSelectedItem(),
+                        (ClassRoom) classRoomComboBox.getSelectedItem(),
+                        academicYearField.getText(),
+                        selectedStatus == null ? "ACTIVE" : selectedStatus.value()
+                )
+        );
     }
 
     @Override
     protected void saveEntity(Student item) {
-        studentController.saveStudent(item);
+        screenController.saveStudent(item);
     }
 
     @Override
     protected void deleteEntity(Student item) {
-        studentController.deleteStudent(item.getId());
+        screenController.deleteStudent(item);
     }
 
     private JPanel buildFilterPanel() {
@@ -300,17 +296,17 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
 
         if (FILTER_FACULTY.equals(filterType)) {
             filterValueComboBox.addItem(new FilterOption<>("Chọn khoa", null));
-            for (Faculty faculty : facultyController.getFacultiesForSelection()) {
+            for (Faculty faculty : screenController.loadFaculties()) {
                 filterValueComboBox.addItem(new FilterOption<>(faculty.getFacultyCode() + " - " + faculty.getFacultyName(), faculty));
             }
         } else if (FILTER_CLASS_ROOM.equals(filterType)) {
             filterValueComboBox.addItem(new FilterOption<>("Chọn lớp", null));
-            for (ClassRoom classRoom : classRoomController.getClassRoomsForSelection()) {
+            for (ClassRoom classRoom : screenController.loadClassRooms()) {
                 filterValueComboBox.addItem(new FilterOption<>(classRoom.getClassCode() + " - " + classRoom.getClassName(), classRoom));
             }
         } else if (FILTER_ACADEMIC_YEAR.equals(filterType)) {
             filterValueComboBox.addItem(new FilterOption<>("Chọn niên khóa", null));
-            for (String academicYear : studentController.getAcademicYearsForSelection()) {
+            for (String academicYear : screenController.loadAcademicYears()) {
                 filterValueComboBox.addItem(new FilterOption<>(academicYear, academicYear));
             }
         }
@@ -348,14 +344,8 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
             ClassRoom preferredClassRoom
     ) {
         classRoomComboBox.removeAllItems();
-        for (ClassRoom classRoom : allClassRooms) {
-            if (selectedFaculty == null
-                    || selectedFaculty.getId() == null
-                    || classRoom.getFaculty() == null
-                    || classRoom.getFaculty().getId() == null
-                    || selectedFaculty.getId().equals(classRoom.getFaculty().getId())) {
-                classRoomComboBox.addItem(classRoom);
-            }
+        for (ClassRoom classRoom : screenController.filterClassRooms(allClassRooms, selectedFaculty)) {
+            classRoomComboBox.addItem(classRoom);
         }
         if (preferredClassRoom != null) {
             classRoomComboBox.setSelectedItem(preferredClassRoom);

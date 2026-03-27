@@ -1,22 +1,64 @@
 package com.qlsv.model;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+
 import java.time.LocalDate;
 import java.util.Objects;
 
+@Entity
+@Table(name = "students")
 public class Student {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Long userId;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", unique = true)
+    private User user;
+
+    @Column(name = "student_code", nullable = false, unique = true, length = 50)
     private String studentCode;
+
+    @Column(name = "full_name", nullable = false, length = 150)
     private String fullName;
+
+    @Column(name = "gender", length = 20)
     private String gender;
+
+    @Column(name = "date_of_birth")
     private LocalDate dateOfBirth;
+
+    @Column(name = "email", length = 150)
     private String email;
+
+    @Column(name = "phone", length = 30)
     private String phone;
+
+    @Column(name = "address", length = 255)
     private String address;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "faculty_id", nullable = false)
     private Faculty faculty;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "class_room_id", nullable = false)
     private ClassRoom classRoom;
+
+    @Column(name = "academic_year", nullable = false, length = 50)
     private String academicYear;
+
+    @Column(name = "status", nullable = false, length = 30)
     private String status;
 
     public Student() {
@@ -25,7 +67,7 @@ public class Student {
     public Student(Long id, Long userId, String studentCode, String fullName, String gender, LocalDate dateOfBirth,
                    String email, String phone, String address, Faculty faculty, ClassRoom classRoom, String academicYear, String status) {
         this.id = id;
-        this.userId = userId;
+        setUserId(userId);
         this.studentCode = studentCode;
         this.fullName = fullName;
         this.gender = gender;
@@ -48,11 +90,26 @@ public class Student {
     }
 
     public Long getUserId() {
-        return userId;
+        return user == null ? null : user.getId();
     }
 
     public void setUserId(Long userId) {
-        this.userId = userId;
+        if (userId == null) {
+            this.user = null;
+            return;
+        }
+        if (this.user == null) {
+            this.user = new User();
+        }
+        this.user.setId(userId);
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 
     public String getStudentCode() {

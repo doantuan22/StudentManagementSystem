@@ -1,5 +1,6 @@
 package com.qlsv.service;
 
+import com.qlsv.config.JpaBootstrap;
 import com.qlsv.dao.ClassRoomDAO;
 import com.qlsv.model.ClassRoom;
 import com.qlsv.security.RolePermission;
@@ -23,29 +24,32 @@ public class ClassRoomService {
     }
 
     public List<ClassRoom> findByFacultyId(Long facultyId) {
-        return findAll().stream()
-                .filter(classRoom -> classRoom.getFaculty() != null
-                        && classRoom.getFaculty().getId() != null
-                        && classRoom.getFaculty().getId().equals(facultyId))
-                .toList();
+        permissionService.requirePermission(RolePermission.MANAGE_CLASSES);
+        return classRoomDAO.findByFacultyId(facultyId);
     }
 
     public List<ClassRoom> findByAcademicYear(String academicYear) {
-        return findAll().stream()
-                .filter(classRoom -> classRoom.getAcademicYear() != null
-                        && classRoom.getAcademicYear().equalsIgnoreCase(academicYear == null ? "" : academicYear.trim()))
-                .toList();
+        permissionService.requirePermission(RolePermission.MANAGE_CLASSES);
+        return classRoomDAO.findByAcademicYear(academicYear);
     }
 
     public ClassRoom save(ClassRoom classRoom) {
         permissionService.requirePermission(RolePermission.MANAGE_CLASSES);
-        validate(classRoom);
-        return classRoom.getId() == null ? classRoomDAO.insert(classRoom) : updateAndReturn(classRoom);
+        return JpaBootstrap.executeInTransaction(
+                "KhÃ´ng thá»ƒ lÆ°u lá»›p há»c.",
+                ignored -> {
+                    validate(classRoom);
+                    return classRoom.getId() == null ? classRoomDAO.insert(classRoom) : updateAndReturn(classRoom);
+                }
+        );
     }
 
     public boolean delete(Long id) {
         permissionService.requirePermission(RolePermission.MANAGE_CLASSES);
-        return classRoomDAO.delete(id);
+        return JpaBootstrap.executeInTransaction(
+                "KhÃ´ng thá»ƒ xÃ³a lá»›p há»c.",
+                ignored -> classRoomDAO.delete(id)
+        );
     }
 
     private ClassRoom updateAndReturn(ClassRoom classRoom) {
@@ -54,11 +58,11 @@ public class ClassRoomService {
     }
 
     private void validate(ClassRoom classRoom) {
-        ValidationUtil.requireWithinLength(classRoom.getClassCode(), 50, "Mã lớp");
-        ValidationUtil.requireNotBlank(classRoom.getClassName(), "Tên lớp không được để trống.");
-        ValidationUtil.requireNotBlank(classRoom.getAcademicYear(), "Niên khóa không được để trống.");
+        ValidationUtil.requireWithinLength(classRoom.getClassCode(), 50, "MÃ£ lá»›p");
+        ValidationUtil.requireNotBlank(classRoom.getClassName(), "TÃªn lá»›p khÃ´ng Ä‘Æ°á»£c Ä‘á»ƒ trá»‘ng.");
+        ValidationUtil.requireNotBlank(classRoom.getAcademicYear(), "NiÃªn khÃ³a khÃ´ng Ä‘Æ°á»£c Ä‘á»ƒ trá»‘ng.");
         if (classRoom.getFaculty() == null || classRoom.getFaculty().getId() == null) {
-            throw new IllegalArgumentException("Lớp học phải thuộc một khoa.");
+            throw new IllegalArgumentException("Lá»›p há»c pháº£i thuá»™c má»™t khoa.");
         }
     }
 }

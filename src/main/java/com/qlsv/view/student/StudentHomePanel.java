@@ -1,14 +1,9 @@
 package com.qlsv.view.student;
 
-import com.qlsv.controller.EnrollmentController;
-import com.qlsv.controller.ScheduleController;
-import com.qlsv.controller.ScoreController;
-import com.qlsv.controller.StudentController;
-import com.qlsv.model.Enrollment;
-import com.qlsv.model.Schedule;
-import com.qlsv.model.Score;
-import com.qlsv.model.Student;
-import com.qlsv.utils.DisplayTextUtil;
+import com.qlsv.controller.DisplayField;
+import com.qlsv.controller.StudentHomeScreenController;
+import com.qlsv.dto.ScheduleDisplayDto;
+import com.qlsv.dto.StudentHomeDto;
 import com.qlsv.utils.DialogUtil;
 import com.qlsv.view.common.AppColors;
 import com.qlsv.view.common.BasePanel;
@@ -23,18 +18,13 @@ import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.table.DefaultTableModel;
 import java.awt.BorderLayout;
-import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
-import java.util.Comparator;
 import java.util.List;
 
 public class StudentHomePanel extends BasePanel {
 
-    private final StudentController studentController = new StudentController();
-    private final EnrollmentController enrollmentController = new EnrollmentController();
-    private final ScoreController scoreController = new ScoreController();
-    private final ScheduleController scheduleController = new ScheduleController();
+    private final StudentHomeScreenController screenController = new StudentHomeScreenController();
 
     private final JLabel subtitleLabel = new JLabel();
     private final DashboardCard enrollmentCard = new DashboardCard("Số học phần đã đăng ký", AppColors.STAT_CARD_ENROLLMENTS);
@@ -136,73 +126,46 @@ public class StudentHomePanel extends BasePanel {
 
     public void reloadData() {
         try {
-            Student student = studentController.getCurrentStudent();
-            List<Enrollment> enrollments = enrollmentController.getCurrentStudentEnrollments();
-            List<Score> scores = scoreController.getCurrentStudentScores();
-            List<Schedule> schedules = scheduleController.getCurrentStudentSchedules();
-
-            subtitleLabel.setText(
-                    "Xin chào " + DisplayTextUtil.defaultText(student.getFullName())
-                            + " | Mã sinh viên: " + DisplayTextUtil.defaultText(student.getStudentCode())
-            );
-
-            enrollmentCard.setValue(String.valueOf(enrollments.size()));
-            creditCard.setValue(String.valueOf(calculateTotalCredits(enrollments)));
-            scoreCard.setValue(formatAverageScore(scores));
-            scheduleCard.setValue(String.valueOf(schedules.size()));
-
-            updateInfoPanel(student);
-            updateScheduleTable(schedules);
-            updateScoreSummary(scores);
+            StudentHomeDto homeData = screenController.loadHomeData();
+            subtitleLabel.setText(homeData.subtitle());
+            enrollmentCard.setValue(homeData.enrollmentCount());
+            creditCard.setValue(homeData.totalCredits());
+            scoreCard.setValue(homeData.averageScore());
+            scheduleCard.setValue(homeData.scheduleCount());
+            updateInfoPanel(homeData.infoFields());
+            updateScheduleTable(homeData.scheduleRows());
+            scoreSummaryTextArea.setText(homeData.scoreSummary());
         } catch (Exception exception) {
             DialogUtil.showError(this, exception.getMessage());
         }
     }
 
-    private void updateInfoPanel(Student student) {
+    private void updateInfoPanel(List<DisplayField> infoFields) {
         infoFieldsPanel.removeAll();
-        addField(infoFieldsPanel, "Họ và tên", DisplayTextUtil.defaultText(student.getFullName()));
-        addField(infoFieldsPanel, "Mã sinh viên", DisplayTextUtil.defaultText(student.getStudentCode()));
-        addField(infoFieldsPanel, "Lớp", student.getClassRoom() == null ? "Chưa cập nhật" : student.getClassRoom().getClassName());
-        addField(infoFieldsPanel, "Khoa", student.getFaculty() == null ? "Chưa cập nhật" : student.getFaculty().getFacultyName());
-        addField(infoFieldsPanel, "Niên khóa", DisplayTextUtil.defaultText(student.getAcademicYear()));
-        addField(infoFieldsPanel, "Trạng thái", DisplayTextUtil.formatStatus(student.getStatus()));
+        for (DisplayField field : infoFields) {
+            addField(infoFieldsPanel, field.label(), field.value());
+        }
         infoFieldsPanel.revalidate();
         infoFieldsPanel.repaint();
     }
 
     private void addField(JPanel panel, String label, String value) {
-        JLabel l = new JLabel(label);
-        l.setFont(l.getFont().deriveFont(Font.BOLD, 12f));
-        panel.add(l);
+        JLabel labelComponent = new JLabel(label);
+        labelComponent.setFont(labelComponent.getFont().deriveFont(Font.BOLD, 12f));
+        panel.add(labelComponent);
         panel.add(new JLabel(value));
     }
 
-    private void updateScheduleTable(List<Schedule> schedules) {
+    private void updateScheduleTable(List<ScheduleDisplayDto> scheduleRows) {
         scheduleTableModel.setRowCount(0);
-        schedules.stream()
-                .sorted(Comparator.comparing(Schedule::getDayOfWeek, Comparator.nullsLast(String::compareTo))
-                        .thenComparing(Schedule::getStartPeriod, Comparator.nullsLast(Integer::compareTo)))
-                .limit(5)
-                .forEach(schedule -> scheduleTableModel.addRow(new Object[]{
-                        schedule.getCourseSection() == null ? "" : schedule.getCourseSection().getSectionCode(),
-                        DisplayTextUtil.defaultText(schedule.getDayOfWeek()),
-                        DisplayTextUtil.formatPeriod(schedule.getStartPeriod(), schedule.getEndPeriod()),
-                        schedule.getRoom() == null ? "Chưa cập nhật" : schedule.getRoom().getRoomName()
-                }));
-    }
-
-    private void updateScoreSummary(List<Score> scores) {
-        long passCount = scores.stream().filter(score -> "PASS".equalsIgnoreCase(score.getResult())).count();
-        long failCount = scores.stream().filter(score -> "FAIL".equalsIgnoreCase(score.getResult())).count();
-
-        scoreSummaryTextArea.setText(
-                "- Tổng số môn đã có điểm: " + scores.size() + "\n"
-                        + "- Số môn đạt: " + passCount + "\n"
-                        + "- Số môn chưa đạt: " + failCount + "\n"
-                        + "- Điểm trung bình hiện tại: " + formatAverageScore(scores) + "\n"
-                        + "- Gợi ý: theo dõi kỹ các học phần có điểm tổng kết thấp để chủ động cải thiện kết quả học tập."
-        );
+        for (ScheduleDisplayDto scheduleRow : scheduleRows) {
+            scheduleTableModel.addRow(new Object[]{
+                    scheduleRow.sectionCode(),
+                    scheduleRow.dayOfWeek(),
+                    scheduleRow.periodText(),
+                    scheduleRow.roomName()
+            });
+        }
     }
 
     private JPanel wrapWithTitle(String title, JPanel content) {
@@ -221,32 +184,5 @@ public class StudentHomePanel extends BasePanel {
         wrapper.add(titleLabel, BorderLayout.NORTH);
         wrapper.add(content, BorderLayout.CENTER);
         return wrapper;
-    }
-
-    private int calculateTotalCredits(List<Enrollment> enrollments) {
-        int total = 0;
-        for (Enrollment enrollment : enrollments) {
-            if (enrollment.getCourseSection() != null
-                    && enrollment.getCourseSection().getSubject() != null
-                    && enrollment.getCourseSection().getSubject().getCredits() != null) {
-                total += enrollment.getCourseSection().getSubject().getCredits();
-            }
-        }
-        return total;
-    }
-
-    private String formatAverageScore(List<Score> scores) {
-        double sum = 0;
-        int count = 0;
-        for (Score score : scores) {
-            if (score.getTotalScore() != null) {
-                sum += score.getTotalScore();
-                count++;
-            }
-        }
-        if (count == 0) {
-            return "Chưa có";
-        }
-        return String.format("%.2f", sum / count);
     }
 }

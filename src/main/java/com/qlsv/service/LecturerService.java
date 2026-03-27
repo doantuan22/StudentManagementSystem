@@ -1,10 +1,9 @@
 package com.qlsv.service;
 
-import com.qlsv.config.DBConnection;
+import com.qlsv.config.JpaBootstrap;
 import com.qlsv.config.SessionManager;
 import com.qlsv.dao.LecturerDAO;
 import com.qlsv.dao.UserDAO;
-import com.qlsv.exception.AppException;
 import com.qlsv.exception.ValidationException;
 import com.qlsv.model.Lecturer;
 import com.qlsv.model.Role;
@@ -13,8 +12,6 @@ import com.qlsv.security.PasswordHasher;
 import com.qlsv.security.RolePermission;
 import com.qlsv.utils.ValidationUtil;
 
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.List;
 
 public class LecturerService {
@@ -34,17 +31,14 @@ public class LecturerService {
     }
 
     public List<Lecturer> findByFacultyId(Long facultyId) {
-        return findAll().stream()
-                .filter(lecturer -> lecturer.getFaculty() != null
-                        && lecturer.getFaculty().getId() != null
-                        && lecturer.getFaculty().getId().equals(facultyId))
-                .toList();
+        permissionService.requirePermission(RolePermission.MANAGE_LECTURERS);
+        return lecturerDAO.findByFacultyId(facultyId);
     }
 
     public Lecturer findCurrentLecturer() {
         permissionService.requirePermission(RolePermission.VIEW_OWN_PROFILE);
         return lecturerDAO.findByUserId(SessionManager.requireCurrentUser().getId())
-                .orElseThrow(() -> new ValidationException("Không tìm thấy hồ sơ giảng viên của tài khoản đang đăng nhập."));
+                .orElseThrow(() -> new ValidationException("KhÃ´ng tÃ¬m tháº¥y há»“ sÆ¡ giáº£ng viÃªn cá»§a tÃ i khoáº£n Ä‘ang Ä‘Äƒng nháº­p."));
     }
 
     public Lecturer save(Lecturer lecturer) {
@@ -54,7 +48,7 @@ public class LecturerService {
             } else if (permissionService.hasPermission(RolePermission.EDIT_OWN_PROFILE)) {
                 Lecturer current = findCurrentLecturer();
                 if (!current.getId().equals(lecturer.getId())) {
-                    throw new ValidationException("Bạn không thể chỉnh sửa hồ sơ của người khác.");
+                    throw new ValidationException("Báº¡n khÃ´ng thá»ƒ chá»‰nh sá»­a há»“ sÆ¡ cá»§a ngÆ°á»i khÃ¡c.");
                 }
             } else {
                 permissionService.requirePermission(RolePermission.MANAGE_LECTURERS);
@@ -64,54 +58,57 @@ public class LecturerService {
         }
 
         validate(lecturer);
-        return lecturer.getId() == null ? lecturerDAO.insert(lecturer) : updateAndReturn(lecturer);
+
+        Long lecturerId = JpaBootstrap.executeInTransaction(
+                "Lá»—i khi lÆ°u giáº£ng viÃªn vÃ  Ä‘á»“ng bá»™ tÃ i khoáº£n báº±ng JPA.",
+                ignored -> {
+                    boolean isNew = lecturer.getId() == null;
+                    if (!isNew && lecturerDAO.findById(lecturer.getId()).isEmpty()) {
+                        throw new ValidationException("KhÃ´ng tÃ¬m tháº¥y giáº£ng viÃªn Ä‘á»ƒ cáº­p nháº­t.");
+                    }
+
+                    ensureLinkedUser(lecturer);
+                    if (isNew) {
+                        lecturerDAO.insert(lecturer);
+                    } else {
+                        lecturerDAO.update(lecturer);
+                    }
+                    syncLinkedUser(lecturer);
+                    return lecturer.getId();
+                }
+        );
+
+        Lecturer persistedLecturer = lecturerDAO.findById(lecturerId)
+                .orElseThrow(() -> new ValidationException("KhÃ´ng thá»ƒ táº£i láº¡i giáº£ng viÃªn sau khi lÆ°u."));
+
+        if (SessionManager.isLoggedIn()
+                && persistedLecturer.getUserId() != null
+                && persistedLecturer.getUserId().equals(SessionManager.requireCurrentUser().getId())) {
+            SessionManager.requireCurrentUser().setFullName(persistedLecturer.getFullName());
+            SessionManager.requireCurrentUser().setEmail(persistedLecturer.getEmail());
+        }
+        return persistedLecturer;
     }
 
     public boolean delete(Long id) {
         permissionService.requirePermission(RolePermission.MANAGE_LECTURERS);
-        return lecturerDAO.delete(id);
-    }
-
-    private Lecturer updateAndReturn(Lecturer lecturer) {
-        try (Connection connection = DBConnection.getConnection()) {
-            connection.setAutoCommit(false);
-            try {
-                ensureLinkedUser(connection, lecturer);
-                lecturerDAO.update(connection, lecturer);
-
-                if (lecturer.getUserId() != null) {
-                    userDAO.updateFullName(connection, lecturer.getUserId(), lecturer.getFullName());
-                    userDAO.updateEmail(connection, lecturer.getUserId(), lecturer.getEmail());
-                }
-
-                connection.commit();
-                if (SessionManager.isLoggedIn()
-                        && lecturer.getUserId() != null
-                        && lecturer.getUserId().equals(SessionManager.requireCurrentUser().getId())) {
-                    SessionManager.requireCurrentUser().setFullName(lecturer.getFullName());
-                    SessionManager.requireCurrentUser().setEmail(lecturer.getEmail());
-                }
-                return lecturer;
-            } catch (SQLException exception) {
-                connection.rollback();
-                throw new AppException("Lỗi khi cập nhật giảng viên và đồng bộ tài khoản.", exception);
-            }
-        } catch (SQLException exception) {
-            throw new AppException("Lỗi kết nối database khi cập nhật giảng viên.", exception);
-        }
+        return JpaBootstrap.executeInTransaction(
+                "KhÃ´ng thá»ƒ xÃ³a giáº£ng viÃªn.",
+                ignored -> lecturerDAO.delete(id)
+        );
     }
 
     private void validate(Lecturer lecturer) {
-        ValidationUtil.requireWithinLength(lecturer.getLecturerCode(), 50, "Mã giảng viên");
-        ValidationUtil.requireNotBlank(lecturer.getFullName(), "Họ tên giảng viên không được để trống.");
-        ValidationUtil.requireEmail(lecturer.getEmail(), "Email giảng viên");
-        ValidationUtil.requirePhone(lecturer.getPhone(), "Số điện thoại giảng viên");
+        ValidationUtil.requireWithinLength(lecturer.getLecturerCode(), 50, "MÃ£ giáº£ng viÃªn");
+        ValidationUtil.requireNotBlank(lecturer.getFullName(), "Há» tÃªn giáº£ng viÃªn khÃ´ng Ä‘Æ°á»£c Ä‘á»ƒ trá»‘ng.");
+        ValidationUtil.requireEmail(lecturer.getEmail(), "Email giáº£ng viÃªn");
+        ValidationUtil.requirePhone(lecturer.getPhone(), "Sá»‘ Ä‘iá»‡n thoáº¡i giáº£ng viÃªn");
         if (lecturer.getFaculty() == null || lecturer.getFaculty().getId() == null) {
-            throw new ValidationException("Giảng viên phải thuộc một khoa.");
+            throw new ValidationException("Giáº£ng viÃªn pháº£i thuá»™c má»™t khoa.");
         }
     }
 
-    private void ensureLinkedUser(Connection connection, Lecturer lecturer) throws SQLException {
+    private void ensureLinkedUser(Lecturer lecturer) {
         if (lecturer.getUserId() != null) {
             return;
         }
@@ -124,7 +121,7 @@ public class LecturerService {
         User existingUser = userDAO.findByUsername(username).orElse(null);
         if (existingUser != null) {
             if (existingUser.getRole() != Role.LECTURER) {
-                throw new ValidationException("Ma giang vien dang trung voi tai khoan khong phai giang vien.");
+                throw new ValidationException("MÃ£ giáº£ng viÃªn Ä‘ang trÃ¹ng vá»›i tÃ i khoáº£n khÃ´ng pháº£i giáº£ng viÃªn.");
             }
             lecturer.setUserId(existingUser.getId());
             return;
@@ -137,7 +134,15 @@ public class LecturerService {
         user.setEmail(lecturer.getEmail());
         user.setRole(Role.LECTURER);
         user.setActive(true);
-        userDAO.insert(connection, user);
+        userDAO.insert(user);
         lecturer.setUserId(user.getId());
+    }
+
+    private void syncLinkedUser(Lecturer lecturer) {
+        if (lecturer.getUserId() == null) {
+            return;
+        }
+        userDAO.updateFullName(lecturer.getUserId(), lecturer.getFullName());
+        userDAO.updateEmail(lecturer.getUserId(), lecturer.getEmail());
     }
 }

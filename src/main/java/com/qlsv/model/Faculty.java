@@ -1,12 +1,29 @@
 package com.qlsv.model;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
 import java.util.Objects;
 
+@Entity
+@Table(name = "faculties")
 public class Faculty {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "faculty_code", nullable = false, unique = true, length = 50)
     private String facultyCode;
+
+    @Column(name = "faculty_name", nullable = false, length = 150)
     private String facultyName;
+
+    @Column(name = "description", length = 255)
     private String description;
 
     public Faculty() {

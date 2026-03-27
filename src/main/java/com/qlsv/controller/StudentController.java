@@ -33,6 +33,10 @@ public class StudentController {
         return studentService.findAcademicYears();
     }
 
+    public List<Student> searchStudents(String keyword, Long facultyId, Long classRoomId, String academicYear) {
+        return studentService.searchStudents(keyword, facultyId, classRoomId, academicYear);
+    }
+
     public Student getCurrentStudent() {
         return studentService.findCurrentStudent();
     }

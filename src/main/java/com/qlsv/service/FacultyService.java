@@ -1,5 +1,6 @@
 package com.qlsv.service;
 
+import com.qlsv.config.JpaBootstrap;
 import com.qlsv.dao.FacultyDAO;
 import com.qlsv.model.Faculty;
 import com.qlsv.security.RolePermission;
@@ -23,21 +24,29 @@ public class FacultyService {
     }
 
     public List<Faculty> findByCode(String facultyCode) {
-        return findAll().stream()
-                .filter(faculty -> faculty.getFacultyCode() != null
-                        && faculty.getFacultyCode().equalsIgnoreCase(facultyCode == null ? "" : facultyCode.trim()))
-                .toList();
+        permissionService.requirePermission(RolePermission.MANAGE_FACULTIES);
+        return facultyDAO.findByCode(facultyCode)
+                .map(List::of)
+                .orElseGet(List::of);
     }
 
     public Faculty save(Faculty faculty) {
         permissionService.requirePermission(RolePermission.MANAGE_FACULTIES);
-        validate(faculty);
-        return faculty.getId() == null ? facultyDAO.insert(faculty) : updateAndReturn(faculty);
+        return JpaBootstrap.executeInTransaction(
+                "KhÃ´ng thá»ƒ lÆ°u khoa.",
+                ignored -> {
+                    validate(faculty);
+                    return faculty.getId() == null ? facultyDAO.insert(faculty) : updateAndReturn(faculty);
+                }
+        );
     }
 
     public boolean delete(Long id) {
         permissionService.requirePermission(RolePermission.MANAGE_FACULTIES);
-        return facultyDAO.delete(id);
+        return JpaBootstrap.executeInTransaction(
+                "KhÃ´ng thá»ƒ xÃ³a khoa.",
+                ignored -> facultyDAO.delete(id)
+        );
     }
 
     private Faculty updateAndReturn(Faculty faculty) {
@@ -46,7 +55,7 @@ public class FacultyService {
     }
 
     private void validate(Faculty faculty) {
-        ValidationUtil.requireWithinLength(faculty.getFacultyCode(), 50, "Mã khoa");
-        ValidationUtil.requireNotBlank(faculty.getFacultyName(), "Tên khoa không được để trống.");
+        ValidationUtil.requireWithinLength(faculty.getFacultyCode(), 50, "MÃ£ khoa");
+        ValidationUtil.requireNotBlank(faculty.getFacultyName(), "TÃªn khoa khÃ´ng Ä‘Æ°á»£c Ä‘á»ƒ trá»‘ng.");
     }
 }

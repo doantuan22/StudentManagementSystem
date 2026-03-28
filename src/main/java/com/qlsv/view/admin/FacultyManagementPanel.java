@@ -2,9 +2,7 @@ package com.qlsv.view.admin;
 
 import com.qlsv.controller.FacultyController;
 import com.qlsv.model.Faculty;
-import com.qlsv.utils.DisplayTextUtil;
 import com.qlsv.view.common.AbstractCrudPanel;
-import com.qlsv.view.common.DetailSectionPanel;
 import com.qlsv.view.common.FilterOption;
 import com.qlsv.view.dialog.FacultyFormDialog;
 
@@ -25,17 +23,12 @@ public class FacultyManagementPanel extends AbstractCrudPanel<Faculty> {
     private final FacultyController facultyController = new FacultyController();
     private final JComboBox<String> filterTypeComboBox = new JComboBox<>(new String[]{FILTER_NONE, FILTER_ALL, FILTER_CODE});
     private final JComboBox<FilterOption<?>> filterValueComboBox = new JComboBox<>();
-    private final DetailSectionPanel detailSectionPanel = new DetailSectionPanel(
-            "Chi tiết khoa",
-            "Vui lòng chọn khoa để xem chi tiết."
-    );
 
     private boolean filterReady;
 
     public FacultyManagementPanel() {
         super("Quản lý khoa");
         setFilterPanel(buildFilterPanel());
-        setDetailPanel(detailSectionPanel);
         reloadFilterValues();
         refreshData();
     }
@@ -70,19 +63,6 @@ public class FacultyManagementPanel extends AbstractCrudPanel<Faculty> {
         return filterReady
                 ? "Không tìm thấy khoa phù hợp với điều kiện lọc hiện tại."
                 : "Vui lòng chọn điều kiện lọc để hiển thị danh sách khoa.";
-    }
-
-    @Override
-    protected void onSelectionChanged(Faculty selectedItem) {
-        if (selectedItem == null) {
-            detailSectionPanel.showMessage("Vui lòng chọn khoa để xem chi tiết.");
-            return;
-        }
-        detailSectionPanel.showFields(new String[][]{
-                {"Mã khoa", DisplayTextUtil.defaultText(selectedItem.getFacultyCode())},
-                {"Tên khoa", DisplayTextUtil.defaultText(selectedItem.getFacultyName())},
-                {"Mô tả", DisplayTextUtil.defaultText(selectedItem.getDescription())}
-        });
     }
 
     @Override

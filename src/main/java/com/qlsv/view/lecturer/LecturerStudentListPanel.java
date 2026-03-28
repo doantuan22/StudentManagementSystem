@@ -13,6 +13,7 @@ import com.qlsv.utils.PDFExportUtil;
 import com.qlsv.view.common.AppColors;
 import com.qlsv.view.common.BasePanel;
 import com.qlsv.view.common.DetailSectionPanel;
+import com.qlsv.view.dialog.LecturerStudentDetailDialog;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -21,7 +22,6 @@ import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.table.DefaultTableModel;
@@ -31,6 +31,8 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -54,6 +56,7 @@ public class LecturerStudentListPanel extends BasePanel {
     private final JTable table = new ResponsiveTable(tableModel);
     private final JComboBox<Object> courseComboBox = new JComboBox<>();
     private final List<Enrollment> allEnrollments = new ArrayList<>();
+    private LecturerStudentDetailDialog detailDialog;
     private final DetailSectionPanel detailSectionPanel = new DetailSectionPanel(
             "Chi tiết sinh viên",
             "Chọn một sinh viên từ danh sách để xem chi tiết."
@@ -65,7 +68,15 @@ public class LecturerStudentListPanel extends BasePanel {
 
         table.getSelectionModel().addListSelectionListener(event -> {
             if (!event.getValueIsAdjusting()) {
-                updateDetailPanel();
+                handleTableSelectionChanged();
+            }
+        });
+        table.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent event) {
+                if (event.getClickCount() == 2 && table.getSelectedRow() >= 0) {
+                    showDetailDialog();
+                }
             }
         });
 
@@ -131,26 +142,25 @@ public class LecturerStudentListPanel extends BasePanel {
         tablePanel.add(tableHeadingPanel, BorderLayout.NORTH);
         tablePanel.add(tableScrollPane, BorderLayout.CENTER);
 
-        JScrollPane detailScrollPane = new JScrollPane(detailSectionPanel);
-        detailScrollPane.setBorder(BorderFactory.createLineBorder(AppColors.CARD_BORDER));
-        detailScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        detailScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        detailScrollPane.getVerticalScrollBar().setUnitIncrement(16);
-        detailScrollPane.getHorizontalScrollBar().setUnitIncrement(16);
-        detailScrollPane.getViewport().setBackground(detailSectionPanel.getBackground());
-
-        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, tablePanel, detailScrollPane);
-        splitPane.setDividerLocation(320);
-        splitPane.setResizeWeight(0.6);
-        splitPane.setBorder(null);
-        splitPane.setContinuousLayout(true);
-        splitPane.setOneTouchExpandable(true);
-        splitPane.setDividerSize(10);
-
         add(headerPanel, BorderLayout.NORTH);
-        add(splitPane, BorderLayout.CENTER);
+        add(tablePanel, BorderLayout.CENTER);
 
         reloadData();
+    }
+
+    @Override
+    public void removeNotify() {
+        disposeDetailDialog();
+        super.removeNotify();
+    }
+
+    private void handleTableSelectionChanged() {
+        handleTableSelectionChanged();
+        if (table.getSelectedRow() < 0) {
+            hideDetailDialog();
+            return;
+        }
+        showDetailDialog();
     }
 
     private void configureTable() {
@@ -256,6 +266,26 @@ public class LecturerStudentListPanel extends BasePanel {
                     {"Niên khóa", AcademicFormatUtil.formatAcademicYear(student.getAcademicYear())},
                     {"Trạng thái", DisplayTextUtil.formatStatus(student.getStatus())}
             });
+        }
+    }
+
+    private void showDetailDialog() {
+        if (detailDialog == null) {
+            detailDialog = new LecturerStudentDetailDialog(detailSectionPanel);
+        }
+        detailDialog.openDialog();
+    }
+
+    private void hideDetailDialog() {
+        if (detailDialog != null) {
+            detailDialog.setVisible(false);
+        }
+    }
+
+    private void disposeDetailDialog() {
+        if (detailDialog != null) {
+            detailDialog.dispose();
+            detailDialog = null;
         }
     }
 

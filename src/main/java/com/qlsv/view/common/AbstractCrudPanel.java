@@ -1,6 +1,7 @@
 package com.qlsv.view.common;
 
 import com.qlsv.utils.DialogUtil;
+import com.qlsv.view.dialog.BaseDetailDialog;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -8,12 +9,10 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
@@ -24,6 +23,8 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.LayoutManager;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -45,8 +46,8 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
     private final JButton deleteButton;
     private final JButton reloadButton;
 
-    private JSplitPane splitPane;
     private JComponent detailPanel;
+    private BaseDetailDialog detailDialog;
     private List<T> allItems = new ArrayList<>();
     private List<T> currentItems = new ArrayList<>();
 
@@ -112,7 +113,17 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         table.getSelectionModel().addListSelectionListener(event -> {
             if (!event.getValueIsAdjusting()) {
-                onSelectionChanged(getSelectedItem());
+                T selectedItem = getSelectedItem();
+                onSelectionChanged(selectedItem);
+                handleDetailSelection(selectedItem);
+            }
+        });
+        table.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent event) {
+                if (event.getClickCount() == 2 && getSelectedItem() != null) {
+                    showDetailDialog();
+                }
             }
         });
         tableScrollPane = new JScrollPane(table);
@@ -203,6 +214,7 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
 
     protected final void setDetailPanel(JComponent detailPanel) {
         this.detailPanel = detailPanel;
+        disposeDetailDialog();
         rebuildContentLayout();
     }
 
@@ -221,9 +233,39 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
         reloadButton.setVisible(showReload);
     }
 
+    protected BaseDetailDialog createDetailDialog(JComponent detailPanel) {
+        return new BaseDetailDialog("Chi tiết", detailPanel);
+    }
+
+    protected final boolean isDetailDialogVisible() {
+        return detailDialog != null && detailDialog.isVisible();
+    }
+
+    protected final void showDetailDialog() {
+        if (detailPanel == null) {
+            return;
+        }
+        if (detailDialog == null) {
+            detailDialog = createDetailDialog(detailPanel);
+        }
+        detailDialog.openDialog();
+    }
+
+    protected final void hideDetailDialog() {
+        if (detailDialog != null) {
+            detailDialog.setVisible(false);
+        }
+    }
+
     @Override
     public void reloadData() {
         refreshData();
+    }
+
+    @Override
+    public void removeNotify() {
+        disposeDetailDialog();
+        super.removeNotify();
     }
 
     protected final void refreshData() {
@@ -266,6 +308,7 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
 
         table.clearSelection();
         onSelectionChanged(null);
+        hideDetailDialog();
 
         if (currentItems.isEmpty()) {
             emptyStateLabel.setText("<html><div style='text-align:center;'>" + getEmptyStateMessage() + "</div></html>");
@@ -327,39 +370,24 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
 
     private void rebuildContentLayout() {
         mainContentPanel.removeAll();
-        if (detailPanel == null) {
-            mainContentPanel.add(tableCardPanel, BorderLayout.CENTER);
-        } else {
-            JScrollPane detailScrollPane = buildDetailScrollPane(detailPanel);
-
-            splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, tableCardPanel, detailScrollPane);
-            splitPane.setResizeWeight(0.7);
-            splitPane.setBorder(null);
-            splitPane.setContinuousLayout(true);
-            splitPane.setOneTouchExpandable(true);
-            splitPane.setDividerSize(10);
-            splitPane.setOpaque(false);
-            splitPane.setBackground(AppColors.CONTENT_BACKGROUND);
-
-            tableCardPanel.setMinimumSize(new Dimension(0, 240));
-            detailScrollPane.setMinimumSize(new Dimension(0, 180));
-            mainContentPanel.add(splitPane, BorderLayout.CENTER);
-
-            SwingUtilities.invokeLater(() -> splitPane.setDividerLocation(0.7));
-        }
+        mainContentPanel.add(tableCardPanel, BorderLayout.CENTER);
         revalidate();
         repaint();
     }
 
-    private JScrollPane buildDetailScrollPane(JComponent content) {
-        JScrollPane scrollPane = new JScrollPane(content);
-        scrollPane.setBorder(BorderFactory.createLineBorder(AppColors.CARD_BORDER));
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
-        scrollPane.getHorizontalScrollBar().setUnitIncrement(16);
-        scrollPane.getViewport().setBackground(content.getBackground());
-        return scrollPane;
+    private void handleDetailSelection(T selectedItem) {
+        if (selectedItem == null) {
+            hideDetailDialog();
+            return;
+        }
+        showDetailDialog();
+    }
+
+    private void disposeDetailDialog() {
+        if (detailDialog != null) {
+            detailDialog.dispose();
+            detailDialog = null;
+        }
     }
 
     private void configureTable() {

@@ -2,12 +2,11 @@ package com.qlsv.view.admin;
 
 import com.qlsv.controller.ClassRoomController;
 import com.qlsv.controller.FacultyController;
+import com.qlsv.controller.StudentController;
 import com.qlsv.model.ClassRoom;
 import com.qlsv.model.Faculty;
 import com.qlsv.utils.AcademicFormatUtil;
-import com.qlsv.utils.DisplayTextUtil;
 import com.qlsv.view.common.AbstractCrudPanel;
-import com.qlsv.view.common.DetailSectionPanel;
 import com.qlsv.view.common.FilterOption;
 import com.qlsv.view.dialog.ClassRoomFormDialog;
 
@@ -17,8 +16,10 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import java.awt.FlowLayout;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class ClassRoomManagementPanel extends AbstractCrudPanel<ClassRoom> {
@@ -30,49 +31,50 @@ public class ClassRoomManagementPanel extends AbstractCrudPanel<ClassRoom> {
 
     private final ClassRoomController classRoomController = new ClassRoomController();
     private final FacultyController facultyController = new FacultyController();
+    private final StudentController studentController = new StudentController();
     private final JComboBox<String> filterTypeComboBox = new JComboBox<>(
             new String[]{FILTER_NONE, FILTER_ALL, FILTER_FACULTY, FILTER_ACADEMIC_YEAR}
     );
     private final JComboBox<FilterOption<?>> filterValueComboBox = new JComboBox<>();
-    private final DetailSectionPanel detailSectionPanel = new DetailSectionPanel(
-            "Chi tiết lớp",
-            "Vui lòng chọn lớp để xem chi tiết."
-    );
+    private final Map<Long, Integer> studentCountsByClassRoomId = new HashMap<>();
 
     private boolean filterReady;
 
     public ClassRoomManagementPanel() {
         super("Quản lý lớp");
         setFilterPanel(buildFilterPanel());
-        setDetailPanel(detailSectionPanel);
         reloadFilterValues();
         refreshData();
     }
 
     @Override
     protected String[] getColumnNames() {
-        return new String[]{"ID", "Mã lớp", "Tên lớp", "Niên khóa", "Khoa"};
+        return new String[]{"ID", "Mã lớp", "Tên lớp", "Niên khóa", "Khoa", "Sĩ số sinh viên"};
     }
 
     @Override
     protected List<ClassRoom> loadItems() {
+        List<ClassRoom> classRooms;
         if (!filterReady) {
-            return List.of();
+            classRooms = List.of();
+        } else {
+            String filterType = (String) filterTypeComboBox.getSelectedItem();
+            classRooms = switch (filterType == null ? FILTER_NONE : filterType) {
+                case FILTER_ALL -> classRoomController.getAllClassRooms();
+                case FILTER_FACULTY -> {
+                    Faculty faculty = getSelectedFilterValue(Faculty.class);
+                    yield faculty == null ? List.of() : classRoomController.getClassRoomsByFaculty(faculty.getId());
+                }
+                case FILTER_ACADEMIC_YEAR -> {
+                    String academicYear = getSelectedFilterValue(String.class);
+                    yield academicYear == null ? List.of() : classRoomController.getClassRoomsByAcademicYear(academicYear);
+                }
+                default -> List.of();
+            };
         }
 
-        String filterType = (String) filterTypeComboBox.getSelectedItem();
-        return switch (filterType == null ? FILTER_NONE : filterType) {
-            case FILTER_ALL -> classRoomController.getAllClassRooms();
-            case FILTER_FACULTY -> {
-                Faculty faculty = getSelectedFilterValue(Faculty.class);
-                yield faculty == null ? List.of() : classRoomController.getClassRoomsByFaculty(faculty.getId());
-            }
-            case FILTER_ACADEMIC_YEAR -> {
-                String academicYear = getSelectedFilterValue(String.class);
-                yield academicYear == null ? List.of() : classRoomController.getClassRoomsByAcademicYear(academicYear);
-            }
-            default -> List.of();
-        };
+        updateStudentCounts(classRooms);
+        return classRooms;
     }
 
     @Override
@@ -82,7 +84,8 @@ public class ClassRoomManagementPanel extends AbstractCrudPanel<ClassRoom> {
                 item.getClassCode(),
                 item.getClassName(),
                 AcademicFormatUtil.formatAcademicYear(item.getAcademicYear()),
-                item.getFaculty() == null ? "" : item.getFaculty().getFacultyName()
+                item.getFaculty() == null ? "" : item.getFaculty().getFacultyName(),
+                studentCountsByClassRoomId.getOrDefault(item.getId(), 0)
         };
     }
 
@@ -91,21 +94,6 @@ public class ClassRoomManagementPanel extends AbstractCrudPanel<ClassRoom> {
         return filterReady
                 ? "Không tìm thấy lớp phù hợp với điều kiện lọc hiện tại."
                 : "Vui lòng chọn điều kiện lọc để hiển thị danh sách lớp.";
-    }
-
-    @Override
-    protected void onSelectionChanged(ClassRoom selectedItem) {
-        if (selectedItem == null) {
-            detailSectionPanel.showMessage("Vui lòng chọn lớp để xem chi tiết.");
-            return;
-        }
-
-        detailSectionPanel.showFields(new String[][]{
-                {"Mã lớp", DisplayTextUtil.defaultText(selectedItem.getClassCode())},
-                {"Tên lớp", DisplayTextUtil.defaultText(selectedItem.getClassName())},
-                {"Niên khóa", DisplayTextUtil.defaultText(AcademicFormatUtil.formatAcademicYear(selectedItem.getAcademicYear()))},
-                {"Khoa", selectedItem.getFaculty() == null ? "Chưa cập nhật" : DisplayTextUtil.defaultText(selectedItem.getFaculty().getFacultyName())}
-        });
     }
 
     @Override
@@ -141,6 +129,30 @@ public class ClassRoomManagementPanel extends AbstractCrudPanel<ClassRoom> {
     @Override
     protected void deleteEntity(ClassRoom item) {
         classRoomController.deleteClassRoom(item.getId());
+    }
+
+    private void updateStudentCounts(List<ClassRoom> classRooms) {
+        studentCountsByClassRoomId.clear();
+        if (classRooms.isEmpty()) {
+            return;
+        }
+
+        Set<Long> classRoomIds = new LinkedHashSet<>();
+        for (ClassRoom classRoom : classRooms) {
+            if (classRoom != null && classRoom.getId() != null) {
+                classRoomIds.add(classRoom.getId());
+            }
+        }
+
+        for (var student : studentController.getAllStudents()) {
+            if (student.getClassRoom() == null || student.getClassRoom().getId() == null) {
+                continue;
+            }
+            Long classRoomId = student.getClassRoom().getId();
+            if (classRoomIds.contains(classRoomId)) {
+                studentCountsByClassRoomId.merge(classRoomId, 1, Integer::sum);
+            }
+        }
     }
 
     private JPanel buildFilterPanel() {

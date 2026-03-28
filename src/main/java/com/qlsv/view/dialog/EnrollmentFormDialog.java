@@ -187,7 +187,7 @@ public class EnrollmentFormDialog extends JDialog {
         JPanel contentPanel = createFieldGridPanel();
         contentPanel.add(createField("Học phần", styleComboBox(courseSectionComboBox)), fieldConstraints(0, 0, 2));
         contentPanel.add(createField("Trạng thái", styleComboBox(statusComboBox)), fieldConstraints(0, 1, 2));
-        return createSection("Thông tin đăng ký", "Giữ nguyên flow lưu và cập nhật trạng thái hiện có.", contentPanel);
+        return createSection("Thông tin đăng ký","", contentPanel);
     }
 
     private void registerStudentPickerBehavior() {

@@ -10,18 +10,20 @@ import com.qlsv.utils.DisplayTextUtil;
 import com.qlsv.view.common.AppColors;
 import com.qlsv.view.common.BasePanel;
 import com.qlsv.view.common.DetailSectionPanel;
+import com.qlsv.view.dialog.LecturerCourseSectionDetailDialog;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,6 +35,7 @@ public class LecturerCourseSectionPanel extends BasePanel {
     private final JTable table;
     private final DetailSectionPanel detailSectionPanel;
     private final List<CourseSection> currentSections = new ArrayList<>();
+    private LecturerCourseSectionDetailDialog detailDialog;
     private final JLabel summaryLabel = new JLabel("Đang tải học phần phụ trách...");
 
     public LecturerCourseSectionPanel() {
@@ -53,7 +56,15 @@ public class LecturerCourseSectionPanel extends BasePanel {
 
         table.getSelectionModel().addListSelectionListener(event -> {
             if (!event.getValueIsAdjusting()) {
-                updateDetailPanel();
+                handleTableSelectionChanged();
+            }
+        });
+        table.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent event) {
+                if (event.getClickCount() == 2 && table.getSelectedRow() >= 0) {
+                    showDetailDialog();
+                }
             }
         });
 
@@ -86,18 +97,6 @@ public class LecturerCourseSectionPanel extends BasePanel {
         tablePanel.add(headingPanel, BorderLayout.NORTH);
         tablePanel.add(tableScrollPane, BorderLayout.CENTER);
 
-        JScrollPane detailScrollPane = new JScrollPane(detailSectionPanel);
-        detailScrollPane.setBorder(BorderFactory.createLineBorder(AppColors.CARD_BORDER));
-        detailScrollPane.getVerticalScrollBar().setUnitIncrement(16);
-        detailScrollPane.getViewport().setBackground(detailSectionPanel.getBackground());
-
-        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, tablePanel, detailScrollPane);
-        splitPane.setBorder(null);
-        splitPane.setDividerLocation(300);
-        splitPane.setResizeWeight(0.58);
-        splitPane.setContinuousLayout(true);
-        splitPane.setOneTouchExpandable(true);
-        splitPane.setDividerSize(10);
 
         JLabel titleLabel = new JLabel("Học phần phụ trách");
         titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 22f));
@@ -109,8 +108,23 @@ public class LecturerCourseSectionPanel extends BasePanel {
 
 
         add(titlePanel, BorderLayout.NORTH);
-        add(splitPane, BorderLayout.CENTER);
+        add(tablePanel, BorderLayout.CENTER);
         reloadData();
+    }
+
+    @Override
+    public void removeNotify() {
+        disposeDetailDialog();
+        super.removeNotify();
+    }
+
+    private void handleTableSelectionChanged() {
+        updateDetailPanel();
+        if (table.getSelectedRow() < 0) {
+            hideDetailDialog();
+            return;
+        }
+        showDetailDialog();
     }
 
     private void updateDetailPanel() {
@@ -140,6 +154,26 @@ public class LecturerCourseSectionPanel extends BasePanel {
         }
     }
 
+    private void showDetailDialog() {
+        if (detailDialog == null) {
+            detailDialog = new LecturerCourseSectionDetailDialog(detailSectionPanel);
+        }
+        detailDialog.openDialog();
+    }
+
+    private void hideDetailDialog() {
+        if (detailDialog != null) {
+            detailDialog.setVisible(false);
+        }
+    }
+
+    private void disposeDetailDialog() {
+        if (detailDialog != null) {
+            detailDialog.dispose();
+            detailDialog = null;
+        }
+    }
+
     @Override
     public void reloadData() {
         try {
@@ -159,6 +193,7 @@ public class LecturerCourseSectionPanel extends BasePanel {
                         DisplayTextUtil.defaultText(courseSection.getScheduleText())
                 });
             }
+            handleTableSelectionChanged();
         } catch (Exception exception) {
             DialogUtil.showError(this, exception.getMessage());
         }

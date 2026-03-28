@@ -14,6 +14,7 @@ import com.qlsv.view.common.AppColors;
 import com.qlsv.view.common.BasePanel;
 import com.qlsv.view.common.DashboardCard;
 import com.qlsv.view.common.DetailSectionPanel;
+import com.qlsv.view.dialog.ReportDetailDialog;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -22,7 +23,6 @@ import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 import java.awt.BorderLayout;
@@ -31,6 +31,8 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -73,6 +75,8 @@ public class ReportManagementPanel extends BasePanel {
     private final DashboardCard subjectsCard = new DashboardCard("Tổng môn học", AppColors.STAT_CARD_SUBJECTS);
     private final DashboardCard sectionsCard = new DashboardCard("Tổng học phần", AppColors.STAT_CARD_SECTIONS);
 
+    private ReportDetailDialog detailDialog;
+
     public ReportManagementPanel() {
         setOpaque(true);
         setBackground(AppColors.CONTENT_BACKGROUND);
@@ -85,6 +89,12 @@ public class ReportManagementPanel extends BasePanel {
     public void reloadData() {
         refreshFilterOptions();
         loadStatistics();
+    }
+
+    @Override
+    public void removeNotify() {
+        disposeDetailDialog();
+        super.removeNotify();
     }
 
     private void initComponents() {
@@ -134,6 +144,19 @@ public class ReportManagementPanel extends BasePanel {
         controlCard.add(filterPanel, BorderLayout.CENTER);
 
         configureTable(table);
+        table.getSelectionModel().addListSelectionListener(event -> {
+            if (!event.getValueIsAdjusting()) {
+                handleTableSelectionChanged();
+            }
+        });
+        table.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent event) {
+                if (event.getClickCount() == 2 && table.getSelectedRow() >= 0) {
+                    showDetailDialog();
+                }
+            }
+        });
         JScrollPane tableScrollPane = new JScrollPane(table);
         tableScrollPane.setBorder(BorderFactory.createLineBorder(AppColors.CARD_BORDER));
         tableScrollPane.getViewport().setBackground(AppColors.CARD_BACKGROUND);
@@ -167,20 +190,7 @@ public class ReportManagementPanel extends BasePanel {
         tablePanel.add(tableHeadingPanel, BorderLayout.NORTH);
         tablePanel.add(tableScrollPane, BorderLayout.CENTER);
 
-        JScrollPane detailScrollPane = new JScrollPane(reportInfoPanel);
-        detailScrollPane.setBorder(BorderFactory.createLineBorder(AppColors.CARD_BORDER));
-        detailScrollPane.getVerticalScrollBar().setUnitIncrement(16);
-        detailScrollPane.getViewport().setBackground(reportInfoPanel.getBackground());
-
-        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, tablePanel, detailScrollPane);
-        splitPane.setBorder(null);
-        splitPane.setOpaque(false);
-        splitPane.setResizeWeight(0.72);
-        splitPane.setContinuousLayout(true);
-        splitPane.setOneTouchExpandable(true);
-        splitPane.setDividerSize(10);
         tablePanel.setMinimumSize(new Dimension(0, 220));
-        detailScrollPane.setMinimumSize(new Dimension(0, 180));
 
         JPanel northPanel = new JPanel(new BorderLayout(0, 12));
         northPanel.setOpaque(false);
@@ -189,7 +199,7 @@ public class ReportManagementPanel extends BasePanel {
         northPanel.add(controlCard, BorderLayout.SOUTH);
 
         add(northPanel, BorderLayout.NORTH);
-        add(splitPane, BorderLayout.CENTER);
+        add(tablePanel, BorderLayout.CENTER);
     }
 
     private void refreshFilterOptions() {
@@ -257,6 +267,11 @@ public class ReportManagementPanel extends BasePanel {
 
             tableSummaryLabel.setText(rows.size() + " dòng dữ liệu");
             updateReportInfo(rows.size());
+            if (rows.isEmpty()) {
+                hideDetailDialog();
+            } else if (detailDialog != null && detailDialog.isVisible()) {
+                showDetailDialog();
+            }
         } catch (Exception exception) {
             DialogUtil.showError(this, exception.getMessage());
         }
@@ -308,6 +323,34 @@ public class ReportManagementPanel extends BasePanel {
                 {"Cập nhật lúc", updatedAt},
                 {"Ghi chú", "Có thể xuất trực tiếp báo cáo hiện tại sang PDF mà không thay đổi nghiệp vụ."}
         });
+    }
+
+    private void handleTableSelectionChanged() {
+        if (table.getSelectedRow() < 0) {
+            hideDetailDialog();
+            return;
+        }
+        showDetailDialog();
+    }
+
+    private void showDetailDialog() {
+        if (detailDialog == null) {
+            detailDialog = new ReportDetailDialog(reportInfoPanel);
+        }
+        detailDialog.openDialog();
+    }
+
+    private void hideDetailDialog() {
+        if (detailDialog != null) {
+            detailDialog.setVisible(false);
+        }
+    }
+
+    private void disposeDetailDialog() {
+        if (detailDialog != null) {
+            detailDialog.dispose();
+            detailDialog = null;
+        }
     }
 
     private JPanel createSurfaceCard(BorderLayout layout) {

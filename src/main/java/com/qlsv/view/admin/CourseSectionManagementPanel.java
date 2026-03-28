@@ -12,6 +12,8 @@ import com.qlsv.utils.AcademicFormatUtil;
 import com.qlsv.view.common.AbstractCrudPanel;
 import com.qlsv.view.common.DetailSectionPanel;
 import com.qlsv.view.common.FilterOption;
+import com.qlsv.view.dialog.BaseDetailDialog;
+import com.qlsv.view.dialog.CourseSectionDetailDialog;
 import com.qlsv.view.dialog.CourseSectionFormDialog;
 
 import javax.swing.BorderFactory;
@@ -104,6 +106,11 @@ public class CourseSectionManagementPanel extends AbstractCrudPanel<CourseSectio
         detailSectionPanel.showFields(detailFields.stream()
                 .map(field -> new String[]{field.label(), field.value()})
                 .toArray(String[][]::new));
+    }
+
+    @Override
+    protected BaseDetailDialog createDetailDialog(javax.swing.JComponent detailPanel) {
+        return new CourseSectionDetailDialog(detailPanel);
     }
 
     @Override

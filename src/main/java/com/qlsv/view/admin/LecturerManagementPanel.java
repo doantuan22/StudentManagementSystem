@@ -16,6 +16,8 @@ import com.qlsv.view.common.AbstractCrudPanel;
 import com.qlsv.view.common.AppColors;
 import com.qlsv.view.common.DetailSectionPanel;
 import com.qlsv.view.common.FilterOption;
+import com.qlsv.view.dialog.BaseDetailDialog;
+import com.qlsv.view.dialog.LecturerDetailDialog;
 import com.qlsv.view.dialog.LecturerFormDialog;
 
 import javax.swing.BorderFactory;
@@ -117,9 +119,6 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
         String subjects = DisplayTextUtil.joinUniqueTexts(assignedCourseSections.stream()
                 .map(courseSection -> courseSection.getSubject() == null ? null : courseSection.getSubject().getSubjectName())
                 .collect(Collectors.toList()));
-        String rooms = DisplayTextUtil.joinUniqueTexts(assignedCourseSections.stream()
-                .map(courseSection -> courseSection.getRoom() == null ? null : courseSection.getRoom().getRoomName())
-                .collect(Collectors.toList()));
 
         detailSectionPanel.showFields(new String[][]{
                 {"Mã giảng viên", DisplayTextUtil.defaultText(selectedItem.getLecturerCode())},
@@ -131,9 +130,13 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
                 {"Địa chỉ", DisplayTextUtil.defaultText(selectedItem.getAddress())},
                 {"Khoa", selectedItem.getFaculty() == null ? "Chưa cập nhật" : DisplayTextUtil.defaultText(selectedItem.getFaculty().getFacultyName())},
                 {"Môn giảng dạy", subjects},
-                {"Phòng học phụ trách", rooms},
                 {"Trạng thái", DisplayTextUtil.formatStatus(selectedItem.getStatus())}
         });
+    }
+
+    @Override
+    protected BaseDetailDialog createDetailDialog(javax.swing.JComponent detailPanel) {
+        return new LecturerDetailDialog(detailPanel);
     }
 
     @Override

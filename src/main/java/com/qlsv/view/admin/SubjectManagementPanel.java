@@ -8,6 +8,8 @@ import com.qlsv.utils.DisplayTextUtil;
 import com.qlsv.view.common.AbstractCrudPanel;
 import com.qlsv.view.common.DetailSectionPanel;
 import com.qlsv.view.common.FilterOption;
+import com.qlsv.view.dialog.BaseDetailDialog;
+import com.qlsv.view.dialog.SubjectDetailDialog;
 import com.qlsv.view.dialog.SubjectFormDialog;
 
 import javax.swing.BorderFactory;
@@ -99,6 +101,11 @@ public class SubjectManagementPanel extends AbstractCrudPanel<Subject> {
                 {"Mô tả", DisplayTextUtil.defaultText(selectedItem.getDescription())},
                 {"Điều kiện tiên quyết", "Chưa cập nhật"}
         });
+    }
+
+    @Override
+    protected BaseDetailDialog createDetailDialog(javax.swing.JComponent detailPanel) {
+        return new SubjectDetailDialog(detailPanel);
     }
 
     @Override

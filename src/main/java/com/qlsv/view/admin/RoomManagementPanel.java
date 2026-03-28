@@ -2,9 +2,7 @@ package com.qlsv.view.admin;
 
 import com.qlsv.controller.RoomController;
 import com.qlsv.model.Room;
-import com.qlsv.utils.DisplayTextUtil;
 import com.qlsv.view.common.AbstractCrudPanel;
-import com.qlsv.view.common.DetailSectionPanel;
 import com.qlsv.view.dialog.RoomFormDialog;
 
 import javax.swing.BorderFactory;
@@ -18,18 +16,13 @@ import java.util.List;
 public class RoomManagementPanel extends AbstractCrudPanel<Room> {
 
     private final RoomController roomController = new RoomController();
-    private final DetailSectionPanel detailSectionPanel = new DetailSectionPanel(
-            "Chi tiết phòng học",
-            "Vui lòng chọn phòng học để xem chi tiết."
-    );
-
     private final JTextField searchField = new JTextField(15);
-    private boolean isSearching = false;
+
+    private boolean isSearching;
 
     public RoomManagementPanel() {
         super("Quản lý phòng học");
         setFilterPanel(buildFilterPanel());
-        setDetailPanel(detailSectionPanel);
         refreshData();
     }
 
@@ -58,19 +51,6 @@ public class RoomManagementPanel extends AbstractCrudPanel<Room> {
     @Override
     protected String getEmptyStateMessage() {
         return isSearching ? "Không tìm thấy phòng học nào phù hợp với từ khóa." : "Chưa có dữ liệu phòng học.";
-    }
-
-    @Override
-    protected void onSelectionChanged(Room selectedItem) {
-        if (selectedItem == null) {
-            detailSectionPanel.showMessage("Vui lòng chọn phòng học để xem chi tiết.");
-            return;
-        }
-
-        detailSectionPanel.showFields(new String[][]{
-                {"Mã phòng", DisplayTextUtil.defaultText(selectedItem.getRoomCode())},
-                {"Tên phòng", DisplayTextUtil.defaultText(selectedItem.getRoomName())}
-        });
     }
 
     @Override

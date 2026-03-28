@@ -14,6 +14,7 @@ import com.qlsv.view.common.AppColors;
 import com.qlsv.view.common.BasePanel;
 import com.qlsv.view.common.DetailSectionPanel;
 import com.qlsv.view.common.FilterOption;
+import com.qlsv.view.dialog.ScoreDetailDialog;
 import com.qlsv.view.dialog.ScoreFormDialog;
 
 import javax.swing.BorderFactory;
@@ -21,10 +22,8 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
@@ -44,6 +43,8 @@ import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.LayoutManager;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -60,7 +61,6 @@ public class ScoreManagementPanel extends BasePanel {
     private static final String FILTER_CLASS_ROOM = "Theo lớp";
     private static final int TOOLBAR_GAP = 8;
     private static final int TABLE_SECTION_MIN_HEIGHT = 240;
-    private static final int DETAIL_SCROLL_MIN_HEIGHT = 180;
     private static final int DETAIL_TABLE_VIEWPORT_HEIGHT = 220;
     private static final int DETAIL_SECTION_MIN_HEIGHT = 300;
 
@@ -111,13 +111,15 @@ public class ScoreManagementPanel extends BasePanel {
     private JPanel toolbarButtonPanel;
     private JPanel secondaryActionPanel;
     private JPanel controlCard;
-    private JSplitPane contentSplitPane;
+    private JPanel detailContentPanel;
+    private ScoreDetailDialog detailDialog;
 
     private final List<Score> loadedScores = new ArrayList<>();
     private final List<StudentScoreSummary> studentRows = new ArrayList<>();
     private final List<Score> selectedStudentScores = new ArrayList<>();
 
     private boolean filterReady;
+    private boolean suppressDetailDialogOpening;
 
     public ScoreManagementPanel() {
         setOpaque(true);
@@ -144,6 +146,12 @@ public class ScoreManagementPanel extends BasePanel {
         if (visible && !wasVisible) {
             SwingUtilities.invokeLater(this::reloadData);
         }
+    }
+
+    @Override
+    public void removeNotify() {
+        disposeDetailDialog();
+        super.removeNotify();
     }
 
     private void initComponents() {
@@ -247,7 +255,15 @@ public class ScoreManagementPanel extends BasePanel {
         configureDetailTableColumns();
         studentTable.getSelectionModel().addListSelectionListener(event -> {
             if (!event.getValueIsAdjusting()) {
-                bindStudentDetail(getSelectedStudentSummary());
+                handleStudentSelectionChanged();
+            }
+        });
+        studentTable.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent event) {
+                if (event.getClickCount() == 2 && getSelectedStudentSummary() != null) {
+                    showDetailDialog();
+                }
             }
         });
         detailTable.getSelectionModel().addListSelectionListener(event -> {
@@ -262,21 +278,9 @@ public class ScoreManagementPanel extends BasePanel {
         mainContentPanel.setOpaque(false);
         tableCardPanel.add(studentTableScrollPane, "table");
         tableCardPanel.add(createEmptyStatePanel(), "empty");
-
-        JScrollPane detailScrollPane = buildDetailScrollPane(createDetailContentPanel(detailTableScrollPane));
-
-        contentSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, tableCardPanel, detailScrollPane);
-        contentSplitPane.setResizeWeight(0.7);
-        contentSplitPane.setBorder(null);
-        contentSplitPane.setContinuousLayout(true);
-        contentSplitPane.setOneTouchExpandable(true);
-        contentSplitPane.setDividerSize(10);
-        contentSplitPane.setOpaque(false);
-        contentSplitPane.setBackground(AppColors.CONTENT_BACKGROUND);
-
         tableCardPanel.setMinimumSize(new Dimension(0, TABLE_SECTION_MIN_HEIGHT));
-        detailScrollPane.setMinimumSize(new Dimension(0, DETAIL_SCROLL_MIN_HEIGHT));
-        mainContentPanel.add(contentSplitPane, BorderLayout.CENTER);
+        detailContentPanel = createDetailContentPanel(detailTableScrollPane);
+        mainContentPanel.add(tableCardPanel, BorderLayout.CENTER);
 
         JPanel topPanel = new JPanel(new BorderLayout(0, 12));
         topPanel.setOpaque(false);
@@ -285,10 +289,6 @@ public class ScoreManagementPanel extends BasePanel {
 
         add(topPanel, BorderLayout.NORTH);
         add(mainContentPanel, BorderLayout.CENTER);
-
-        SwingUtilities.invokeLater(() -> {
-            contentSplitPane.setDividerLocation(0.7);
-        });
     }
 
     private void applyCurrentFilters(Long preferredStudentId) {
@@ -327,6 +327,7 @@ public class ScoreManagementPanel extends BasePanel {
                     : "Vui lòng chọn điều kiện lọc để hiển thị danh sách điểm.");
             studentTable.clearSelection();
             bindStudentDetail(null);
+            hideDetailDialog();
             return;
         }
 
@@ -342,8 +343,13 @@ public class ScoreManagementPanel extends BasePanel {
             }
         }
 
-        studentTable.setRowSelectionInterval(preferredIndex, preferredIndex);
-        studentTable.scrollRectToVisible(studentTable.getCellRect(preferredIndex, 0, true));
+        suppressDetailDialogOpening = !isDetailDialogVisible();
+        try {
+            studentTable.setRowSelectionInterval(preferredIndex, preferredIndex);
+            studentTable.scrollRectToVisible(studentTable.getCellRect(preferredIndex, 0, true));
+        } finally {
+            suppressDetailDialogOpening = false;
+        }
     }
 
     private void bindStudentDetail(StudentScoreSummary summary) {
@@ -380,6 +386,18 @@ public class ScoreManagementPanel extends BasePanel {
         } else {
             detailTable.clearSelection();
             updateDetailSummary(summary, null);
+        }
+    }
+
+    private void handleStudentSelectionChanged() {
+        StudentScoreSummary summary = getSelectedStudentSummary();
+        bindStudentDetail(summary);
+        if (summary == null) {
+            hideDetailDialog();
+            return;
+        }
+        if (!suppressDetailDialogOpening || isDetailDialogVisible()) {
+            showDetailDialog();
         }
     }
 
@@ -715,6 +733,30 @@ public class ScoreManagementPanel extends BasePanel {
         return container;
     }
 
+    private boolean isDetailDialogVisible() {
+        return detailDialog != null && detailDialog.isVisible();
+    }
+
+    private void showDetailDialog() {
+        if (detailDialog == null) {
+            detailDialog = new ScoreDetailDialog(detailContentPanel);
+        }
+        detailDialog.openDialog();
+    }
+
+    private void hideDetailDialog() {
+        if (detailDialog != null) {
+            detailDialog.setVisible(false);
+        }
+    }
+
+    private void disposeDetailDialog() {
+        if (detailDialog != null) {
+            detailDialog.dispose();
+            detailDialog = null;
+        }
+    }
+
     private JPanel createEmptyStatePanel() {
         JPanel emptyStatePanel = new JPanel(new BorderLayout());
         emptyStatePanel.setOpaque(true);
@@ -760,17 +802,6 @@ public class ScoreManagementPanel extends BasePanel {
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         scrollPane.getHorizontalScrollBar().setUnitIncrement(16);
         scrollPane.setMinimumSize(new Dimension(0, 180));
-        return scrollPane;
-    }
-
-    private JScrollPane buildDetailScrollPane(JComponent content) {
-        JScrollPane scrollPane = new JScrollPane(content);
-        scrollPane.setBorder(BorderFactory.createLineBorder(AppColors.CARD_BORDER));
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
-        scrollPane.getHorizontalScrollBar().setUnitIncrement(16);
-        scrollPane.getViewport().setBackground(content.getBackground());
         return scrollPane;
     }
 

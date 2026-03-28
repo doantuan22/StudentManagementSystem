@@ -11,6 +11,8 @@ import com.qlsv.utils.DisplayTextUtil;
 import com.qlsv.view.common.AbstractCrudPanel;
 import com.qlsv.view.common.DetailSectionPanel;
 import com.qlsv.view.common.FilterOption;
+import com.qlsv.view.dialog.BaseDetailDialog;
+import com.qlsv.view.dialog.ScheduleDetailDialog;
 import com.qlsv.view.dialog.ScheduleFormDialog;
 
 import javax.swing.BorderFactory;
@@ -111,6 +113,11 @@ public class ScheduleManagementPanel extends AbstractCrudPanel<Schedule> {
         detailSectionPanel.showFields(detailFields.stream()
                 .map(field -> new String[]{field.label(), field.value()})
                 .toArray(String[][]::new));
+    }
+
+    @Override
+    protected BaseDetailDialog createDetailDialog(javax.swing.JComponent detailPanel) {
+        return new ScheduleDetailDialog(detailPanel);
     }
 
     @Override

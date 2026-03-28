@@ -10,6 +10,7 @@ import com.qlsv.utils.DialogUtil;
 import com.qlsv.utils.DisplayTextUtil;
 import com.qlsv.view.common.AppColors;
 import com.qlsv.view.common.BasePanel;
+import com.qlsv.view.dialog.LecturerScoreDetailDialog;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -17,7 +18,6 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
@@ -32,6 +32,8 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -72,10 +74,13 @@ public class LecturerScorePanel extends BasePanel {
     private final JTextField searchField = new JTextField(24);
     private final JButton saveButton = new JButton("Lưu điểm");
     private final Timer searchDebounceTimer;
+    private JPanel editPanel;
+    private LecturerScoreDetailDialog detailDialog;
 
     private Score selectedScore;
     private Long currentCourseSectionId;
     private String currentKeyword = "";
+    private boolean suppressDetailDialogOpening;
 
     public LecturerScorePanel() {
         configureScoreTable();
@@ -171,7 +176,7 @@ public class LecturerScorePanel extends BasePanel {
         scoreListPanel.add(scoreListHeading, BorderLayout.NORTH);
         scoreListPanel.add(scoreTableScrollPane, BorderLayout.CENTER);
 
-        JPanel editPanel = createSectionCard(new BorderLayout(0, 12));
+        editPanel = createSectionCard(new BorderLayout(0, 12));
         JLabel editTitle = createSectionTitle("Bảng nhập/sửa điểm theo sinh viên đang chọn");
 
         JPanel editHintPanel = new JPanel(new BorderLayout());
@@ -192,26 +197,33 @@ public class LecturerScorePanel extends BasePanel {
         editPanel.add(editTableScrollPane, BorderLayout.CENTER);
         editPanel.add(editActionPanel, BorderLayout.SOUTH);
 
-        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, scoreListPanel, editPanel);
-        splitPane.setDividerLocation(360);
-        splitPane.setResizeWeight(0.63);
-        splitPane.setBorder(null);
-        splitPane.setContinuousLayout(true);
-        splitPane.setOneTouchExpandable(true);
-        splitPane.setDividerSize(10);
         scoreListPanel.setMinimumSize(new Dimension(0, 220));
         editPanel.setMinimumSize(new Dimension(0, 220));
 
         add(headerPanel, BorderLayout.NORTH);
-        add(splitPane, BorderLayout.CENTER);
+        add(scoreListPanel, BorderLayout.CENTER);
 
         scoreTable.getSelectionModel().addListSelectionListener(event -> {
             if (!event.getValueIsAdjusting()) {
                 onScoreSelected();
             }
         });
+        scoreTable.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent event) {
+                if (event.getClickCount() == 2 && scoreTable.getSelectedRow() >= 0) {
+                    showDetailDialog();
+                }
+            }
+        });
 
         reloadData();
+    }
+
+    @Override
+    public void removeNotify() {
+        disposeDetailDialog();
+        super.removeNotify();
     }
 
     private void configureScoreTable() {
@@ -332,12 +344,16 @@ public class LecturerScorePanel extends BasePanel {
             selectedScore = null;
             fillEditRow(null);
             saveButton.setEnabled(false);
+            hideDetailDialog();
             return;
         }
 
         selectedScore = filteredScores.get(selectedRow);
         fillEditRow(selectedScore);
         saveButton.setEnabled(true);
+        if (!suppressDetailDialogOpening || isDetailDialogVisible()) {
+            showDetailDialog();
+        }
     }
 
     private void fillEditRow(Score score) {
@@ -396,6 +412,30 @@ public class LecturerScorePanel extends BasePanel {
     private double parseScoreValue(Object value) {
         String normalizedValue = value == null ? "" : String.valueOf(value).trim();
         return Double.parseDouble(normalizedValue);
+    }
+
+    private boolean isDetailDialogVisible() {
+        return detailDialog != null && detailDialog.isVisible();
+    }
+
+    private void showDetailDialog() {
+        if (detailDialog == null) {
+            detailDialog = new LecturerScoreDetailDialog(editPanel);
+        }
+        detailDialog.openDialog();
+    }
+
+    private void hideDetailDialog() {
+        if (detailDialog != null) {
+            detailDialog.setVisible(false);
+        }
+    }
+
+    private void disposeDetailDialog() {
+        if (detailDialog != null) {
+            detailDialog.dispose();
+            detailDialog = null;
+        }
     }
 
     private void loadCourseSections() {
@@ -461,7 +501,12 @@ public class LecturerScorePanel extends BasePanel {
             }
         }
 
-        restoreSelectedRow(preferredEnrollmentId);
+        suppressDetailDialogOpening = !isDetailDialogVisible();
+        try {
+            restoreSelectedRow(preferredEnrollmentId);
+        } finally {
+            suppressDetailDialogOpening = false;
+        }
         if (scoreTable.getSelectedRow() < 0) {
             onScoreSelected();
         }

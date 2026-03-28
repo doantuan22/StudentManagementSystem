@@ -69,7 +69,7 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
                 BorderFactory.createEmptyBorder(7, 10, 7, 10)
         ));
         JButton searchButton = new JButton("Tìm");
-        styleFilledButton(searchButton, AppColors.BUTTON_PRIMARY);
+        styleCompactFilledButton(searchButton, AppColors.BUTTON_PRIMARY);
         searchPanel.add(new JLabel("Từ khóa"));
         searchPanel.add(searchField);
         searchPanel.add(searchButton);
@@ -110,7 +110,7 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
                 return false;
             }
         };
-        table = new JTable(tableModel);
+        table = new ResponsiveTable(tableModel);
         configureTable();
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         table.getSelectionModel().addListSelectionListener(event -> {
@@ -130,6 +130,10 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
         });
         tableScrollPane = new JScrollPane(table);
         tableScrollPane.setBorder(BorderFactory.createLineBorder(AppColors.CARD_BORDER));
+        tableScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        tableScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        tableScrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        tableScrollPane.getHorizontalScrollBar().setUnitIncrement(16);
         tableScrollPane.getViewport().setBackground(AppColors.CARD_BACKGROUND);
 
         JPanel emptyStatePanel = new JPanel(new BorderLayout());
@@ -430,6 +434,11 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
         button.setBorder(BorderFactory.createEmptyBorder(9, 16, 9, 16));
     }
 
+    private void styleCompactFilledButton(JButton button, Color background) {
+        styleFilledButton(button, background);
+        button.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
+    }
+
     private void styleNestedButtons(Component component) {
         if (component instanceof JButton button) {
             styleFilledButton(button, AppColors.BUTTON_NEUTRAL);
@@ -438,6 +447,20 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
             for (Component child : container.getComponents()) {
                 styleNestedButtons(child);
             }
+        }
+    }
+
+    private static final class ResponsiveTable extends JTable {
+
+        private ResponsiveTable(DefaultTableModel model) {
+            super(model);
+        }
+
+        @Override
+        public boolean getScrollableTracksViewportWidth() {
+            return getAutoResizeMode() != AUTO_RESIZE_OFF
+                    || getParent() == null
+                    || getPreferredSize().width < getParent().getWidth();
         }
     }
 }

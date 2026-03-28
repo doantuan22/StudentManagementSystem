@@ -30,8 +30,10 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
@@ -88,6 +90,7 @@ public class LecturerStudentListPanel extends BasePanel {
         });
 
         courseComboBox.addItem("Tất cả học phần");
+        courseComboBox.setPreferredSize(new Dimension(230, 36));
 
         styleSecondaryButton(filterButton);
         stylePrimaryButton(exportButton);
@@ -97,13 +100,29 @@ public class LecturerStudentListPanel extends BasePanel {
         exportButton.addActionListener(event -> exportToPdf());
         reloadButton.addActionListener(event -> reloadData());
 
-        JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
+        JPanel filterPanel = new JPanel(new GridBagLayout());
         filterPanel.setOpaque(false);
-        filterPanel.add(new JLabel("Học phần:"));
-        filterPanel.add(courseComboBox);
-        filterPanel.add(filterButton);
 
-        JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(0, 0, 0, 8);
+
+        gbc.gridx = 0;
+        filterPanel.add(new JLabel("Học phần:"), gbc);
+
+        gbc.gridx = 1;
+        gbc.weightx = 1.0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        filterPanel.add(courseComboBox, gbc);
+
+        gbc.gridx = 2;
+        gbc.weightx = 0.0;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.insets = new Insets(0, 0, 0, 0);
+        filterPanel.add(filterButton, gbc);
+
+        JPanel actionPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 10, 5));
         actionPanel.setOpaque(false);
         actionPanel.add(exportButton);
         actionPanel.add(reloadButton);
@@ -136,10 +155,10 @@ public class LecturerStudentListPanel extends BasePanel {
         summaryLabel.setForeground(AppColors.CARD_MUTED_TEXT);
         summaryLabel.setFont(summaryLabel.getFont().deriveFont(Font.PLAIN, 12.5f));
 
-        JPanel tableHeadingPanel = new JPanel(new BorderLayout(12, 0));
+        JPanel tableHeadingPanel = new JPanel(new BorderLayout(0, 6));
         tableHeadingPanel.setOpaque(false);
-        tableHeadingPanel.add(tableTitle, BorderLayout.WEST);
-        tableHeadingPanel.add(summaryLabel, BorderLayout.EAST);
+        tableHeadingPanel.add(tableTitle, BorderLayout.NORTH);
+        tableHeadingPanel.add(summaryLabel, BorderLayout.CENTER);
 
         JScrollPane tableScrollPane = createTableScrollPane(table);
 
@@ -215,6 +234,7 @@ public class LecturerStudentListPanel extends BasePanel {
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         scrollPane.getHorizontalScrollBar().setUnitIncrement(16);
         scrollPane.getViewport().setBackground(AppColors.CARD_BACKGROUND);
+        scrollPane.setMinimumSize(new Dimension(0, 180));
         return scrollPane;
     }
 

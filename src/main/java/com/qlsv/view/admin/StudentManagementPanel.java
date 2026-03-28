@@ -12,8 +12,8 @@ import com.qlsv.utils.AcademicFormatUtil;
 import com.qlsv.utils.DialogUtil;
 import com.qlsv.utils.DisplayTextUtil;
 import com.qlsv.view.auth.ChangePasswordDialog;
-import com.qlsv.view.common.AppColors;
 import com.qlsv.view.common.AbstractCrudPanel;
+import com.qlsv.view.common.AppColors;
 import com.qlsv.view.common.DetailSectionPanel;
 import com.qlsv.view.common.FilterOption;
 import com.qlsv.view.dialog.BaseDetailDialog;
@@ -25,7 +25,11 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import java.awt.FlowLayout;
+import javax.swing.JTable;
+import java.awt.BorderLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.util.List;
 
 public class StudentManagementPanel extends AbstractCrudPanel<Student> {
@@ -55,6 +59,7 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
         filterTypeComboBox.setSelectedItem(FILTER_ALL);
         setFilterPanel(buildFilterPanel());
         setDetailPanel(detailSectionPanel);
+        configureTableLayout();
         reloadFilterValues();
         refreshData();
     }
@@ -228,7 +233,7 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
     }
 
     private JPanel buildFilterPanel() {
-        JButton applyButton = new JButton("Áp dụng");
+        JButton applyButton = new JButton("Lọc");
         JButton resetButton = new JButton("Đặt lại");
 
         applyButton.addActionListener(event -> {
@@ -238,18 +243,56 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
         resetButton.addActionListener(event -> resetFilter());
         filterTypeComboBox.addActionListener(event -> reloadFilterValues());
 
-        JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        filterTypeComboBox.setPreferredSize(new java.awt.Dimension(190, 36));
+        filterValueComboBox.setPreferredSize(new java.awt.Dimension(220, 36));
+
+        JPanel filterPanel = new JPanel(new BorderLayout(12, 8));
         filterPanel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createTitledBorder("Bộ lọc sinh viên"),
                 BorderFactory.createEmptyBorder(6, 8, 6, 8)
         ));
-        filterPanel.add(new JLabel("Điều kiện"));
-        filterPanel.add(filterTypeComboBox);
-        filterPanel.add(new JLabel("Giá trị"));
-        filterPanel.add(filterValueComboBox);
-        filterPanel.add(applyButton);
-        filterPanel.add(resetButton);
+
+        JPanel fieldPanel = new JPanel(new GridBagLayout());
+        fieldPanel.setOpaque(false);
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(0, 0, 0, 8);
+
+        gbc.gridx = 0;
+        fieldPanel.add(new JLabel("Điều kiện"), gbc);
+
+        gbc.gridx = 1;
+        fieldPanel.add(filterTypeComboBox, gbc);
+
+        gbc.gridx = 2;
+        fieldPanel.add(new JLabel("Giá trị"), gbc);
+
+        gbc.gridx = 3;
+        gbc.weightx = 1.0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(0, 0, 0, 0);
+        fieldPanel.add(filterValueComboBox, gbc);
+
+        JPanel actionPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 0));
+        actionPanel.setOpaque(false);
+        actionPanel.add(applyButton);
+        actionPanel.add(resetButton);
+
+        filterPanel.add(fieldPanel, BorderLayout.CENTER);
+        filterPanel.add(actionPanel, BorderLayout.EAST);
         return filterPanel;
+    }
+
+    private void configureTableLayout() {
+        JTable table = getTable();
+        table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+
+        int[] widths = {70, 140, 220, 220, 170, 180, 120, 140};
+        for (int index = 0; index < widths.length && index < table.getColumnModel().getColumnCount(); index++) {
+            table.getColumnModel().getColumn(index).setPreferredWidth(widths[index]);
+        }
     }
 
     private void reloadFilterValues() {

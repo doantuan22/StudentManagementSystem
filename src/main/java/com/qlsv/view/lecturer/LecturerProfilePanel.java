@@ -27,7 +27,6 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.GridLayout;
 import java.awt.Insets;
 
 public class LecturerProfilePanel extends BasePanel {
@@ -77,11 +76,7 @@ public class LecturerProfilePanel extends BasePanel {
     public void reloadData() {
         try {
             currentLecturer = lecturerController.getCurrentLecturer();
-            if (!isEditing) {
-                renderProfile();
-            } else {
-                renderProfile();
-            }
+            renderProfile();
         } catch (Exception exception) {
             DialogUtil.showError(this, exception.getMessage());
         }
@@ -128,7 +123,6 @@ public class LecturerProfilePanel extends BasePanel {
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridy = 0;
-        gbc.insets = new Insets(0, 0, 0, 0);
 
         JPanel titlePanel = new JPanel();
         titlePanel.setOpaque(false);
@@ -143,12 +137,10 @@ public class LecturerProfilePanel extends BasePanel {
         titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 26f));
         titleLabel.setForeground(AppColors.CARD_VALUE_TEXT);
 
-
         titlePanel.add(eyebrowLabel);
         titlePanel.add(Box.createVerticalStrut(6));
         titlePanel.add(titleLabel);
         titlePanel.add(Box.createVerticalStrut(8));
-
 
         gbc.gridx = 0;
         gbc.weightx = 1.0;
@@ -167,16 +159,20 @@ public class LecturerProfilePanel extends BasePanel {
     }
 
     private JPanel buildSummaryPanel() {
-        JPanel summaryPanel = new JPanel(new GridLayout(1, 4, CARD_GAP, 0));
+        JPanel summaryPanel = new JPanel(new GridBagLayout());
         summaryPanel.setOpaque(false);
         summaryPanel.setBorder(BorderFactory.createEmptyBorder(CARD_GAP, 0, 0, 0));
 
-        summaryPanel.add(createBadge("Mã GV", currentLecturer.getLecturerCode()));
-        summaryPanel.add(createBadge("Khoa", currentLecturer.getFaculty() == null
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+
+        addSummaryBadge(summaryPanel, gbc, 0, 0, createBadge("Mã GV", currentLecturer.getLecturerCode()));
+        addSummaryBadge(summaryPanel, gbc, 1, 0, createBadge("Khoa", currentLecturer.getFaculty() == null
                 ? "Chưa cập nhật"
                 : currentLecturer.getFaculty().getFacultyName()));
-        summaryPanel.add(createBadge("Email", DisplayTextUtil.defaultText(currentLecturer.getEmail())));
-        summaryPanel.add(createBadge("Điện thoại", DisplayTextUtil.defaultText(currentLecturer.getPhone())));
+        addSummaryBadge(summaryPanel, gbc, 0, 1, createBadge("Email", DisplayTextUtil.defaultText(currentLecturer.getEmail())));
+        addSummaryBadge(summaryPanel, gbc, 1, 1, createBadge("Điện thoại", DisplayTextUtil.defaultText(currentLecturer.getPhone())));
         return summaryPanel;
     }
 
@@ -222,11 +218,29 @@ public class LecturerProfilePanel extends BasePanel {
     }
 
     private JPanel buildSectionGrid() {
-        JPanel sectionsPanel = new JPanel(new GridLayout(1, 3, CARD_GAP, 0));
+        JPanel sectionsPanel = new JPanel(new GridBagLayout());
         sectionsPanel.setOpaque(false);
-        sectionsPanel.add(buildIdentityCard());
-        sectionsPanel.add(buildWorkCard());
-        sectionsPanel.add(buildContactCard());
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.anchor = GridBagConstraints.NORTHWEST;
+        gbc.insets = new Insets(0, 0, CARD_GAP, CARD_GAP);
+
+        gbc.gridx = 0;
+        sectionsPanel.add(buildIdentityCard(), gbc);
+
+        gbc.gridx = 1;
+        gbc.insets = new Insets(0, 0, CARD_GAP, 0);
+        sectionsPanel.add(buildWorkCard(), gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 2;
+        gbc.weighty = 1.0;
+        gbc.insets = new Insets(0, 0, 0, 0);
+        sectionsPanel.add(buildContactCard(), gbc);
         return sectionsPanel;
     }
 
@@ -354,7 +368,7 @@ public class LecturerProfilePanel extends BasePanel {
         labelComponent.setForeground(AppColors.CARD_MUTED_TEXT);
         labelComponent.setFont(labelComponent.getFont().deriveFont(Font.BOLD, 12f));
 
-        JLabel valueComponent = new JLabel(DisplayTextUtil.defaultText(value));
+        JLabel valueComponent = new JLabel("<html><div>" + DisplayTextUtil.defaultText(value) + "</div></html>");
         valueComponent.setForeground(AppColors.CARD_VALUE_TEXT);
         valueComponent.setFont(valueComponent.getFont().deriveFont(Font.BOLD, 15f));
 
@@ -368,7 +382,7 @@ public class LecturerProfilePanel extends BasePanel {
         labelComponent.setForeground(AppColors.CARD_MUTED_TEXT);
         labelComponent.setFont(labelComponent.getFont().deriveFont(Font.BOLD, 12.5f));
 
-        JLabel valueComponent = new JLabel(DisplayTextUtil.defaultText(value));
+        JLabel valueComponent = new JLabel("<html><div>" + DisplayTextUtil.defaultText(value) + "</div></html>");
         valueComponent.setForeground(AppColors.CARD_VALUE_TEXT);
         valueComponent.setFont(valueComponent.getFont().deriveFont(Font.BOLD, 14f));
 
@@ -400,6 +414,14 @@ public class LecturerProfilePanel extends BasePanel {
                 BorderFactory.createEmptyBorder(8, 10, 8, 10)
         ));
         return textField;
+    }
+
+    private void addSummaryBadge(JPanel summaryPanel, GridBagConstraints template, int x, int y, JPanel badgePanel) {
+        GridBagConstraints gbc = (GridBagConstraints) template.clone();
+        gbc.gridx = x;
+        gbc.gridy = y;
+        gbc.insets = new Insets(0, 0, y == 0 ? CARD_GAP : 0, x == 0 ? CARD_GAP : 0);
+        summaryPanel.add(badgePanel, gbc);
     }
 
     private JLabel createNoteLabel(String text) {

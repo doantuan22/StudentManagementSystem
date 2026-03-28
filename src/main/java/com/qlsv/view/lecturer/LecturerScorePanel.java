@@ -21,7 +21,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
-import javax.swing.SwingConstants;
 import javax.swing.Timer;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -30,8 +29,10 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -46,7 +47,7 @@ public class LecturerScorePanel extends BasePanel {
     private static final String[] EDIT_TABLE_COLUMNS = {
             "Mã SV", "Họ và tên", "Học phần", "QT", "GK", "CK", "Tổng kết", "Kết quả"
     };
-    private static final int CONTROL_HEIGHT = 32;
+    private static final int CONTROL_HEIGHT = 36;
     private static final int TABLE_ROW_HEIGHT = 30;
     private static final int SCORE_TABLE_VIEWPORT_HEIGHT = 260;
     private static final int EDIT_TABLE_VIEWPORT_HEIGHT = 104;
@@ -109,11 +110,13 @@ public class LecturerScorePanel extends BasePanel {
 
         searchField.setToolTipText("Tìm theo mã sinh viên hoặc họ tên trong danh sách đang lọc.");
         searchField.setPreferredSize(new Dimension(220, CONTROL_HEIGHT));
+        searchField.setMinimumSize(new Dimension(180, CONTROL_HEIGHT));
         searchField.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(AppColors.INPUT_BORDER),
                 BorderFactory.createEmptyBorder(6, 10, 6, 10)
         ));
-        courseComboBox.setPreferredSize(new Dimension(200, CONTROL_HEIGHT));
+        courseComboBox.setPreferredSize(new Dimension(220, CONTROL_HEIGHT));
+        courseComboBox.setMinimumSize(new Dimension(180, CONTROL_HEIGHT));
         courseComboBox.setFont(courseComboBox.getFont().deriveFont(Font.PLAIN, 13.5f));
 
         searchDebounceTimer = new Timer(250, event -> {
@@ -138,15 +141,33 @@ public class LecturerScorePanel extends BasePanel {
             }
         });
 
-        JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
+        JPanel filterPanel = new JPanel(new GridBagLayout());
         filterPanel.setOpaque(false);
-        filterPanel.add(new JLabel("Học phần:"));
-        filterPanel.add(courseComboBox);
-        filterPanel.add(filterButton);
-        filterPanel.add(new JLabel("Từ khóa:"));
-        filterPanel.add(searchField);
 
-        JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 4));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(0, 0, 0, 8);
+
+        gbc.gridx = 0;
+        filterPanel.add(new JLabel("Học phần:"), gbc);
+
+        gbc.gridx = 1;
+        filterPanel.add(courseComboBox, gbc);
+
+        gbc.gridx = 2;
+        filterPanel.add(filterButton, gbc);
+
+        gbc.gridx = 3;
+        filterPanel.add(new JLabel("Từ khóa:"), gbc);
+
+        gbc.gridx = 4;
+        gbc.weightx = 1.0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(0, 0, 0, 0);
+        filterPanel.add(searchField, gbc);
+
+        JPanel actionPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 4));
         actionPanel.setOpaque(false);
         actionPanel.add(reloadButton);
 
@@ -155,7 +176,9 @@ public class LecturerScorePanel extends BasePanel {
         titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 18f));
         titleLabel.setForeground(AppColors.CARD_VALUE_TEXT);
 
-
+        JLabel subtitleLabel = new JLabel("Lọc theo học phần và cập nhật nhanh điểm thành phần của sinh viên đang chọn.");
+        subtitleLabel.setFont(subtitleLabel.getFont().deriveFont(Font.PLAIN, 12.5f));
+        subtitleLabel.setForeground(AppColors.CARD_MUTED_TEXT);
 
         JPanel controlPanel = new JPanel(new BorderLayout(10, 8));
         controlPanel.setOpaque(false);
@@ -165,6 +188,7 @@ public class LecturerScorePanel extends BasePanel {
         JPanel headerTextPanel = new JPanel(new BorderLayout(0, 4));
         headerTextPanel.setOpaque(false);
         headerTextPanel.add(titleLabel, BorderLayout.NORTH);
+        headerTextPanel.add(subtitleLabel, BorderLayout.CENTER);
 
         headerPanel.add(headerTextPanel, BorderLayout.NORTH);
         headerPanel.add(controlPanel, BorderLayout.CENTER);
@@ -182,18 +206,15 @@ public class LecturerScorePanel extends BasePanel {
 
         editPanel = createSectionCard(new BorderLayout(0, 12));
         JLabel editTitle = createSectionTitle("Bảng nhập/sửa điểm theo sinh viên đang chọn");
-
-        JPanel editHintPanel = new JPanel(new BorderLayout());
-        editHintPanel.setOpaque(false);
-    
+        JLabel editSubtitle = createMutedDescription("Nhập lại các cột QT, GK, CK rồi lưu để cập nhật đúng bản ghi hiện tại.");
 
         JPanel editTopPanel = new JPanel(new BorderLayout(0, 8));
         editTopPanel.setOpaque(false);
         editTopPanel.add(editTitle, BorderLayout.NORTH);
-        editTopPanel.add(editHintPanel, BorderLayout.CENTER);
+        editTopPanel.add(editSubtitle, BorderLayout.CENTER);
 
         JScrollPane editTableScrollPane = createTableScrollPane(editTable);
-        JPanel editActionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        JPanel editActionPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 0, 0));
         editActionPanel.setOpaque(false);
         editActionPanel.add(saveButton);
 

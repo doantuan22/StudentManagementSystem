@@ -72,6 +72,7 @@ public class ScoreManagementPanel extends BasePanel {
     private final JComboBox<FilterOption<?>> filterValueComboBox = new JComboBox<>();
     private final JTextField keywordField = new JTextField(24);
 
+    private final JButton searchButton = new JButton("Tìm");
     private final JButton applyButton = new JButton("Áp dụng");
     private final JButton resetButton = new JButton("Đặt lại");
     private final JButton reloadButton = new JButton("Tải lại");
@@ -104,8 +105,8 @@ public class ScoreManagementPanel extends BasePanel {
         }
     };
 
-    private final JTable studentTable = new JTable(studentTableModel);
-    private final JTable detailTable = new JTable(detailTableModel);
+    private final JTable studentTable = new ResponsiveTable(studentTableModel);
+    private final JTable detailTable = new ResponsiveTable(detailTableModel);
 
     private JPanel filterFieldsPanel;
     private JPanel toolbarButtonPanel;
@@ -168,8 +169,8 @@ public class ScoreManagementPanel extends BasePanel {
         headerPanel.add(subtitleLabel);
 
         styleTextField(keywordField);
-        keywordField.setPreferredSize(new Dimension(280, 40));
-        keywordField.setMinimumSize(new Dimension(220, 40));
+        keywordField.setPreferredSize(new Dimension(150, 40));
+        keywordField.setMinimumSize(new Dimension(160, 40));
         keywordField.addActionListener(event -> reloadData());
 
         filterTypeComboBox.setPreferredSize(new Dimension(170, 36));
@@ -178,6 +179,7 @@ public class ScoreManagementPanel extends BasePanel {
         filterValueComboBox.setMinimumSize(new Dimension(150, 36));
         filterValueComboBox.setEnabled(false);
 
+        styleActionButton(searchButton, AppColors.BUTTON_PRIMARY);
         styleActionButton(applyButton, AppColors.BUTTON_PRIMARY);
         styleActionButton(resetButton, AppColors.BUTTON_NEUTRAL);
         styleActionButton(reloadButton, AppColors.BUTTON_NEUTRAL);
@@ -185,6 +187,7 @@ public class ScoreManagementPanel extends BasePanel {
         styleActionButton(editButton, AppColors.BUTTON_WARNING);
         styleActionButton(deleteButton, AppColors.BUTTON_DANGER);
 
+        searchButton.addActionListener(event -> reloadData());
         applyButton.addActionListener(event -> {
             filterReady = hasValidFilterSelection();
             reloadData();
@@ -223,35 +226,41 @@ public class ScoreManagementPanel extends BasePanel {
         filterConstraints.gridx = 5;
         filterConstraints.weightx = 1.0;
         filterConstraints.fill = GridBagConstraints.HORIZONTAL;
-        filterConstraints.insets = new Insets(0, 0, 0, 0);
+        filterConstraints.insets = new Insets(0, 0, 0, TOOLBAR_GAP);
         filterFieldsPanel.add(keywordField, filterConstraints);
 
-        toolbarButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, TOOLBAR_GAP, 0));
+        filterConstraints.gridx = 6;
+        filterConstraints.weightx = 0.0;
+        filterConstraints.fill = GridBagConstraints.NONE;
+        filterConstraints.insets = new Insets(0, 0, 0, 0);
+        filterFieldsPanel.add(searchButton, filterConstraints);
+
+        toolbarButtonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, TOOLBAR_GAP, 0));
         toolbarButtonPanel.setOpaque(false);
         toolbarButtonPanel.add(applyButton);
         toolbarButtonPanel.add(resetButton);
         toolbarButtonPanel.add(reloadButton);
 
-        secondaryActionPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, TOOLBAR_GAP, 0));
+        secondaryActionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, TOOLBAR_GAP, 0));
         secondaryActionPanel.setOpaque(false);
         secondaryActionPanel.add(addButton);
         secondaryActionPanel.add(editButton);
         secondaryActionPanel.add(deleteButton);
 
-        JPanel toolbarMainRowPanel = new JPanel(new BorderLayout(12, 8));
-        toolbarMainRowPanel.setOpaque(false);
-        toolbarMainRowPanel.add(filterFieldsPanel, BorderLayout.CENTER);
-        toolbarMainRowPanel.add(toolbarButtonPanel, BorderLayout.EAST);
+        JPanel toolbarFooterPanel = new JPanel(new BorderLayout(12, 8));
+        toolbarFooterPanel.setOpaque(false);
+        toolbarFooterPanel.add(toolbarButtonPanel, BorderLayout.WEST);
+        toolbarFooterPanel.add(secondaryActionPanel, BorderLayout.EAST);
 
         controlCard = createSurfaceCard(new BorderLayout(0, 12));
-        controlCard.add(toolbarMainRowPanel, BorderLayout.NORTH);
-        controlCard.add(secondaryActionPanel, BorderLayout.SOUTH);
+        controlCard.add(filterFieldsPanel, BorderLayout.NORTH);
+        controlCard.add(toolbarFooterPanel, BorderLayout.SOUTH);
 
         configureTable(studentTable);
         configureTable(detailTable);
-        studentTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
         studentTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         detailTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        configureStudentTableColumns();
         configureDetailTableColumns();
         studentTable.getSelectionModel().addListSelectionListener(event -> {
             if (!event.getValueIsAdjusting()) {
@@ -781,10 +790,10 @@ public class ScoreManagementPanel extends BasePanel {
         JLabel descriptionLabel = new JLabel(description);
         descriptionLabel.setForeground(AppColors.CARD_MUTED_TEXT);
 
-        JPanel headerPanel = new JPanel(new GridLayout(0, 1, 0, 4));
+        JPanel headerPanel = new JPanel(new BorderLayout(0, 4));
         headerPanel.setOpaque(false);
-        headerPanel.add(titleLabel);
-        headerPanel.add(descriptionLabel);
+        headerPanel.add(titleLabel, BorderLayout.NORTH);
+        headerPanel.add(descriptionLabel, BorderLayout.CENTER);
 
         panel.add(headerPanel, BorderLayout.NORTH);
         panel.add(content, BorderLayout.CENTER);
@@ -856,6 +865,14 @@ public class ScoreManagementPanel extends BasePanel {
         }
     }
 
+    private void configureStudentTableColumns() {
+        TableColumnModel columnModel = studentTable.getColumnModel();
+        int[] preferredWidths = {120, 240, 170, 180, 95, 100};
+        for (int index = 0; index < preferredWidths.length && index < columnModel.getColumnCount(); index++) {
+            columnModel.getColumn(index).setPreferredWidth(preferredWidths[index]);
+        }
+    }
+
     private void styleTextField(JTextField field) {
         field.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(AppColors.INPUT_BORDER),
@@ -883,6 +900,20 @@ public class ScoreManagementPanel extends BasePanel {
             return "Chưa cập nhật";
         }
         return value;
+    }
+
+    private static final class ResponsiveTable extends JTable {
+
+        private ResponsiveTable(DefaultTableModel model) {
+            super(model);
+        }
+
+        @Override
+        public boolean getScrollableTracksViewportWidth() {
+            return getAutoResizeMode() != AUTO_RESIZE_OFF
+                    || getParent() == null
+                    || getPreferredSize().width < getParent().getWidth();
+        }
     }
 
     private record StudentScoreSummary(

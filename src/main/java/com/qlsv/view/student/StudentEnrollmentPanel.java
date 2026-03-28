@@ -11,6 +11,8 @@ import com.qlsv.view.common.AppColors;
 import com.qlsv.view.common.BasePanel;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -23,8 +25,10 @@ import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumnModel;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -37,6 +41,7 @@ import java.util.List;
 public class StudentEnrollmentPanel extends BasePanel {
 
     private static final String ALL_SEMESTERS = "Tất cả học kỳ";
+    private static final int CONTROL_GAP = 8;
 
     private final StudentEnrollmentScreenController screenController = new StudentEnrollmentScreenController();
 
@@ -79,19 +84,25 @@ public class StudentEnrollmentPanel extends BasePanel {
         titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 22f));
         titleLabel.setForeground(AppColors.CARD_VALUE_TEXT);
 
+        JLabel subtitleLabel = new JLabel("Tìm lớp học phần phù hợp và theo dõi các đăng ký hiện có ngay trên cùng màn hình.");
+        subtitleLabel.setForeground(AppColors.CARD_MUTED_TEXT);
 
-        JPanel titlePanel = new JPanel(new BorderLayout(0, 7));
+        JPanel titlePanel = new JPanel();
         titlePanel.setOpaque(false);
-        titlePanel.add(titleLabel, BorderLayout.NORTH);
+        titlePanel.setLayout(new BoxLayout(titlePanel, BoxLayout.Y_AXIS));
+        titlePanel.add(titleLabel);
+        titlePanel.add(Box.createVerticalStrut(6));
+        titlePanel.add(subtitleLabel);
 
-
-        JButton filterButton = new JButton("Tìm Kiếm");
+        JButton filterButton = new JButton("Tìm kiếm");
         JButton reloadButton = new JButton("Tải lại");
         JButton registerButton = new JButton("Đăng ký học phần");
         JButton cancelButton = new JButton("Hủy đăng ký");
 
         styleTextField(searchField, 280);
-        styleComboBox(semesterFilterComboBox, 170);
+        searchField.setMinimumSize(new Dimension(220, 38));
+        styleComboBox(semesterFilterComboBox, 180);
+        semesterFilterComboBox.setMinimumSize(new Dimension(150, 38));
         styleActionButton(filterButton, AppColors.BUTTON_PRIMARY);
         styleActionButton(reloadButton, AppColors.BUTTON_NEUTRAL);
         styleActionButton(registerButton, AppColors.BUTTON_SUCCESS);
@@ -111,47 +122,49 @@ public class StudentEnrollmentPanel extends BasePanel {
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridy = 0;
-        gbc.insets = new Insets(0, 0, 0, 8);
+        gbc.insets = new Insets(0, 0, 0, CONTROL_GAP);
         gbc.anchor = GridBagConstraints.WEST;
 
         gbc.gridx = 0;
         filterFieldsPanel.add(createCaptionLabel("Tìm kiếm"), gbc);
 
         gbc.gridx = 1;
-        gbc.weightx = 1;
+        gbc.weightx = 1.0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         filterFieldsPanel.add(searchField, gbc);
 
         gbc.gridx = 2;
-        gbc.weightx = 0;
+        gbc.weightx = 0.0;
         gbc.fill = GridBagConstraints.NONE;
         filterFieldsPanel.add(createCaptionLabel("Học kỳ"), gbc);
 
         gbc.gridx = 3;
+        gbc.insets = new Insets(0, 0, 0, 0);
         filterFieldsPanel.add(semesterFilterComboBox, gbc);
 
-        gbc.gridx = 4;
-        filterFieldsPanel.add(filterButton, gbc);
+        JPanel utilityActionPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, CONTROL_GAP, 0));
+        utilityActionPanel.setOpaque(false);
+        utilityActionPanel.add(filterButton);
+        utilityActionPanel.add(reloadButton);
 
-        gbc.gridx = 5;
-        gbc.insets = new Insets(0, 0, 0, 0);
-        filterFieldsPanel.add(reloadButton, gbc);
+        JPanel enrollmentActionPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, CONTROL_GAP, 0));
+        enrollmentActionPanel.setOpaque(false);
+        enrollmentActionPanel.add(registerButton);
+        enrollmentActionPanel.add(cancelButton);
 
-        JPanel actionPanel = new JPanel(new BorderLayout());
-        actionPanel.setOpaque(false);
-    
-        JPanel actionButtonsPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 0));
-        actionButtonsPanel.setOpaque(false);
-        actionButtonsPanel.add(registerButton);
-        actionButtonsPanel.add(cancelButton);
-        actionPanel.add(actionButtonsPanel, BorderLayout.EAST);
+        JPanel controlFooterPanel = new JPanel(new BorderLayout(12, 8));
+        controlFooterPanel.setOpaque(false);
+        controlFooterPanel.add(utilityActionPanel, BorderLayout.WEST);
+        controlFooterPanel.add(enrollmentActionPanel, BorderLayout.EAST);
 
         JPanel controlCard = createSurfaceCard(new BorderLayout(0, 12));
         controlCard.add(filterFieldsPanel, BorderLayout.NORTH);
-        controlCard.add(actionPanel, BorderLayout.SOUTH);
+        controlCard.add(controlFooterPanel, BorderLayout.SOUTH);
 
         configureTable(courseSectionTable);
         configureTable(enrollmentTable);
+        configureCourseSectionColumns();
+        configureEnrollmentColumns();
         courseSectionTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         enrollmentTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
@@ -166,10 +179,13 @@ public class StudentEnrollmentPanel extends BasePanel {
         );
         JPanel enrollmentPanel = createSectionPanel(
                 "Các học phần đã đăng ký",
-                "Theo dõi tình trạng đăng ký hiện có và hủy khi cần.",
+                "Theo dõi trạng thái đăng ký hiện có và hủy khi cần.",
                 registeredSummaryLabel,
                 enrollmentScrollPane
         );
+
+        coursePanel.setMinimumSize(new Dimension(0, 240));
+        enrollmentPanel.setMinimumSize(new Dimension(0, 220));
 
         JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, coursePanel, enrollmentPanel);
         splitPane.setBorder(null);
@@ -178,8 +194,6 @@ public class StudentEnrollmentPanel extends BasePanel {
         splitPane.setContinuousLayout(true);
         splitPane.setOneTouchExpandable(true);
         splitPane.setDividerSize(10);
-        coursePanel.setMinimumSize(new Dimension(0, 220));
-        enrollmentPanel.setMinimumSize(new Dimension(0, 220));
 
         JPanel headerPanel = new JPanel(new BorderLayout(0, 12));
         headerPanel.setOpaque(false);
@@ -312,28 +326,29 @@ public class StudentEnrollmentPanel extends BasePanel {
     private JPanel createSectionPanel(String title, String description, JLabel summaryLabel, JComponent content) {
         JPanel panel = createSurfaceCard(new BorderLayout(0, 12));
 
-        JPanel headingPanel = new JPanel(new BorderLayout(12, 0));
-        headingPanel.setOpaque(false);
+        summaryLabel.setForeground(AppColors.CARD_MUTED_TEXT);
+        summaryLabel.setFont(summaryLabel.getFont().deriveFont(Font.PLAIN, 12.5f));
+        summaryLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JPanel titleGroup = new JPanel(new BorderLayout(0, 4));
-        titleGroup.setOpaque(false);
+        JPanel headingPanel = new JPanel();
+        headingPanel.setOpaque(false);
+        headingPanel.setLayout(new BoxLayout(headingPanel, BoxLayout.Y_AXIS));
 
         JLabel titleLabel = new JLabel(title);
         titleLabel.setForeground(AppColors.CARD_TITLE_TEXT);
         titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 16f));
+        titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JLabel descriptionLabel = new JLabel(description);
         descriptionLabel.setForeground(AppColors.CARD_MUTED_TEXT);
         descriptionLabel.setFont(descriptionLabel.getFont().deriveFont(Font.PLAIN, 12.5f));
+        descriptionLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        summaryLabel.setForeground(AppColors.CARD_MUTED_TEXT);
-        summaryLabel.setFont(summaryLabel.getFont().deriveFont(Font.PLAIN, 12.5f));
-
-        titleGroup.add(titleLabel, BorderLayout.NORTH);
-        titleGroup.add(descriptionLabel, BorderLayout.CENTER);
-
-        headingPanel.add(titleGroup, BorderLayout.WEST);
-        headingPanel.add(summaryLabel, BorderLayout.EAST);
+        headingPanel.add(titleLabel);
+        headingPanel.add(Box.createVerticalStrut(4));
+        headingPanel.add(descriptionLabel);
+        headingPanel.add(Box.createVerticalStrut(6));
+        headingPanel.add(summaryLabel);
 
         panel.add(headingPanel, BorderLayout.NORTH);
         panel.add(content, BorderLayout.CENTER);
@@ -343,9 +358,12 @@ public class StudentEnrollmentPanel extends BasePanel {
     private JScrollPane createTableScrollPane(JTable table) {
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(BorderFactory.createLineBorder(AppColors.CARD_BORDER));
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         scrollPane.getViewport().setBackground(AppColors.CARD_BACKGROUND);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         scrollPane.getHorizontalScrollBar().setUnitIncrement(16);
+        scrollPane.setMinimumSize(new Dimension(0, 180));
         return scrollPane;
     }
 
@@ -356,11 +374,28 @@ public class StudentEnrollmentPanel extends BasePanel {
         table.setBackground(Color.WHITE);
         table.setSelectionBackground(AppColors.TABLE_SELECTION_BACKGROUND);
         table.setSelectionForeground(AppColors.CARD_VALUE_TEXT);
+        table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         table.getTableHeader().setReorderingAllowed(false);
         table.getTableHeader().setBackground(AppColors.TABLE_HEADER_BACKGROUND);
         table.getTableHeader().setForeground(AppColors.CARD_VALUE_TEXT);
         table.getTableHeader().setFont(table.getTableHeader().getFont().deriveFont(Font.BOLD, 13f));
         table.getTableHeader().setPreferredSize(new Dimension(0, 32));
+    }
+
+    private void configureCourseSectionColumns() {
+        TableColumnModel columnModel = courseSectionTable.getColumnModel();
+        int[] widths = {70, 130, 250, 80, 100, 180, 110, 110, 240};
+        for (int index = 0; index < widths.length && index < columnModel.getColumnCount(); index++) {
+            columnModel.getColumn(index).setPreferredWidth(widths[index]);
+        }
+    }
+
+    private void configureEnrollmentColumns() {
+        TableColumnModel columnModel = enrollmentTable.getColumnModel();
+        int[] widths = {70, 130, 260, 180, 130, 170};
+        for (int index = 0; index < widths.length && index < columnModel.getColumnCount(); index++) {
+            columnModel.getColumn(index).setPreferredWidth(widths[index]);
+        }
     }
 
     private void hideColumn(JTable table, int columnIndex) {

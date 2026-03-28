@@ -107,6 +107,7 @@ public class EnrollmentFormDialog extends JDialog {
         scrollPane.getViewport().setBackground(AppColors.CARD_BACKGROUND);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         scrollPane.getHorizontalScrollBar().setUnitIncrement(16);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 
         JButton cancelButton = new JButton("Hủy");
         styleSecondaryButton(cancelButton);
@@ -301,6 +302,8 @@ public class EnrollmentFormDialog extends JDialog {
                 BorderFactory.createLineBorder(AppColors.CARD_BORDER),
                 BorderFactory.createEmptyBorder(18, 18, 18, 18)
         ));
+        panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 
         JPanel headingPanel = new JPanel(new BorderLayout(0, 4));
         headingPanel.setOpaque(false);
@@ -342,6 +345,7 @@ public class EnrollmentFormDialog extends JDialog {
     private JPanel createField(String labelText, Component inputComponent) {
         JPanel panel = new JPanel(new BorderLayout(0, 6));
         panel.setOpaque(false);
+        panel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JLabel label = new JLabel(labelText);
         label.setFont(label.getFont().deriveFont(Font.BOLD, 12.5f));
@@ -358,6 +362,7 @@ public class EnrollmentFormDialog extends JDialog {
                 BorderFactory.createLineBorder(AppColors.INPUT_BORDER),
                 BorderFactory.createEmptyBorder(10, 12, 10, 12)
         ));
+        textField.setMinimumSize(new Dimension(180, 40));
         return textField;
     }
 
@@ -365,6 +370,7 @@ public class EnrollmentFormDialog extends JDialog {
         comboBox.setFont(comboBox.getFont().deriveFont(Font.PLAIN, 13.5f));
         comboBox.setBorder(BorderFactory.createLineBorder(AppColors.INPUT_BORDER));
         comboBox.setPreferredSize(new Dimension(comboBox.getPreferredSize().width, 40));
+        comboBox.setMinimumSize(new Dimension(220, 40));
         return comboBox;
     }
 

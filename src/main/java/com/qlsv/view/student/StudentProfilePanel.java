@@ -28,7 +28,6 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.GridLayout;
 import java.awt.Insets;
 
 public class StudentProfilePanel extends BasePanel {
@@ -165,14 +164,18 @@ public class StudentProfilePanel extends BasePanel {
     }
 
     private JPanel buildSummaryPanel() {
-        JPanel summaryPanel = new JPanel(new GridLayout(1, 4, CARD_GAP, 0));
+        JPanel summaryPanel = new JPanel(new GridBagLayout());
         summaryPanel.setOpaque(false);
         summaryPanel.setBorder(BorderFactory.createEmptyBorder(CARD_GAP, 0, 0, 0));
 
-        summaryPanel.add(createBadge("MSSV", currentStudent.studentCode()));
-        summaryPanel.add(createBadge("Lớp", currentStudent.classRoomName()));
-        summaryPanel.add(createBadge("Khoa", currentStudent.facultyName()));
-        summaryPanel.add(createBadge("Trạng thái", currentStudent.statusText()));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+
+        addSummaryBadge(summaryPanel, gbc, 0, 0, createBadge("MSSV", currentStudent.studentCode()));
+        addSummaryBadge(summaryPanel, gbc, 1, 0, createBadge("Lớp", currentStudent.classRoomName()));
+        addSummaryBadge(summaryPanel, gbc, 0, 1, createBadge("Khoa", currentStudent.facultyName()));
+        addSummaryBadge(summaryPanel, gbc, 1, 1, createBadge("Trạng thái", currentStudent.statusText()));
         return summaryPanel;
     }
 
@@ -204,13 +207,39 @@ public class StudentProfilePanel extends BasePanel {
     }
 
     private JPanel buildSectionGrid() {
-        JPanel sectionsPanel = new JPanel(new GridLayout(1, 3, CARD_GAP, 0));
+        JPanel sectionsPanel = new JPanel(new GridBagLayout());
         sectionsPanel.setOpaque(false);
         sectionsPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        sectionsPanel.add(buildIdentityCard());
-        sectionsPanel.add(buildAcademicCard());
-        sectionsPanel.add(buildContactCard());
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.anchor = GridBagConstraints.NORTHWEST;
+        gbc.insets = new Insets(0, 0, CARD_GAP, CARD_GAP);
+
+        gbc.gridx = 0;
+        sectionsPanel.add(buildIdentityCard(), gbc);
+
+        gbc.gridx = 1;
+        gbc.insets = new Insets(0, 0, CARD_GAP, 0);
+        sectionsPanel.add(buildAcademicCard(), gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 2;
+        gbc.weighty = 1.0;
+        gbc.insets = new Insets(0, 0, 0, 0);
+        sectionsPanel.add(buildContactCard(), gbc);
         return sectionsPanel;
+    }
+
+    private void addSummaryBadge(JPanel summaryPanel, GridBagConstraints template, int x, int y, JPanel badgePanel) {
+        GridBagConstraints gbc = (GridBagConstraints) template.clone();
+        gbc.gridx = x;
+        gbc.gridy = y;
+        gbc.insets = new Insets(0, 0, y == 0 ? CARD_GAP : 0, x == 0 ? CARD_GAP : 0);
+        summaryPanel.add(badgePanel, gbc);
     }
 
     private JPanel buildAcademicCard() {

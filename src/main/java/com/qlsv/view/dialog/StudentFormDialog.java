@@ -34,6 +34,7 @@ import java.util.List;
 public class StudentFormDialog extends JDialog {
 
     private static final int INPUT_HEIGHT = 40;
+    private static final int TEXT_AREA_HEIGHT = 110;
 
     private static final String[] GENDER_OPTIONS = {"Nam", "Nữ", "Khác"};
     private static final FilterOption<String>[] STATUS_OPTIONS = new FilterOption[]{
@@ -104,6 +105,7 @@ public class StudentFormDialog extends JDialog {
         scrollPane.getViewport().setBackground(AppColors.CARD_BACKGROUND);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         scrollPane.getHorizontalScrollBar().setUnitIncrement(16);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 
         JButton cancelButton = new JButton("Hủy");
         styleSecondaryButton(cancelButton);
@@ -195,6 +197,8 @@ public class StudentFormDialog extends JDialog {
                 BorderFactory.createLineBorder(AppColors.CARD_BORDER),
                 BorderFactory.createEmptyBorder(18, 18, 18, 18)
         ));
+        panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 
         JPanel headingPanel = new JPanel(new BorderLayout(0, 4));
         headingPanel.setOpaque(false);
@@ -240,6 +244,7 @@ public class StudentFormDialog extends JDialog {
     private JPanel createField(String labelText, JComponent inputComponent) {
         JPanel panel = new JPanel(new BorderLayout(0, 6));
         panel.setOpaque(false);
+        panel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JLabel label = new JLabel(labelText);
         label.setFont(label.getFont().deriveFont(Font.BOLD, 12.5f));
@@ -260,6 +265,8 @@ public class StudentFormDialog extends JDialog {
         JScrollPane scrollPane = new JScrollPane(addressArea);
         scrollPane.setBorder(BorderFactory.createLineBorder(AppColors.INPUT_BORDER));
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        scrollPane.setPreferredSize(new Dimension(0, TEXT_AREA_HEIGHT));
+        scrollPane.setMinimumSize(new Dimension(160, TEXT_AREA_HEIGHT));
         return scrollPane;
     }
 
@@ -270,7 +277,7 @@ public class StudentFormDialog extends JDialog {
                 BorderFactory.createEmptyBorder(10, 12, 10, 12)
         ));
         textField.setPreferredSize(new Dimension(textField.getPreferredSize().width, INPUT_HEIGHT));
-        textField.setMinimumSize(new Dimension(0, INPUT_HEIGHT));
+        textField.setMinimumSize(new Dimension(160, INPUT_HEIGHT));
         return textField;
     }
 
@@ -278,7 +285,7 @@ public class StudentFormDialog extends JDialog {
         comboBox.setFont(comboBox.getFont().deriveFont(Font.PLAIN, 13.5f));
         comboBox.setBorder(BorderFactory.createLineBorder(AppColors.INPUT_BORDER));
         comboBox.setPreferredSize(new Dimension(comboBox.getPreferredSize().width, INPUT_HEIGHT));
-        comboBox.setMinimumSize(new Dimension(0, INPUT_HEIGHT));
+        comboBox.setMinimumSize(new Dimension(160, INPUT_HEIGHT));
         return comboBox;
     }
 

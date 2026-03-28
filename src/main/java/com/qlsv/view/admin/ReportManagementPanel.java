@@ -98,11 +98,11 @@ public class ReportManagementPanel extends BasePanel {
     }
 
     private void initComponents() {
-        JLabel titleLabel = new JLabel("Báo cáo");
+        JLabel titleLabel = new JLabel("Quản lý báo cáo & thống kê");
         titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 22f));
         titleLabel.setForeground(AppColors.CARD_VALUE_TEXT);
 
-        JLabel subtitleLabel = new JLabel("Tổng hợp dữ liệu báo cáo theo lớp, khoa và học phần với giao diện đồng bộ cùng các màn hình quản lý.");
+        JLabel subtitleLabel = new JLabel("Tổng hợp dữ liệu báo cáo theo lớp, khoa và học phần.");
         subtitleLabel.setForeground(AppColors.CARD_MUTED_TEXT);
         subtitleLabel.setFont(subtitleLabel.getFont().deriveFont(Font.PLAIN, 13f));
 
@@ -170,7 +170,7 @@ public class ReportManagementPanel extends BasePanel {
         JPanel tableTitlePanel = new JPanel(new BorderLayout(0, 4));
         tableTitlePanel.setOpaque(false);
 
-        JLabel tableTitleLabel = new JLabel("Dữ liệu báo cáo");
+        JLabel tableTitleLabel = new JLabel("Chi tiết dữ liệu báo cáo");
         tableTitleLabel.setForeground(AppColors.CARD_TITLE_TEXT);
         tableTitleLabel.setFont(tableTitleLabel.getFont().deriveFont(Font.BOLD, 16f));
 

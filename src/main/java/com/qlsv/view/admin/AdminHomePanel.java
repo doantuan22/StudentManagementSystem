@@ -21,14 +21,14 @@ public class AdminHomePanel extends BasePanel {
         setOpaque(true);
         setBackground(AppColors.CONTENT_BACKGROUND);
 
-        JLabel titleLabel = new JLabel("Tổng quan quản trị");
+        JLabel titleLabel = new JLabel("Bảng điều khiển quản trị");
         titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 24f));
         titleLabel.setForeground(AppColors.CARD_VALUE_TEXT);
 
-        JLabel descriptionLabel = new JLabel("Theo dõi nhanh quy mô dữ liệu hiện tại trong hệ thống.");
+        JLabel descriptionLabel = new JLabel("Thống kê tổng quan dữ liệu hệ thống.");
         descriptionLabel.setForeground(AppColors.CARD_MUTED_TEXT);
 
-        JLabel noteLabel = new JLabel("Các chỉ số bên dưới giữ nguyên nguồn dữ liệu đang được lấy lên từ hệ thống.");
+        JLabel noteLabel = new JLabel("Thông tin được cập nhật theo thời gian thực từ cơ sở dữ liệu.");
         noteLabel.setForeground(AppColors.CARD_MUTED_TEXT);
 
         JPanel introPanel = new JPanel(new GridLayout(0, 1, 0, 6));

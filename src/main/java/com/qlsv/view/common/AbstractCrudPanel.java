@@ -240,7 +240,7 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
     }
 
     protected BaseDetailDialog createDetailDialog(JComponent detailPanel) {
-        return new BaseDetailDialog("Chi tiết", detailPanel);
+        return new BaseDetailDialog("Chi tiết bản ghi", detailPanel);
     }
 
     protected final boolean isDetailDialogVisible() {

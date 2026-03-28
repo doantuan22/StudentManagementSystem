@@ -30,7 +30,7 @@ public class AdminDashboardFrame extends BaseFrame {
     }
 
     AdminDashboardFrame(User user, AppNavigator navigator, LoginController loginController) {
-        super("Trang quản trị");
+        super("Bảng điều khiển - Quản trị");
         this.navigator = navigator;
         this.loginController = loginController;
         initComponents(user);
@@ -82,7 +82,7 @@ public class AdminDashboardFrame extends BaseFrame {
         contentPanel.setBackground(AppColors.CONTENT_BACKGROUND);
 
         SidebarMenu sidebarMenu = new SidebarMenu(
-                "Quản trị hệ thống",
+                "Trang quản trị",
                 "Truy cập nhanh các màn hình quản lý dành cho quản trị viên."
         );
         registerMenuItem(sidebarMenu, "home", "Tổng quan", cardLayout, contentPanel, "home", homePanel);
@@ -109,7 +109,7 @@ public class AdminDashboardFrame extends BaseFrame {
         setLayout(new BorderLayout());
         add(headerPanel, BorderLayout.NORTH);
         add(bodyPanel, BorderLayout.CENTER);
-        add(createFooter("Trạng thái: Quản trị viên đang đăng nhập | Bảng điều khiển đã sẵn sàng"), BorderLayout.SOUTH);
+        add(createFooter("Trạng thái: Quản trị viên đang đăng nhập | Hệ thống sẵn sàng."), BorderLayout.SOUTH);
     }
 
     private void registerMenuItem(

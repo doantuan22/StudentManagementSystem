@@ -25,7 +25,7 @@ public class LecturerDashboardFrame extends BaseFrame {
     }
 
     LecturerDashboardFrame(User user, AppNavigator navigator, LoginController loginController) {
-        super("Trang giảng viên");
+        super("Bảng điều khiển - Giảng viên");
         this.navigator = navigator;
         this.loginController = loginController;
         initComponents(user);
@@ -77,7 +77,7 @@ public class LecturerDashboardFrame extends BaseFrame {
         setLayout(new BorderLayout());
         add(headerPanel, BorderLayout.NORTH);
         add(bodyPanel, BorderLayout.CENTER);
-        add(createFooter("Trạng thái: Giảng viên đang đăng nhập | Đang quản lý các học phần được phân công"), BorderLayout.SOUTH);
+        add(createFooter("Trạng thái: Giảng viên đang đăng nhập | Hệ thống quản lý đào tạo."), BorderLayout.SOUTH);
     }
 
     private void registerMenuItem(

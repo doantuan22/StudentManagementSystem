@@ -53,7 +53,7 @@ public class StudentHomePanel extends BasePanel {
         JPanel headerPanel = new JPanel(new BorderLayout(0, 8));
         headerPanel.setOpaque(false);
 
-        JLabel titleLabel = new JLabel("Tổng quan sinh viên");
+        JLabel titleLabel = new JLabel("Trang tổng quan cá nhân");
         titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 22f));
 
         subtitleLabel.setFont(subtitleLabel.getFont().deriveFont(Font.PLAIN, 13f));
@@ -98,7 +98,7 @@ public class StudentHomePanel extends BasePanel {
 
         JPanel centerPanel = new JPanel(new GridLayout(1, 2, 12, 12));
         centerPanel.setOpaque(false);
-        centerPanel.add(wrapWithTitle("Thông tin học tập nhanh", infoFieldsPanel));
+        centerPanel.add(wrapWithTitle("Thông tin học tập chính", infoFieldsPanel));
         centerPanel.add(wrapWithTitle("Lịch học sắp tới", scheduleContent));
 
         JPanel mainContentPanel = new JPanel(new BorderLayout(12, 12));
@@ -109,7 +109,7 @@ public class StudentHomePanel extends BasePanel {
         JPanel bottomWrapper = new JPanel(new BorderLayout(0, 12));
         bottomWrapper.setOpaque(false);
         bottomWrapper.add(centerPanel, BorderLayout.NORTH);
-        bottomWrapper.add(wrapWithTitle("Tóm tắt kết quả học tập", scoreContent), BorderLayout.CENTER);
+        bottomWrapper.add(wrapWithTitle("Kết quả học tập tóm tắt", scoreContent), BorderLayout.CENTER);
 
         mainContentPanel.add(bottomWrapper, BorderLayout.SOUTH);
 

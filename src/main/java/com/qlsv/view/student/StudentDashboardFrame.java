@@ -24,7 +24,7 @@ public class StudentDashboardFrame extends BaseFrame {
     }
 
     StudentDashboardFrame(User user, AppNavigator navigator, LoginController loginController) {
-        super("Trang sinh viên");
+        super("Bảng điều khiển - Sinh viên");
         this.navigator = navigator;
         this.loginController = loginController;
         initComponents(user);
@@ -81,7 +81,7 @@ public class StudentDashboardFrame extends BaseFrame {
         setLayout(new BorderLayout());
         add(headerPanel, BorderLayout.NORTH);
         add(bodyPanel, BorderLayout.CENTER);
-        add(createFooter("Trạng thái: Sinh viên đang đăng nhập | Có thể đăng ký học phần, xem điểm và lịch học"), BorderLayout.SOUTH);
+        add(createFooter("Trạng thái: Sinh viên đang đăng nhập | Cổng thông tin đào tạo."), BorderLayout.SOUTH);
     }
 
     private void registerMenuItem(

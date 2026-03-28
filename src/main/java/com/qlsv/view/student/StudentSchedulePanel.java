@@ -49,11 +49,8 @@ public class StudentSchedulePanel extends BasePanel {
         titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 22f));
         titleLabel.setForeground(AppColors.CARD_VALUE_TEXT);
 
-        JLabel subtitleLabel = new JLabel("Mọi thông tin phòng và thời gian đều hiển thị trực tiếp từ bảng schedules.");
-        subtitleLabel.setForeground(AppColors.CARD_MUTED_TEXT);
-        subtitleLabel.setFont(subtitleLabel.getFont().deriveFont(Font.PLAIN, 13f));
 
-        totalSessionsCard = new DashboardCard("Tổng số lịch học", AppColors.STAT_CARD_SECTIONS);
+        totalSessionsCard = new DashboardCard("Tổng số môn học", AppColors.STAT_CARD_SECTIONS);
         subjectsCard = new DashboardCard("Số học phần có lịch", AppColors.STAT_CARD_SUBJECTS);
 
         JPanel cardsPanel = new JPanel(new GridLayout(1, 2, 12, 12));
@@ -73,7 +70,6 @@ public class StudentSchedulePanel extends BasePanel {
         JPanel titlePanel = new JPanel(new BorderLayout(0, 6));
         titlePanel.setOpaque(false);
         titlePanel.add(titleLabel, BorderLayout.NORTH);
-        titlePanel.add(subtitleLabel, BorderLayout.CENTER);
 
         JPanel actionPanel = new JPanel(new BorderLayout());
         actionPanel.setOpaque(false);

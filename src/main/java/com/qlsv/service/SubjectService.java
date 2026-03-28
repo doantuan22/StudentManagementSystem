@@ -31,7 +31,7 @@ public class SubjectService {
     public Subject save(Subject subject) {
         permissionService.requirePermission(RolePermission.MANAGE_SUBJECTS);
         return JpaBootstrap.executeInTransaction(
-                "KhÃ´ng thá»ƒ lÆ°u mÃ´n há»c.",
+                "Không thể lưu môn học.",
                 ignored -> {
                     validate(subject);
                     return subject.getId() == null ? subjectDAO.insert(subject) : updateAndReturn(subject);
@@ -42,7 +42,7 @@ public class SubjectService {
     public boolean delete(Long id) {
         permissionService.requirePermission(RolePermission.MANAGE_SUBJECTS);
         return JpaBootstrap.executeInTransaction(
-                "KhÃ´ng thá»ƒ xÃ³a mÃ´n há»c.",
+                "Không thể xóa môn học.",
                 ignored -> subjectDAO.delete(id)
         );
     }
@@ -53,11 +53,11 @@ public class SubjectService {
     }
 
     private void validate(Subject subject) {
-        ValidationUtil.requireWithinLength(subject.getSubjectCode(), 50, "MÃ£ mÃ´n há»c");
-        ValidationUtil.requireNotBlank(subject.getSubjectName(), "TÃªn mÃ´n há»c khÃ´ng Ä‘Æ°á»£c Ä‘á»ƒ trá»‘ng.");
-        ValidationUtil.requirePositive(subject.getCredits(), "Sá»‘ tÃ­n chá»‰ pháº£i lá»›n hÆ¡n 0.");
+        ValidationUtil.requireWithinLength(subject.getSubjectCode(), 50, "Mã môn học");
+        ValidationUtil.requireNotBlank(subject.getSubjectName(), "Tên môn học không được để trống.");
+        ValidationUtil.requirePositive(subject.getCredits(), "Số tín chỉ phải lớn hơn 0.");
         if (subject.getFaculty() == null || subject.getFaculty().getId() == null) {
-            throw new IllegalArgumentException("MÃ´n há»c pháº£i thuá»™c má»™t khoa.");
+            throw new IllegalArgumentException("Môn học phải thuộc một khoa.");
         }
     }
 }

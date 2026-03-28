@@ -31,14 +31,14 @@ public class ScheduleService {
     public List<Schedule> findByCurrentStudent() {
         permissionService.requirePermission(RolePermission.VIEW_OWN_SCHEDULE);
         Student student = studentDAO.findByUserId(SessionManager.requireCurrentUser().getId())
-                .orElseThrow(() -> new ValidationException("KhÃ´ng tÃ¬m tháº¥y sinh viÃªn Ä‘ang Ä‘Äƒng nháº­p."));
+                .orElseThrow(() -> new ValidationException("Không tìm thấy sinh viên đang đăng nhập."));
         return scheduleDAO.findByStudentId(student.getId());
     }
 
     public List<Schedule> findByCurrentLecturer() {
         permissionService.requirePermission(RolePermission.VIEW_OWN_SCHEDULE);
         Lecturer lecturer = lecturerDAO.findByUserId(SessionManager.requireCurrentUser().getId())
-                .orElseThrow(() -> new ValidationException("KhÃ´ng tÃ¬m tháº¥y giáº£ng viÃªn Ä‘ang Ä‘Äƒng nháº­p."));
+                .orElseThrow(() -> new ValidationException("Không tìm thấy giảng viên đang đăng nhập."));
         return scheduleDAO.findByLecturerId(lecturer.getId());
     }
 
@@ -60,15 +60,15 @@ public class ScheduleService {
     public Schedule save(Schedule schedule) {
         permissionService.requirePermission(RolePermission.MANAGE_SCHEDULES);
         return JpaBootstrap.executeInTransaction(
-                "KhÃ´ng thá»ƒ lÆ°u lá»‹ch há»c.",
+                "Không thể lưu lịch học.",
                 ignored -> {
                     validate(schedule);
 
                     if (scheduleDAO.hasLecturerScheduleConflict(schedule, schedule.getId())) {
-                        throw new ValidationException("Lá»‹ch há»c bá»‹ trÃ¹ng vá»›i lá»‹ch dáº¡y khÃ¡c cá»§a giáº£ng viÃªn.");
+                        throw new ValidationException("Lịch học bị trùng với lịch dạy khác của giảng viên.");
                     }
                     if (scheduleDAO.hasRoomScheduleConflict(schedule, schedule.getId())) {
-                        throw new ValidationException("Lá»‹ch há»c bá»‹ trÃ¹ng vá»›i lá»‹ch khÃ¡c cá»§a phÃ²ng há»c.");
+                        throw new ValidationException("Lịch học bị trùng với lịch khác của phòng học.");
                     }
 
                     return schedule.getId() == null ? scheduleDAO.insert(schedule) : updateAndReturn(schedule);
@@ -79,10 +79,10 @@ public class ScheduleService {
     public boolean delete(Long id) {
         permissionService.requirePermission(RolePermission.MANAGE_SCHEDULES);
         return JpaBootstrap.executeInTransaction(
-                "KhÃ´ng thá»ƒ xÃ³a lá»‹ch há»c.",
+                "Không thể xóa lịch học.",
                 ignored -> {
                     scheduleDAO.findById(id)
-                            .orElseThrow(() -> new ValidationException("KhÃ´ng tÃ¬m tháº¥y lá»‹ch há»c cáº§n xÃ³a."));
+                            .orElseThrow(() -> new ValidationException("Không tìm thấy lịch học cần xóa."));
                     return scheduleDAO.delete(id);
                 }
         );
@@ -95,18 +95,18 @@ public class ScheduleService {
 
     private void validate(Schedule schedule) {
         if (schedule.getCourseSection() == null || schedule.getCourseSection().getId() == null) {
-            throw new ValidationException("Lá»‹ch há»c pháº£i gáº¯n vá»›i má»™t há»c pháº§n.");
+            throw new ValidationException("Lịch học phải gắn với một học phần.");
         }
-        ValidationUtil.requireNotBlank(schedule.getDayOfWeek(), "Thá»© há»c khÃ´ng Ä‘Æ°á»£c Ä‘á»ƒ trá»‘ng.");
-        ValidationUtil.requirePositive(schedule.getStartPeriod(), "Tiáº¿t báº¯t Ä‘áº§u pháº£i lá»›n hÆ¡n 0.");
-        ValidationUtil.requirePositive(schedule.getEndPeriod(), "Tiáº¿t káº¿t thÃºc pháº£i lá»›n hÆ¡n 0.");
+        ValidationUtil.requireNotBlank(schedule.getDayOfWeek(), "Thứ học không được để trống.");
+        ValidationUtil.requirePositive(schedule.getStartPeriod(), "Tiết bắt đầu phải lớn hơn 0.");
+        ValidationUtil.requirePositive(schedule.getEndPeriod(), "Tiết kết thúc phải lớn hơn 0.");
         if (schedule.getRoom() == null || schedule.getRoom().getId() == null) {
-            throw new ValidationException("PhÃ²ng há»c khÃ´ng Ä‘Æ°á»£c Ä‘á»ƒ trá»‘ng.");
+            throw new ValidationException("Phòng học không được để trống.");
         }
         if (schedule.getStartPeriod() >= schedule.getEndPeriod()) {
-            throw new ValidationException("Tiáº¿t báº¯t Ä‘áº§u pháº£i nhá» hÆ¡n tiáº¿t káº¿t thÃºc.");
+            throw new ValidationException("Tiết bắt đầu phải nhỏ hơn tiết kết thúc.");
         }
         courseSectionDAO.findById(schedule.getCourseSection().getId())
-                .orElseThrow(() -> new ValidationException("Há»c pháº§n cá»§a lá»‹ch há»c khÃ´ng tá»“n táº¡i."));
+                .orElseThrow(() -> new ValidationException("Học phần của lịch học không tồn tại."));
     }
 }

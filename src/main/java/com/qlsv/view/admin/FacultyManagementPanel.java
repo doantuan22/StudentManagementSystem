@@ -6,16 +6,14 @@ import com.qlsv.utils.DisplayTextUtil;
 import com.qlsv.view.common.AbstractCrudPanel;
 import com.qlsv.view.common.DetailSectionPanel;
 import com.qlsv.view.common.FilterOption;
+import com.qlsv.view.dialog.FacultyFormDialog;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
 import java.awt.FlowLayout;
-import java.awt.GridLayout;
 import java.util.List;
 
 public class FacultyManagementPanel extends AbstractCrudPanel<Faculty> {
@@ -89,33 +87,23 @@ public class FacultyManagementPanel extends AbstractCrudPanel<Faculty> {
 
     @Override
     protected Faculty promptForEntity(Faculty existingItem) {
-        JTextField codeField = new JTextField(existingItem == null ? "" : existingItem.getFacultyCode());
-        JTextField nameField = new JTextField(existingItem == null ? "" : existingItem.getFacultyName());
-        JTextField descriptionField = new JTextField(existingItem == null ? "" : existingItem.getDescription());
-
-        JPanel formPanel = new JPanel(new GridLayout(0, 2, 10, 10));
-        formPanel.add(new JLabel("Mã khoa"));
-        formPanel.add(codeField);
-        formPanel.add(new JLabel("Tên khoa"));
-        formPanel.add(nameField);
-        formPanel.add(new JLabel("Mô tả"));
-        formPanel.add(descriptionField);
-
-        int result = JOptionPane.showConfirmDialog(
+        FacultyFormDialog.FacultyFormResult formResult = FacultyFormDialog.showDialog(
                 this,
-                formPanel,
-                existingItem == null ? "Thêm khoa" : "Cập nhật khoa",
-                JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.PLAIN_MESSAGE
+                new FacultyFormDialog.FacultyFormModel(
+                        existingItem == null ? "Thêm khoa" : "Cập nhật khoa",
+                        existingItem == null ? "" : existingItem.getFacultyCode(),
+                        existingItem == null ? "" : existingItem.getFacultyName(),
+                        existingItem == null ? "" : existingItem.getDescription()
+                )
         );
-        if (result != JOptionPane.OK_OPTION) {
+        if (formResult == null) {
             return null;
         }
 
         Faculty faculty = existingItem == null ? new Faculty() : existingItem;
-        faculty.setFacultyCode(codeField.getText().trim());
-        faculty.setFacultyName(nameField.getText().trim());
-        faculty.setDescription(descriptionField.getText().trim());
+        faculty.setFacultyCode(formResult.facultyCode().trim());
+        faculty.setFacultyName(formResult.facultyName().trim());
+        faculty.setDescription(formResult.description().trim());
         return faculty;
     }
 

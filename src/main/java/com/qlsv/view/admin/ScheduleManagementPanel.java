@@ -11,6 +11,7 @@ import com.qlsv.utils.DisplayTextUtil;
 import com.qlsv.view.common.AbstractCrudPanel;
 import com.qlsv.view.common.DetailSectionPanel;
 import com.qlsv.view.common.FilterOption;
+import com.qlsv.view.dialog.ScheduleFormDialog;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -116,72 +117,38 @@ public class ScheduleManagementPanel extends AbstractCrudPanel<Schedule> {
     protected Schedule promptForEntity(Schedule existingItem) {
         boolean isDummy = existingItem != null && existingItem.getId() == null;
 
-        JComboBox<CourseSection> sectionComboBox = new JComboBox<>(
-                screenController.loadCourseSections().toArray(new CourseSection[0])
-        );
-        JComboBox<String> dayComboBox = new JComboBox<>(DAYS_OF_WEEK);
-        JComboBox<Integer> startPeriodComboBox = new JComboBox<>(PERIOD_OPTIONS);
-        JComboBox<Integer> endPeriodComboBox = new JComboBox<>(PERIOD_OPTIONS);
-        JComboBox<Room> roomComboBox = new JComboBox<>(screenController.loadRooms().toArray(new Room[0]));
-        JTextField noteField = new JTextField(existingItem == null || isDummy ? "" : existingItem.getNote());
-
-        if (existingItem != null && existingItem.getCourseSection() != null) {
-            sectionComboBox.setSelectedItem(existingItem.getCourseSection());
-            sectionComboBox.setEnabled(false);
-        }
-        if (existingItem != null && existingItem.getDayOfWeek() != null && !existingItem.getDayOfWeek().isBlank()) {
-            dayComboBox.setSelectedItem(existingItem.getDayOfWeek());
-        } else {
-            dayComboBox.setSelectedItem(DAYS_OF_WEEK[0]);
-        }
-        if (existingItem != null && existingItem.getStartPeriod() != null && !isDummy) {
-            startPeriodComboBox.setSelectedItem(existingItem.getStartPeriod());
-        } else {
-            startPeriodComboBox.setSelectedItem(1);
-        }
-        if (existingItem != null && existingItem.getEndPeriod() != null && !isDummy) {
-            endPeriodComboBox.setSelectedItem(existingItem.getEndPeriod());
-        } else {
-            endPeriodComboBox.setSelectedItem(3);
-        }
-        if (existingItem != null && existingItem.getRoom() != null && !isDummy) {
-            roomComboBox.setSelectedItem(existingItem.getRoom());
-        }
-
-        JPanel formPanel = new JPanel(new GridLayout(0, 2, 10, 10));
-        formPanel.add(new JLabel("Học phần"));
-        formPanel.add(sectionComboBox);
-        formPanel.add(new JLabel("Thứ học"));
-        formPanel.add(dayComboBox);
-        formPanel.add(new JLabel("Tiết bắt đầu"));
-        formPanel.add(startPeriodComboBox);
-        formPanel.add(new JLabel("Tiết kết thúc"));
-        formPanel.add(endPeriodComboBox);
-        formPanel.add(new JLabel("Phòng học"));
-        formPanel.add(roomComboBox);
-        formPanel.add(new JLabel("Ghi chú"));
-        formPanel.add(noteField);
-
-        int result = JOptionPane.showConfirmDialog(
+        ScheduleFormDialog.ScheduleFormResult formResult = ScheduleFormDialog.showDialog(
                 this,
-                formPanel,
-                "Cập nhật lịch học",
-                JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.PLAIN_MESSAGE
+                new ScheduleFormDialog.ScheduleFormModel(
+                        "Cập nhật lịch học",
+                        screenController.loadCourseSections(),
+                        existingItem == null ? null : existingItem.getCourseSection(),
+                        existingItem == null || existingItem.getCourseSection() == null,
+                        DAYS_OF_WEEK,
+                        existingItem != null && existingItem.getDayOfWeek() != null && !existingItem.getDayOfWeek().isBlank()
+                                ? existingItem.getDayOfWeek()
+                                : DAYS_OF_WEEK[0],
+                        PERIOD_OPTIONS,
+                        existingItem != null && existingItem.getStartPeriod() != null && !isDummy ? existingItem.getStartPeriod() : 1,
+                        existingItem != null && existingItem.getEndPeriod() != null && !isDummy ? existingItem.getEndPeriod() : 3,
+                        screenController.loadRooms(),
+                        existingItem != null && !isDummy ? existingItem.getRoom() : null,
+                        existingItem == null || isDummy ? "" : existingItem.getNote()
+                )
         );
-        if (result != JOptionPane.OK_OPTION) {
+        if (formResult == null) {
             return null;
         }
 
         return screenController.applyFormData(
                 existingItem,
                 new ScheduleManagementScreenController.ScheduleFormData(
-                        (CourseSection) sectionComboBox.getSelectedItem(),
-                        (String) dayComboBox.getSelectedItem(),
-                        (Integer) startPeriodComboBox.getSelectedItem(),
-                        (Integer) endPeriodComboBox.getSelectedItem(),
-                        (Room) roomComboBox.getSelectedItem(),
-                        noteField.getText()
+                        formResult.courseSection(),
+                        formResult.dayOfWeek(),
+                        formResult.startPeriod(),
+                        formResult.endPeriod(),
+                        formResult.room(),
+                        formResult.note()
                 )
         );
     }

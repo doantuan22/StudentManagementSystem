@@ -5,15 +5,14 @@ import com.qlsv.model.Room;
 import com.qlsv.utils.DisplayTextUtil;
 import com.qlsv.view.common.AbstractCrudPanel;
 import com.qlsv.view.common.DetailSectionPanel;
+import com.qlsv.view.dialog.RoomFormDialog;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import java.awt.FlowLayout;
-import java.awt.GridLayout;
 import java.util.List;
 
 public class RoomManagementPanel extends AbstractCrudPanel<Room> {
@@ -76,30 +75,22 @@ public class RoomManagementPanel extends AbstractCrudPanel<Room> {
 
     @Override
     protected Room promptForEntity(Room existingItem) {
-        JTextField codeField = new JTextField(existingItem == null ? "" : existingItem.getRoomCode());
-        JTextField nameField = new JTextField(existingItem == null ? "" : existingItem.getRoomName());
-
-        JPanel formPanel = new JPanel(new GridLayout(0, 2, 10, 10));
-        formPanel.add(new JLabel("Mã phòng"));
-        formPanel.add(codeField);
-        formPanel.add(new JLabel("Tên phòng"));
-        formPanel.add(nameField);
-
-        int result = JOptionPane.showConfirmDialog(
+        RoomFormDialog.RoomFormResult formResult = RoomFormDialog.showDialog(
                 this,
-                formPanel,
-                existingItem == null ? "Thêm phòng học" : "Cập nhật phòng học",
-                JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.PLAIN_MESSAGE
+                new RoomFormDialog.RoomFormModel(
+                        existingItem == null ? "Thêm phòng học" : "Cập nhật phòng học",
+                        existingItem == null ? "" : existingItem.getRoomCode(),
+                        existingItem == null ? "" : existingItem.getRoomName()
+                )
         );
 
-        if (result != JOptionPane.OK_OPTION) {
+        if (formResult == null) {
             return null;
         }
 
         Room room = existingItem == null ? new Room() : existingItem;
-        room.setRoomCode(codeField.getText().trim());
-        room.setRoomName(nameField.getText().trim());
+        room.setRoomCode(formResult.roomCode().trim());
+        room.setRoomName(formResult.roomName().trim());
         return room;
     }
 

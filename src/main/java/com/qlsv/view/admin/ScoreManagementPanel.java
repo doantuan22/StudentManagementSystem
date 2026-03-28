@@ -14,6 +14,7 @@ import com.qlsv.view.common.AppColors;
 import com.qlsv.view.common.BasePanel;
 import com.qlsv.view.common.DetailSectionPanel;
 import com.qlsv.view.common.FilterOption;
+import com.qlsv.view.dialog.ScoreFormDialog;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -443,56 +444,34 @@ public class ScoreManagementPanel extends BasePanel {
     }
 
     private Score promptForScore(Score existingItem) {
-        JComboBox<Enrollment> enrollmentComboBox = new JComboBox<>(screenController.loadEnrollments().toArray(new Enrollment[0]));
-        JTextField processField = new JTextField(existingItem == null || existingItem.getProcessScore() == null
-                ? ""
-                : String.valueOf(existingItem.getProcessScore()));
-        JTextField midtermField = new JTextField(existingItem == null || existingItem.getMidtermScore() == null
-                ? ""
-                : String.valueOf(existingItem.getMidtermScore()));
-        JTextField finalField = new JTextField(existingItem == null || existingItem.getFinalScore() == null
-                ? ""
-                : String.valueOf(existingItem.getFinalScore()));
-
-        if (existingItem != null && existingItem.getEnrollment() != null) {
-            enrollmentComboBox.setSelectedItem(existingItem.getEnrollment());
+        ScoreFormDialog.ScoreFormResult formResult = ScoreFormDialog.showDialog(
+                this,
+                new ScoreFormDialog.ScoreFormModel(
+                        existingItem == null ? "Thêm điểm" : "Cập nhật điểm",
+                        screenController.loadEnrollments(),
+                        existingItem == null ? null : existingItem.getEnrollment(),
+                        existingItem == null || existingItem.getProcessScore() == null ? "" : String.valueOf(existingItem.getProcessScore()),
+                        existingItem == null || existingItem.getMidtermScore() == null ? "" : String.valueOf(existingItem.getMidtermScore()),
+                        existingItem == null || existingItem.getFinalScore() == null ? "" : String.valueOf(existingItem.getFinalScore())
+                )
+        );
+        if (formResult == null) {
+            return null;
         }
 
-        JPanel formPanel = new JPanel(new GridLayout(0, 2, 10, 10));
-        formPanel.add(new JLabel("Đăng ký học phần"));
-        formPanel.add(enrollmentComboBox);
-        formPanel.add(new JLabel("Điểm quá trình"));
-        formPanel.add(processField);
-        formPanel.add(new JLabel("Điểm giữa kỳ"));
-        formPanel.add(midtermField);
-        formPanel.add(new JLabel("Điểm cuối kỳ"));
-        formPanel.add(finalField);
-
-        while (true) {
-            int result = JOptionPane.showConfirmDialog(
-                    this,
-                    formPanel,
-                    existingItem == null ? "Thêm điểm" : "Cập nhật điểm",
-                    JOptionPane.OK_CANCEL_OPTION,
-                    JOptionPane.PLAIN_MESSAGE
+        try {
+            return screenController.applyFormData(
+                    existingItem,
+                    new ScoreManagementScreenController.ScoreFormData(
+                            formResult.enrollment(),
+                            formResult.processScore(),
+                            formResult.midtermScore(),
+                            formResult.finalScore()
+                    )
             );
-            if (result != JOptionPane.OK_OPTION) {
-                return null;
-            }
-
-            try {
-                return screenController.applyFormData(
-                        existingItem,
-                        new ScoreManagementScreenController.ScoreFormData(
-                                (Enrollment) enrollmentComboBox.getSelectedItem(),
-                                processField.getText(),
-                                midtermField.getText(),
-                                finalField.getText()
-                        )
-                );
-            } catch (Exception exception) {
-                DialogUtil.showError(this, exception.getMessage());
-            }
+        } catch (Exception exception) {
+            DialogUtil.showError(this, exception.getMessage());
+            return null;
         }
     }
 
@@ -825,7 +804,7 @@ public class ScoreManagementPanel extends BasePanel {
     }
 
     private void configureTable(JTable table) {
-        table.setRowHeight(28);
+        table.setRowHeight(34);
         table.setFillsViewportHeight(true);
         table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         table.setGridColor(AppColors.CARD_BORDER);

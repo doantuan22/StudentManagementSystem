@@ -103,14 +103,10 @@ public class LecturerCourseSectionPanel extends BasePanel {
         titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 22f));
         titleLabel.setForeground(AppColors.CARD_VALUE_TEXT);
 
-        JLabel subtitleLabel = new JLabel("Lịch học hiển thị từ bảng schedules để đồng bộ với quản lý lịch.");
-        subtitleLabel.setForeground(AppColors.CARD_MUTED_TEXT);
-        subtitleLabel.setFont(subtitleLabel.getFont().deriveFont(Font.PLAIN, 13f));
-
         JPanel titlePanel = new JPanel(new BorderLayout(0, 6));
         titlePanel.setOpaque(false);
         titlePanel.add(titleLabel, BorderLayout.NORTH);
-        titlePanel.add(subtitleLabel, BorderLayout.CENTER);
+
 
         add(titlePanel, BorderLayout.NORTH);
         add(splitPane, BorderLayout.CENTER);

@@ -37,7 +37,7 @@ public class ClassRoomService {
     public ClassRoom save(ClassRoom classRoom) {
         permissionService.requirePermission(RolePermission.MANAGE_CLASSES);
         return JpaBootstrap.executeInTransaction(
-                "KhÃ´ng thá»ƒ lÆ°u lá»›p há»c.",
+                "Không thể lưu lớp học.",
                 ignored -> {
                     validate(classRoom);
                     return classRoom.getId() == null ? classRoomDAO.insert(classRoom) : updateAndReturn(classRoom);
@@ -48,7 +48,7 @@ public class ClassRoomService {
     public boolean delete(Long id) {
         permissionService.requirePermission(RolePermission.MANAGE_CLASSES);
         return JpaBootstrap.executeInTransaction(
-                "KhÃ´ng thá»ƒ xÃ³a lá»›p há»c.",
+                "Không thể xóa lớp học.",
                 ignored -> classRoomDAO.delete(id)
         );
     }
@@ -59,11 +59,11 @@ public class ClassRoomService {
     }
 
     private void validate(ClassRoom classRoom) {
-        ValidationUtil.requireWithinLength(classRoom.getClassCode(), 50, "MÃ£ lá»›p");
-        ValidationUtil.requireNotBlank(classRoom.getClassName(), "TÃªn lá»›p khÃ´ng Ä‘Æ°á»£c Ä‘á»ƒ trá»‘ng.");
+        ValidationUtil.requireWithinLength(classRoom.getClassCode(), 50, "Mã lớp");
+        ValidationUtil.requireNotBlank(classRoom.getClassName(), "Tên lớp không được để trống.");
         classRoom.setAcademicYear(AcademicFormatUtil.normalizeAcademicYear(classRoom.getAcademicYear(), "Niên khóa"));
         if (classRoom.getFaculty() == null || classRoom.getFaculty().getId() == null) {
-            throw new IllegalArgumentException("Lá»›p há»c pháº£i thuá»™c má»™t khoa.");
+            throw new IllegalArgumentException("Lớp học phải thuộc một khoa.");
         }
     }
 }

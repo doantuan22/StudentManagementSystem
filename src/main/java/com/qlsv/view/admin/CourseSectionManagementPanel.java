@@ -12,6 +12,7 @@ import com.qlsv.utils.AcademicFormatUtil;
 import com.qlsv.view.common.AbstractCrudPanel;
 import com.qlsv.view.common.DetailSectionPanel;
 import com.qlsv.view.common.FilterOption;
+import com.qlsv.view.dialog.CourseSectionFormDialog;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -107,68 +108,35 @@ public class CourseSectionManagementPanel extends AbstractCrudPanel<CourseSectio
 
     @Override
     protected CourseSection promptForEntity(CourseSection existingItem) {
-        JTextField codeField = new JTextField(existingItem == null ? "" : existingItem.getSectionCode());
-        JComboBox<String> semesterComboBox = new JComboBox<>(AcademicFormatUtil.getFixedSemesters().toArray(new String[0]));
-        semesterComboBox.setSelectedItem(existingItem == null
-                ? "HK1"
-                : AcademicFormatUtil.formatSemester(existingItem.getSemester()));
-        JTextField schoolYearField = new JTextField(existingItem == null
-                ? "2025 - 2026"
-                : AcademicFormatUtil.formatAcademicYear(existingItem.getSchoolYear()));
-        JTextField maxStudentsField = new JTextField(existingItem == null ? "50" : String.valueOf(existingItem.getMaxStudents()));
-
-        JComboBox<Subject> subjectComboBox = new JComboBox<>(screenController.loadSubjects().toArray(new Subject[0]));
-        JComboBox<Lecturer> lecturerComboBox = new JComboBox<>(screenController.loadLecturers().toArray(new Lecturer[0]));
-
-        if (existingItem != null) {
-            if (existingItem.getSubject() != null) {
-                subjectComboBox.setSelectedItem(existingItem.getSubject());
-            }
-            if (existingItem.getLecturer() != null) {
-                lecturerComboBox.setSelectedItem(existingItem.getLecturer());
-            }
-        }
-
-        JPanel infoPanel = new JPanel(new GridLayout(0, 1, 0, 4));
-        infoPanel.setOpaque(false);
-        infoPanel.add(new JLabel("Lịch học và phòng học được quản lý tại màn hình lịch học sau khi tạo học phần."));
-
-        JPanel formPanel = new JPanel(new GridLayout(0, 2, 10, 10));
-        formPanel.add(new JLabel("Mã học phần"));
-        formPanel.add(codeField);
-        formPanel.add(new JLabel("Môn học"));
-        formPanel.add(subjectComboBox);
-        formPanel.add(new JLabel("Giảng viên"));
-        formPanel.add(lecturerComboBox);
-        formPanel.add(new JLabel("Học kỳ"));
-        formPanel.add(semesterComboBox);
-        formPanel.add(new JLabel("Năm học"));
-        formPanel.add(schoolYearField);
-        formPanel.add(new JLabel("Sĩ số tối đa"));
-        formPanel.add(maxStudentsField);
-        formPanel.add(new JLabel("Ghi chú"));
-        formPanel.add(infoPanel);
-
-        int result = JOptionPane.showConfirmDialog(
+        CourseSectionFormDialog.CourseSectionFormResult formResult = CourseSectionFormDialog.showDialog(
                 this,
-                formPanel,
-                existingItem == null ? "Thêm học phần" : "Cập nhật học phần",
-                JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.PLAIN_MESSAGE
+                new CourseSectionFormDialog.CourseSectionFormModel(
+                        existingItem == null ? "Thêm học phần" : "Cập nhật học phần",
+                        existingItem == null ? "" : existingItem.getSectionCode(),
+                        screenController.loadSubjects(),
+                        existingItem == null ? null : existingItem.getSubject(),
+                        screenController.loadLecturers(),
+                        existingItem == null ? null : existingItem.getLecturer(),
+                        AcademicFormatUtil.getFixedSemesters(),
+                        existingItem == null ? "HK1" : AcademicFormatUtil.formatSemester(existingItem.getSemester()),
+                        existingItem == null ? "2025 - 2026" : AcademicFormatUtil.formatAcademicYear(existingItem.getSchoolYear()),
+                        existingItem == null || existingItem.getMaxStudents() == null ? "50" : String.valueOf(existingItem.getMaxStudents()),
+                        "Lịch học và phòng học được quản lý tại màn hình lịch học sau khi tạo học phần."
+                )
         );
-        if (result != JOptionPane.OK_OPTION) {
+        if (formResult == null) {
             return null;
         }
 
         return screenController.applyFormData(
                 existingItem,
                 new CourseSectionManagementScreenController.CourseSectionFormData(
-                        codeField.getText(),
-                        (Subject) subjectComboBox.getSelectedItem(),
-                        (Lecturer) lecturerComboBox.getSelectedItem(),
-                        (String) semesterComboBox.getSelectedItem(),
-                        schoolYearField.getText(),
-                        maxStudentsField.getText()
+                        formResult.sectionCode(),
+                        formResult.subject(),
+                        formResult.lecturer(),
+                        formResult.semester(),
+                        formResult.schoolYear(),
+                        formResult.maxStudents()
                 )
         );
     }

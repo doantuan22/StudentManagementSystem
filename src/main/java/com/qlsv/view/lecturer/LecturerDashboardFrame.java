@@ -62,8 +62,8 @@ public class LecturerDashboardFrame extends BaseFrame {
         );
         registerMenuItem(sidebarMenu, "profile", "Thông tin cá nhân", cardLayout, contentPanel, "profile", profilePanel);
         registerMenuItem(sidebarMenu, "sections", "Học phần phụ trách", cardLayout, contentPanel, "sections", sectionPanel);
-        registerMenuItem(sidebarMenu, "students", "Sinh viên theo học phần", cardLayout, contentPanel, "students", studentListPanel);
-        registerMenuItem(sidebarMenu, "scores", "Nhập hoặc xem điểm", cardLayout, contentPanel, "scores", scorePanel);
+        registerMenuItem(sidebarMenu, "students", "Danh sách sinh viên", cardLayout, contentPanel, "students", studentListPanel);
+        registerMenuItem(sidebarMenu, "scores", "Nhập/Xem điểm ", cardLayout, contentPanel, "scores", scorePanel);
         registerMenuItem(sidebarMenu, "schedule", "Lịch dạy", cardLayout, contentPanel, "schedule", schedulePanel);
         sidebarMenu.setActiveItem("profile");
         cardLayout.show(contentPanel, "profile");

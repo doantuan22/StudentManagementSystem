@@ -79,11 +79,13 @@ public class StudentEnrollmentPanel extends BasePanel {
         titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 22f));
         titleLabel.setForeground(AppColors.CARD_VALUE_TEXT);
 
-        JPanel titlePanel = new JPanel(new BorderLayout(0, 6));
+
+        JPanel titlePanel = new JPanel(new BorderLayout(0, 7));
         titlePanel.setOpaque(false);
         titlePanel.add(titleLabel, BorderLayout.NORTH);
 
-        JButton filterButton = new JButton("Lọc danh sách");
+
+        JButton filterButton = new JButton("Tìm Kiếm");
         JButton reloadButton = new JButton("Tải lại");
         JButton registerButton = new JButton("Đăng ký học phần");
         JButton cancelButton = new JButton("Hủy đăng ký");
@@ -137,11 +139,7 @@ public class StudentEnrollmentPanel extends BasePanel {
 
         JPanel actionPanel = new JPanel(new BorderLayout());
         actionPanel.setOpaque(false);
-        JLabel actionHintLabel = new JLabel("Chọn một dòng ở từng bảng để đăng ký hoặc hủy đăng ký đúng học phần.");
-        actionHintLabel.setForeground(AppColors.CARD_MUTED_TEXT);
-        actionHintLabel.setFont(actionHintLabel.getFont().deriveFont(Font.PLAIN, 12.5f));
-        actionPanel.add(actionHintLabel, BorderLayout.WEST);
-
+    
         JPanel actionButtonsPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 0));
         actionButtonsPanel.setOpaque(false);
         actionButtonsPanel.add(registerButton);
@@ -160,8 +158,18 @@ public class StudentEnrollmentPanel extends BasePanel {
         JScrollPane courseScrollPane = createTableScrollPane(courseSectionTable);
         JScrollPane enrollmentScrollPane = createTableScrollPane(enrollmentTable);
 
-        JPanel coursePanel = createSectionPanel("Danh sách học phần mở", availableSummaryLabel, courseScrollPane);
-        JPanel enrollmentPanel = createSectionPanel("Các học phần đã đăng ký", registeredSummaryLabel, enrollmentScrollPane);
+        JPanel coursePanel = createSectionPanel(
+                "Danh sách học phần mở",
+                "Xem nhanh các học phần có thể đăng ký theo bộ lọc hiện tại.",
+                availableSummaryLabel,
+                courseScrollPane
+        );
+        JPanel enrollmentPanel = createSectionPanel(
+                "Các học phần đã đăng ký",
+                "Theo dõi tình trạng đăng ký hiện có và hủy khi cần.",
+                registeredSummaryLabel,
+                enrollmentScrollPane
+        );
 
         JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, coursePanel, enrollmentPanel);
         splitPane.setBorder(null);
@@ -170,6 +178,8 @@ public class StudentEnrollmentPanel extends BasePanel {
         splitPane.setContinuousLayout(true);
         splitPane.setOneTouchExpandable(true);
         splitPane.setDividerSize(10);
+        coursePanel.setMinimumSize(new Dimension(0, 220));
+        enrollmentPanel.setMinimumSize(new Dimension(0, 220));
 
         JPanel headerPanel = new JPanel(new BorderLayout(0, 12));
         headerPanel.setOpaque(false);
@@ -299,20 +309,30 @@ public class StudentEnrollmentPanel extends BasePanel {
         return panel;
     }
 
-    private JPanel createSectionPanel(String title, JLabel summaryLabel, JComponent content) {
+    private JPanel createSectionPanel(String title, String description, JLabel summaryLabel, JComponent content) {
         JPanel panel = createSurfaceCard(new BorderLayout(0, 12));
 
         JPanel headingPanel = new JPanel(new BorderLayout(12, 0));
         headingPanel.setOpaque(false);
 
+        JPanel titleGroup = new JPanel(new BorderLayout(0, 4));
+        titleGroup.setOpaque(false);
+
         JLabel titleLabel = new JLabel(title);
         titleLabel.setForeground(AppColors.CARD_TITLE_TEXT);
         titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 16f));
 
+        JLabel descriptionLabel = new JLabel(description);
+        descriptionLabel.setForeground(AppColors.CARD_MUTED_TEXT);
+        descriptionLabel.setFont(descriptionLabel.getFont().deriveFont(Font.PLAIN, 12.5f));
+
         summaryLabel.setForeground(AppColors.CARD_MUTED_TEXT);
         summaryLabel.setFont(summaryLabel.getFont().deriveFont(Font.PLAIN, 12.5f));
 
-        headingPanel.add(titleLabel, BorderLayout.WEST);
+        titleGroup.add(titleLabel, BorderLayout.NORTH);
+        titleGroup.add(descriptionLabel, BorderLayout.CENTER);
+
+        headingPanel.add(titleGroup, BorderLayout.WEST);
         headingPanel.add(summaryLabel, BorderLayout.EAST);
 
         panel.add(headingPanel, BorderLayout.NORTH);
@@ -330,7 +350,7 @@ public class StudentEnrollmentPanel extends BasePanel {
     }
 
     private void configureTable(JTable table) {
-        table.setRowHeight(28);
+        table.setRowHeight(34);
         table.setFillsViewportHeight(true);
         table.setGridColor(AppColors.CARD_BORDER);
         table.setBackground(Color.WHITE);

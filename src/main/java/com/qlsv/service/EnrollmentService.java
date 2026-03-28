@@ -31,7 +31,7 @@ public class EnrollmentService {
     public List<Enrollment> findByCurrentStudent() {
         permissionService.requirePermission(RolePermission.REGISTER_ENROLLMENT);
         Student student = studentDAO.findByUserId(SessionManager.requireCurrentUser().getId())
-                .orElseThrow(() -> new ValidationException("KhÃ´ng tÃ¬m tháº¥y sinh viÃªn Ä‘ang Ä‘Äƒng nháº­p."));
+                .orElseThrow(() -> new ValidationException("Không tìm thấy sinh viên đang đăng nhập."));
         return enrollmentDAO.findByStudentId(student.getId());
     }
 
@@ -68,7 +68,7 @@ public class EnrollmentService {
     public Enrollment save(Enrollment enrollment) {
         permissionService.requirePermission(RolePermission.MANAGE_ENROLLMENTS);
         return JpaBootstrap.executeInTransaction(
-                "KhÃ´ng thá»ƒ lÆ°u Ä‘Äƒng kÃ½ há»c pháº§n.",
+                "Không thể lưu đăng ký học phần.",
                 ignored -> {
                     validate(enrollment, enrollment.getId() == null);
                     return enrollment.getId() == null ? enrollmentDAO.insert(enrollment) : updateAndReturn(enrollment);
@@ -79,12 +79,12 @@ public class EnrollmentService {
     public Enrollment registerCurrentStudent(Long courseSectionId) {
         permissionService.requirePermission(RolePermission.REGISTER_ENROLLMENT);
         return JpaBootstrap.executeInTransaction(
-                "KhÃ´ng thá»ƒ Ä‘Äƒng kÃ½ há»c pháº§n.",
+                "Không thể đăng ký học phần.",
                 ignored -> {
                     Student student = studentDAO.findByUserId(SessionManager.requireCurrentUser().getId())
-                            .orElseThrow(() -> new ValidationException("KhÃ´ng tÃ¬m tháº¥y sinh viÃªn Ä‘ang Ä‘Äƒng nháº­p."));
+                            .orElseThrow(() -> new ValidationException("Không tìm thấy sinh viên đang đăng nhập."));
                     CourseSection courseSection = courseSectionDAO.findById(courseSectionId)
-                            .orElseThrow(() -> new ValidationException("KhÃ´ng tÃ¬m tháº¥y há»c pháº§n cáº§n Ä‘Äƒng kÃ½."));
+                            .orElseThrow(() -> new ValidationException("Không tìm thấy học phần cần đăng ký."));
 
                     Enrollment enrollment = new Enrollment();
                     enrollment.setStudent(student);
@@ -101,7 +101,7 @@ public class EnrollmentService {
     public boolean delete(Long id) {
         permissionService.requirePermission(RolePermission.MANAGE_ENROLLMENTS);
         return JpaBootstrap.executeInTransaction(
-                "KhÃ´ng thá»ƒ xÃ³a Ä‘Äƒng kÃ½ há»c pháº§n.",
+                "Không thể xóa đăng ký học phần.",
                 ignored -> enrollmentDAO.delete(id)
         );
     }
@@ -109,14 +109,14 @@ public class EnrollmentService {
     public boolean cancelCurrentStudentEnrollment(Long enrollmentId) {
         permissionService.requirePermission(RolePermission.REGISTER_ENROLLMENT);
         return JpaBootstrap.executeInTransaction(
-                "KhÃ´ng thá»ƒ há»§y Ä‘Äƒng kÃ½ há»c pháº§n.",
+                "Không thể hủy đăng ký học phần.",
                 ignored -> {
                     Student student = studentDAO.findByUserId(SessionManager.requireCurrentUser().getId())
-                            .orElseThrow(() -> new ValidationException("KhÃ´ng tÃ¬m tháº¥y sinh viÃªn Ä‘ang Ä‘Äƒng nháº­p."));
+                            .orElseThrow(() -> new ValidationException("Không tìm thấy sinh viên đang đăng nhập."));
                     Enrollment enrollment = enrollmentDAO.findById(enrollmentId)
-                            .orElseThrow(() -> new ValidationException("KhÃ´ng tÃ¬m tháº¥y Ä‘Äƒng kÃ½ há»c pháº§n."));
+                            .orElseThrow(() -> new ValidationException("Không tìm thấy đăng ký học phần."));
                     if (!student.getId().equals(enrollment.getStudent().getId())) {
-                        throw new ValidationException("Sinh viÃªn chá»‰ Ä‘Æ°á»£c há»§y há»c pháº§n cá»§a chÃ­nh mÃ¬nh.");
+                        throw new ValidationException("Sinh viên chỉ được hủy học phần của chính mình.");
                     }
                     return enrollmentDAO.delete(enrollmentId);
                 }
@@ -130,35 +130,35 @@ public class EnrollmentService {
 
     private void validate(Enrollment enrollment, boolean checkDuplicate) {
         if (enrollment.getStudent() == null || enrollment.getStudent().getId() == null) {
-            throw new ValidationException("ÄÄƒng kÃ½ há»c pháº§n pháº£i cÃ³ sinh viÃªn.");
+            throw new ValidationException("Đăng ký học phần phải có sinh viên.");
         }
         if (enrollment.getCourseSection() == null || enrollment.getCourseSection().getId() == null) {
-            throw new ValidationException("ÄÄƒng kÃ½ há»c pháº§n pháº£i cÃ³ há»c pháº§n.");
+            throw new ValidationException("Đăng ký học phần phải có học phần.");
         }
 
         Student existingStudent = studentDAO.findById(enrollment.getStudent().getId())
-                .orElseThrow(() -> new ValidationException("Sinh viÃªn cá»§a Ä‘Äƒng kÃ½ khÃ´ng tá»“n táº¡i."));
+                .orElseThrow(() -> new ValidationException("Sinh viên của đăng ký không tồn tại."));
         CourseSection existingCourseSection = courseSectionDAO.findById(enrollment.getCourseSection().getId())
-                .orElseThrow(() -> new ValidationException("Há»c pháº§n cá»§a Ä‘Äƒng kÃ½ khÃ´ng tá»“n táº¡i."));
+                .orElseThrow(() -> new ValidationException("Học phần của đăng ký không tồn tại."));
 
         if (checkDuplicate && enrollmentDAO.existsByStudentAndSubject(
                 existingStudent.getId(),
                 existingCourseSection.getSubject().getId())) {
-            throw new ValidationException("Sinh viÃªn Ä‘Ã£ Ä‘Äƒng kÃ½ há»c pháº§n khÃ¡c cá»§a cÃ¹ng mÃ´n há»c nÃ y.");
+            throw new ValidationException("Sinh viên đã đăng ký học phần khác của cùng môn học này.");
         }
         if (checkDuplicate && enrollmentDAO.existsByStudentAndCourseSection(
                 existingStudent.getId(),
                 existingCourseSection.getId())) {
-            throw new ValidationException("Sinh viÃªn Ä‘Ã£ Ä‘Äƒng kÃ½ há»c pháº§n nÃ y.");
+            throw new ValidationException("Sinh viên đã đăng ký học phần này.");
         }
         if (checkDuplicate) {
             int currentSize = enrollmentDAO.countByCourseSectionId(existingCourseSection.getId());
             Integer maxStudents = existingCourseSection.getMaxStudents();
             if (maxStudents != null && currentSize >= maxStudents) {
-                throw new ValidationException("Há»c pháº§n Ä‘Ã£ Ä‘á»§ sÄ© sá»‘ tá»‘i Ä‘a.");
+                throw new ValidationException("Học phần đã đủ sĩ số tối đa.");
             }
             if (scheduleDAO.hasStudentScheduleConflict(existingStudent.getId(), existingCourseSection.getId(), null)) {
-                throw new ValidationException("Há»c pháº§n má»›i bá»‹ trÃ¹ng lá»‹ch vá»›i há»c pháº§n sinh viÃªn Ä‘Ã£ Ä‘Äƒng kÃ½.");
+                throw new ValidationException("Học phần mới bị trùng lịch với học phần sinh viên đã đăng ký.");
             }
         }
     }

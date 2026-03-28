@@ -3,14 +3,10 @@ package com.qlsv.view.dialog;
 import com.qlsv.view.common.AppColors;
 
 import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import java.awt.BorderLayout;
@@ -22,26 +18,25 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Window;
 
-public class FacultyFormDialog extends JDialog {
+public class RoomFormDialog extends JDialog {
 
-    private final JTextField facultyCodeField = new JTextField();
-    private final JTextField facultyNameField = new JTextField();
-    private final JTextArea descriptionArea = new JTextArea();
+    private final JTextField roomCodeField = new JTextField();
+    private final JTextField roomNameField = new JTextField();
 
-    private FacultyFormResult result;
+    private RoomFormResult result;
 
-    private FacultyFormDialog(Component parent, FacultyFormModel model) {
+    private RoomFormDialog(Component parent, RoomFormModel model) {
         super(resolveOwner(parent), model.title(), Dialog.ModalityType.APPLICATION_MODAL);
         initComponents(model);
     }
 
-    public static FacultyFormResult showDialog(Component parent, FacultyFormModel model) {
-        FacultyFormDialog dialog = new FacultyFormDialog(parent, model);
+    public static RoomFormResult showDialog(Component parent, RoomFormModel model) {
+        RoomFormDialog dialog = new RoomFormDialog(parent, model);
         dialog.setVisible(true);
         return dialog.result;
     }
 
-    private void initComponents(FacultyFormModel model) {
+    private void initComponents(RoomFormModel model) {
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
         JPanel rootPanel = new JPanel(new BorderLayout());
@@ -61,18 +56,11 @@ public class FacultyFormDialog extends JDialog {
 
         JPanel bodyPanel = new JPanel();
         bodyPanel.setOpaque(false);
-        bodyPanel.setLayout(new BoxLayout(bodyPanel, BoxLayout.Y_AXIS));
         bodyPanel.setBorder(BorderFactory.createEmptyBorder(16, 24, 20, 24));
-        bodyPanel.add(createField("Mã khoa", styleTextField(facultyCodeField)));
-        bodyPanel.add(Box.createVerticalStrut(12));
-        bodyPanel.add(createField("Tên khoa", styleTextField(facultyNameField)));
-        bodyPanel.add(Box.createVerticalStrut(12));
-        bodyPanel.add(createField("Mô tả", createDescriptionScrollPane()));
-
-        JScrollPane scrollPane = new JScrollPane(bodyPanel);
-        scrollPane.setBorder(null);
-        scrollPane.getViewport().setBackground(AppColors.CARD_BACKGROUND);
-        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        bodyPanel.setLayout(new javax.swing.BoxLayout(bodyPanel, javax.swing.BoxLayout.Y_AXIS));
+        bodyPanel.add(createField("Mã phòng", styleTextField(roomCodeField)));
+        bodyPanel.add(javax.swing.Box.createVerticalStrut(12));
+        bodyPanel.add(createField("Tên phòng", styleTextField(roomNameField)));
 
         JButton cancelButton = new JButton("Hủy");
         styleSecondaryButton(cancelButton);
@@ -92,30 +80,26 @@ public class FacultyFormDialog extends JDialog {
         footerPanel.add(saveButton);
 
         rootPanel.add(headerPanel, BorderLayout.NORTH);
-        rootPanel.add(scrollPane, BorderLayout.CENTER);
+        rootPanel.add(bodyPanel, BorderLayout.CENTER);
         rootPanel.add(footerPanel, BorderLayout.SOUTH);
 
         setContentPane(rootPanel);
-
-        facultyCodeField.setText(model.facultyCode());
-        facultyNameField.setText(model.facultyName());
-        descriptionArea.setText(model.description());
+        roomCodeField.setText(model.roomCode());
+        roomNameField.setText(model.roomName());
 
         getRootPane().setDefaultButton(saveButton);
-        setMinimumSize(new Dimension(620, 420));
-        setSize(new Dimension(660, 460));
+        setMinimumSize(new Dimension(580, 320));
+        setSize(new Dimension(620, 340));
         setLocationRelativeTo(getOwner());
-        SwingUtilities.invokeLater(() -> facultyCodeField.requestFocusInWindow());
+        SwingUtilities.invokeLater(() -> roomCodeField.requestFocusInWindow());
     }
 
     private JPanel createField(String labelText, Component inputComponent) {
         JPanel panel = new JPanel(new BorderLayout(0, 6));
         panel.setOpaque(false);
-
         JLabel label = new JLabel(labelText);
         label.setFont(label.getFont().deriveFont(Font.BOLD, 12.5f));
         label.setForeground(AppColors.CARD_TITLE_TEXT);
-
         panel.add(label, BorderLayout.NORTH);
         panel.add(inputComponent, BorderLayout.CENTER);
         return panel;
@@ -128,18 +112,6 @@ public class FacultyFormDialog extends JDialog {
                 BorderFactory.createEmptyBorder(10, 12, 10, 12)
         ));
         return textField;
-    }
-
-    private JScrollPane createDescriptionScrollPane() {
-        descriptionArea.setLineWrap(true);
-        descriptionArea.setWrapStyleWord(true);
-        descriptionArea.setRows(4);
-        descriptionArea.setFont(descriptionArea.getFont().deriveFont(Font.PLAIN, 13.5f));
-        descriptionArea.setBorder(BorderFactory.createEmptyBorder(10, 12, 10, 12));
-
-        JScrollPane scrollPane = new JScrollPane(descriptionArea);
-        scrollPane.setBorder(BorderFactory.createLineBorder(AppColors.INPUT_BORDER));
-        return scrollPane;
     }
 
     private void stylePrimaryButton(JButton button) {
@@ -163,11 +135,7 @@ public class FacultyFormDialog extends JDialog {
     }
 
     private void handleSave() {
-        result = new FacultyFormResult(
-                facultyCodeField.getText(),
-                facultyNameField.getText(),
-                descriptionArea.getText()
-        );
+        result = new RoomFormResult(roomCodeField.getText(), roomNameField.getText());
         dispose();
     }
 
@@ -178,9 +146,9 @@ public class FacultyFormDialog extends JDialog {
         return SwingUtilities.getWindowAncestor(parent);
     }
 
-    public record FacultyFormModel(String title, String facultyCode, String facultyName, String description) {
+    public record RoomFormModel(String title, String roomCode, String roomName) {
     }
 
-    public record FacultyFormResult(String facultyCode, String facultyName, String description) {
+    public record RoomFormResult(String roomCode, String roomName) {
     }
 }

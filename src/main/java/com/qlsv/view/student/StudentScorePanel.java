@@ -50,9 +50,6 @@ public class StudentScorePanel extends BasePanel {
         titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 22f));
         titleLabel.setForeground(AppColors.CARD_VALUE_TEXT);
 
-        JLabel subtitleLabel = new JLabel("Bảng điểm chi tiết được gom gọn để dễ nhìn hơn khi demo.");
-        subtitleLabel.setForeground(AppColors.CARD_MUTED_TEXT);
-        subtitleLabel.setFont(subtitleLabel.getFont().deriveFont(Font.PLAIN, 13f));
 
         avgCard = new DashboardCard("Điểm trung bình tổng kết", AppColors.STAT_CARD_LECTURERS);
         passCard = new DashboardCard("Số môn đạt", AppColors.STAT_CARD_SUBJECTS);
@@ -76,7 +73,7 @@ public class StudentScorePanel extends BasePanel {
         JPanel titlePanel = new JPanel(new BorderLayout(0, 6));
         titlePanel.setOpaque(false);
         titlePanel.add(titleLabel, BorderLayout.NORTH);
-        titlePanel.add(subtitleLabel, BorderLayout.CENTER);
+
 
         JPanel actionPanel = new JPanel(new BorderLayout());
         actionPanel.setOpaque(false);

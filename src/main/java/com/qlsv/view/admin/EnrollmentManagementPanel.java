@@ -12,6 +12,7 @@ import com.qlsv.utils.DialogUtil;
 import com.qlsv.view.common.AbstractCrudPanel;
 import com.qlsv.view.common.DetailSectionPanel;
 import com.qlsv.view.common.FilterOption;
+import com.qlsv.view.dialog.EnrollmentFormDialog;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
@@ -120,148 +121,29 @@ public class EnrollmentManagementPanel extends AbstractCrudPanel<Enrollment> {
 
     @Override
     protected Enrollment promptForEntity(Enrollment existingItem) {
-        List<Student> allStudents = screenController.loadStudents();
-        StudentSelectionState selectionState = new StudentSelectionState(existingItem == null ? null : existingItem.getStudent());
-
-        JTextField studentSearchField = new JTextField(selectionState.selectedStudent == null
-                ? ""
-                : formatStudentDisplay(selectionState.selectedStudent));
-        DefaultListModel<Student> suggestionModel = new DefaultListModel<>();
-        JList<Student> suggestionList = new JList<>(suggestionModel);
-        suggestionList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        suggestionList.setVisibleRowCount(6);
-        suggestionList.setFixedCellHeight(26);
-
-        JScrollPane suggestionScrollPane = new JScrollPane(suggestionList);
-        suggestionScrollPane.setPreferredSize(new Dimension(280, 120));
-
-        JLabel selectedStudentLabel = new JLabel();
-        updateSelectedStudentLabel(selectedStudentLabel, selectionState.selectedStudent);
-
-        JComboBox<CourseSection> sectionComboBox = new JComboBox<>(screenController.loadCourseSections().toArray(new CourseSection[0]));
-        JComboBox<FilterOption<String>> statusComboBox = new JComboBox<>(new DefaultComboBoxModel<>(new FilterOption[]{
-                new FilterOption<>("Đã đăng ký", "REGISTERED"),
-                new FilterOption<>("Đã hủy", "CANCELLED")
-        }));
-
-        if (existingItem != null && existingItem.getCourseSection() != null) {
-            sectionComboBox.setSelectedItem(existingItem.getCourseSection());
+        EnrollmentFormDialog.EnrollmentFormResult formResult = EnrollmentFormDialog.showDialog(
+                this,
+                new EnrollmentFormDialog.EnrollmentFormModel(
+                        existingItem == null ? "Thêm đăng ký học phần" : "Cập nhật đăng ký học phần",
+                        screenController.loadStudents(),
+                        existingItem == null ? null : existingItem.getStudent(),
+                        screenController.loadCourseSections(),
+                        existingItem == null ? null : existingItem.getCourseSection(),
+                        existingItem == null ? "REGISTERED" : existingItem.getStatus()
+                )
+        );
+        if (formResult == null) {
+            return null;
         }
-        selectStatus(statusComboBox, existingItem == null ? "REGISTERED" : existingItem.getStatus());
 
-        boolean[] applyingSelection = {false};
-        Runnable refreshSuggestions = () -> {
-            suggestionModel.clear();
-            List<Student> matchedStudents = filterStudentsByKeyword(allStudents, studentSearchField.getText());
-            for (Student student : matchedStudents) {
-                suggestionModel.addElement(student);
-            }
-            if (selectionState.selectedStudent != null) {
-                suggestionList.setSelectedValue(selectionState.selectedStudent, true);
-            } else if (!suggestionModel.isEmpty()) {
-                suggestionList.setSelectedIndex(0);
-            }
-        };
-
-        Runnable commitSelectedStudent = () -> {
-            Student selectedStudent = suggestionList.getSelectedValue();
-            if (selectedStudent == null) {
-                return;
-            }
-            selectionState.selectedStudent = selectedStudent;
-            applyingSelection[0] = true;
-            studentSearchField.setText(formatStudentDisplay(selectedStudent));
-            applyingSelection[0] = false;
-            updateSelectedStudentLabel(selectedStudentLabel, selectedStudent);
-            refreshSuggestions.run();
-        };
-
-        studentSearchField.getDocument().addDocumentListener(new DocumentListener() {
-            @Override
-            public void insertUpdate(DocumentEvent event) {
-                handleSearchChange();
-            }
-
-            @Override
-            public void removeUpdate(DocumentEvent event) {
-                handleSearchChange();
-            }
-
-            @Override
-            public void changedUpdate(DocumentEvent event) {
-                handleSearchChange();
-            }
-
-            private void handleSearchChange() {
-                if (!applyingSelection[0]) {
-                    selectionState.selectedStudent = null;
-                    updateSelectedStudentLabel(selectedStudentLabel, null);
-                }
-                refreshSuggestions.run();
-            }
-        });
-
-        suggestionList.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent event) {
-                if (event.getClickCount() == 2) {
-                    commitSelectedStudent.run();
-                }
-            }
-        });
-        suggestionList.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent event) {
-                if (event.getKeyCode() == KeyEvent.VK_ENTER) {
-                    event.consume();
-                    commitSelectedStudent.run();
-                }
-            }
-        });
-
-        refreshSuggestions.run();
-        updateSelectedStudentLabel(selectedStudentLabel, selectionState.selectedStudent);
-
-        JPanel studentPickerPanel = new JPanel(new BorderLayout(0, 6));
-        studentPickerPanel.setOpaque(false);
-        studentPickerPanel.add(studentSearchField, BorderLayout.NORTH);
-        studentPickerPanel.add(suggestionScrollPane, BorderLayout.CENTER);
-        studentPickerPanel.add(selectedStudentLabel, BorderLayout.SOUTH);
-
-        JPanel formPanel = new JPanel(new GridLayout(0, 2, 10, 10));
-        formPanel.add(new JLabel("Tìm sinh viên"));
-        formPanel.add(studentPickerPanel);
-        formPanel.add(new JLabel("Học phần"));
-        formPanel.add(sectionComboBox);
-        formPanel.add(new JLabel("Trạng thái"));
-        formPanel.add(statusComboBox);
-
-        while (true) {
-            int result = JOptionPane.showConfirmDialog(
-                    this,
-                    formPanel,
-                    existingItem == null ? "Thêm đăng ký học phần" : "Cập nhật đăng ký học phần",
-                    JOptionPane.OK_CANCEL_OPTION,
-                    JOptionPane.PLAIN_MESSAGE
-            );
-            if (result != JOptionPane.OK_OPTION) {
-                return null;
-            }
-            if (selectionState.selectedStudent == null) {
-                DialogUtil.showError(this, "Hãy chọn một sinh viên từ danh sách gợi ý.");
-                continue;
-            }
-
-            FilterOption<String> selectedStatus = (FilterOption<String>) statusComboBox.getSelectedItem();
-            return screenController.applyFormData(
-                    existingItem,
-                    new EnrollmentManagementScreenController.EnrollmentFormData(
-                            selectionState.selectedStudent,
-                            (CourseSection) sectionComboBox.getSelectedItem(),
-                            selectedStatus == null ? "REGISTERED" : selectedStatus.value()
-                    )
-            );
-        }
+        return screenController.applyFormData(
+                existingItem,
+                new EnrollmentManagementScreenController.EnrollmentFormData(
+                        formResult.student(),
+                        formResult.courseSection(),
+                        formResult.status()
+                )
+        );
     }
 
     @Override

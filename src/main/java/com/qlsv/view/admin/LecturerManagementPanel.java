@@ -16,17 +16,14 @@ import com.qlsv.view.common.AppColors;
 import com.qlsv.view.common.AbstractCrudPanel;
 import com.qlsv.view.common.DetailSectionPanel;
 import com.qlsv.view.common.FilterOption;
+import com.qlsv.view.dialog.LecturerFormDialog;
 
 import javax.swing.BorderFactory;
-import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
 import java.awt.FlowLayout;
-import java.awt.GridLayout;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -139,62 +136,34 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
 
     @Override
     protected Lecturer promptForEntity(Lecturer existingItem) {
-        JTextField codeField = new JTextField(existingItem == null ? "" : existingItem.getLecturerCode());
-        JTextField nameField = new JTextField(existingItem == null ? "" : existingItem.getFullName());
-        JTextField birthField = new JTextField(existingItem == null ? "" : DateUtil.formatForInput(existingItem.getDateOfBirth()));
-        JTextField emailField = new JTextField(existingItem == null ? "" : existingItem.getEmail());
-        JTextField phoneField = new JTextField(existingItem == null ? "" : existingItem.getPhone());
-        JTextField addressField = new JTextField(existingItem == null ? "" : existingItem.getAddress());
-        JComboBox<Faculty> facultyComboBox = new JComboBox<>(facultyController.getFacultiesForSelection().toArray(new Faculty[0]));
-        JComboBox<FilterOption<String>> statusComboBox = new JComboBox<>(new DefaultComboBoxModel<>(new FilterOption[]{
-                new FilterOption<>("Đang hoạt động", "ACTIVE"),
-                new FilterOption<>("Ngừng hoạt động", "INACTIVE")
-        }));
-
-        if (existingItem != null && existingItem.getFaculty() != null) {
-            facultyComboBox.setSelectedItem(existingItem.getFaculty());
-        }
-        selectStatus(statusComboBox, existingItem == null ? "ACTIVE" : existingItem.getStatus());
-
-        JPanel formPanel = new JPanel(new GridLayout(0, 2, 10, 10));
-        formPanel.add(new JLabel("Mã giảng viên"));
-        formPanel.add(codeField);
-        formPanel.add(new JLabel("Họ và tên"));
-        formPanel.add(nameField);
-        formPanel.add(new JLabel("Ngày sinh (yyyy-MM-dd)"));
-        formPanel.add(birthField);
-        formPanel.add(new JLabel("Email"));
-        formPanel.add(emailField);
-        formPanel.add(new JLabel("Số điện thoại"));
-        formPanel.add(phoneField);
-        formPanel.add(new JLabel("Địa chỉ"));
-        formPanel.add(addressField);
-        formPanel.add(new JLabel("Khoa"));
-        formPanel.add(facultyComboBox);
-        formPanel.add(new JLabel("Trạng thái"));
-        formPanel.add(statusComboBox);
-
-        int result = JOptionPane.showConfirmDialog(
+        LecturerFormDialog.LecturerFormResult formResult = LecturerFormDialog.showDialog(
                 this,
-                formPanel,
-                existingItem == null ? "Thêm giảng viên" : "Cập nhật giảng viên",
-                JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.PLAIN_MESSAGE
+                new LecturerFormDialog.LecturerFormModel(
+                        existingItem == null ? "Thêm giảng viên" : "Cập nhật giảng viên",
+                        existingItem == null ? "" : existingItem.getLecturerCode(),
+                        existingItem == null ? "" : existingItem.getFullName(),
+                        existingItem == null ? "" : DateUtil.formatForInput(existingItem.getDateOfBirth()),
+                        existingItem == null ? "" : existingItem.getEmail(),
+                        existingItem == null ? "" : existingItem.getPhone(),
+                        existingItem == null ? "" : existingItem.getAddress(),
+                        facultyController.getFacultiesForSelection(),
+                        existingItem == null ? null : existingItem.getFaculty(),
+                        existingItem == null ? "ACTIVE" : existingItem.getStatus()
+                )
         );
-        if (result != JOptionPane.OK_OPTION) {
+        if (formResult == null) {
             return null;
         }
 
         Lecturer lecturer = existingItem == null ? new Lecturer() : existingItem;
-        lecturer.setLecturerCode(codeField.getText().trim());
-        lecturer.setFullName(nameField.getText().trim());
-        lecturer.setDateOfBirth(DateUtil.parseRequiredDate(birthField.getText(), "Ngày sinh"));
-        lecturer.setEmail(emailField.getText().trim());
-        lecturer.setPhone(phoneField.getText().trim());
-        lecturer.setAddress(addressField.getText().trim());
-        lecturer.setFaculty((Faculty) facultyComboBox.getSelectedItem());
-        FilterOption<String> selectedStatus = (FilterOption<String>) statusComboBox.getSelectedItem();
-        lecturer.setStatus(selectedStatus == null ? "ACTIVE" : selectedStatus.value());
+        lecturer.setLecturerCode(formResult.lecturerCode().trim());
+        lecturer.setFullName(formResult.fullName().trim());
+        lecturer.setDateOfBirth(DateUtil.parseRequiredDate(formResult.dateOfBirth(), "Ngày sinh"));
+        lecturer.setEmail(formResult.email().trim());
+        lecturer.setPhone(formResult.phone().trim());
+        lecturer.setAddress(formResult.address().trim());
+        lecturer.setFaculty(formResult.faculty());
+        lecturer.setStatus(formResult.status());
         return lecturer;
     }
 
@@ -272,17 +241,6 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
             return null;
         }
         return type.cast(selectedOption.value());
-    }
-
-    private void selectStatus(JComboBox<FilterOption<String>> statusComboBox, String statusCode) {
-        for (int index = 0; index < statusComboBox.getItemCount(); index++) {
-            FilterOption<String> option = statusComboBox.getItemAt(index);
-            if (option != null && option.value().equalsIgnoreCase(statusCode == null ? "" : statusCode)) {
-                statusComboBox.setSelectedIndex(index);
-                return;
-            }
-        }
-        statusComboBox.setSelectedIndex(0);
     }
 
     private void openAdminChangePasswordDialog() {

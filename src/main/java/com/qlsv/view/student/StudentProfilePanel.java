@@ -142,15 +142,11 @@ public class StudentProfilePanel extends BasePanel {
         titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 26f));
         titleLabel.setForeground(AppColors.CARD_VALUE_TEXT);
 
-        JLabel subtitleLabel = createNoteLabel(
-                "Theo dõi thông tin cơ bản và cập nhật ngay email, số điện thoại, địa chỉ liên hệ khi cần."
-        );
 
         titlePanel.add(eyebrowLabel);
         titlePanel.add(Box.createVerticalStrut(6));
         titlePanel.add(titleLabel);
         titlePanel.add(Box.createVerticalStrut(8));
-        titlePanel.add(subtitleLabel);
 
         gbc.gridx = 0;
         gbc.weightx = 1.0;

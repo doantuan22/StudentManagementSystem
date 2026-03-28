@@ -28,7 +28,7 @@ public class StudentHomePanel extends BasePanel {
 
     private final JLabel subtitleLabel = new JLabel();
     private final DashboardCard enrollmentCard = new DashboardCard("Số học phần đã đăng ký", AppColors.STAT_CARD_ENROLLMENTS);
-    private final DashboardCard creditCard = new DashboardCard("Tổng số tín chỉ đang theo dõi", AppColors.STAT_CARD_SUBJECTS);
+    private final DashboardCard creditCard = new DashboardCard("Tổng số tín chỉ", AppColors.STAT_CARD_SUBJECTS);
     private final DashboardCard scoreCard = new DashboardCard("Điểm tổng kết trung bình", AppColors.STAT_CARD_LECTURERS);
     private final DashboardCard scheduleCard = new DashboardCard("Số buổi học trong lịch", AppColors.STAT_CARD_SECTIONS);
 
@@ -59,12 +59,10 @@ public class StudentHomePanel extends BasePanel {
         subtitleLabel.setFont(subtitleLabel.getFont().deriveFont(Font.PLAIN, 13f));
         subtitleLabel.setForeground(AppColors.CARD_MUTED_TEXT);
 
-        JButton reloadButton = new JButton("Tải lại");
-        reloadButton.addActionListener(event -> reloadData());
+
         JPanel titleActionPanel = new JPanel(new BorderLayout());
         titleActionPanel.setOpaque(false);
         titleActionPanel.add(titleLabel, BorderLayout.WEST);
-        titleActionPanel.add(reloadButton, BorderLayout.EAST);
 
         headerPanel.add(titleActionPanel, BorderLayout.NORTH);
         headerPanel.add(subtitleLabel, BorderLayout.CENTER);

@@ -37,14 +37,11 @@ public class LecturerSchedulePanel extends BasePanel {
         titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 22f));
         titleLabel.setForeground(AppColors.CARD_VALUE_TEXT);
 
-        JLabel subtitleLabel = new JLabel("Bảng lịch dạy được làm gọn để dễ đọc khi chuyển giữa các học phần.");
-        subtitleLabel.setForeground(AppColors.CARD_MUTED_TEXT);
-        subtitleLabel.setFont(subtitleLabel.getFont().deriveFont(Font.PLAIN, 13f));
 
         JPanel titlePanel = new JPanel(new BorderLayout(0, 6));
         titlePanel.setOpaque(false);
         titlePanel.add(titleLabel, BorderLayout.NORTH);
-        titlePanel.add(subtitleLabel, BorderLayout.CENTER);
+
 
         JTable table = new JTable(tableModel);
         configureTable(table);

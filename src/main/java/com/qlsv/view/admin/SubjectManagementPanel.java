@@ -8,16 +8,14 @@ import com.qlsv.utils.DisplayTextUtil;
 import com.qlsv.view.common.AbstractCrudPanel;
 import com.qlsv.view.common.DetailSectionPanel;
 import com.qlsv.view.common.FilterOption;
+import com.qlsv.view.dialog.SubjectFormDialog;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
 import java.awt.FlowLayout;
-import java.awt.GridLayout;
 import java.util.List;
 
 public class SubjectManagementPanel extends AbstractCrudPanel<Subject> {
@@ -105,44 +103,28 @@ public class SubjectManagementPanel extends AbstractCrudPanel<Subject> {
 
     @Override
     protected Subject promptForEntity(Subject existingItem) {
-        JTextField codeField = new JTextField(existingItem == null ? "" : existingItem.getSubjectCode());
-        JTextField nameField = new JTextField(existingItem == null ? "" : existingItem.getSubjectName());
-        JTextField creditsField = new JTextField(existingItem == null ? "" : String.valueOf(existingItem.getCredits()));
-        JTextField descriptionField = new JTextField(existingItem == null ? "" : existingItem.getDescription());
-        JComboBox<Faculty> facultyComboBox = new JComboBox<>(facultyController.getFacultiesForSelection().toArray(new Faculty[0]));
-        if (existingItem != null && existingItem.getFaculty() != null) {
-            facultyComboBox.setSelectedItem(existingItem.getFaculty());
-        }
-
-        JPanel formPanel = new JPanel(new GridLayout(0, 2, 10, 10));
-        formPanel.add(new JLabel("Mã môn học"));
-        formPanel.add(codeField);
-        formPanel.add(new JLabel("Tên môn học"));
-        formPanel.add(nameField);
-        formPanel.add(new JLabel("Số tín chỉ"));
-        formPanel.add(creditsField);
-        formPanel.add(new JLabel("Khoa"));
-        formPanel.add(facultyComboBox);
-        formPanel.add(new JLabel("Mô tả"));
-        formPanel.add(descriptionField);
-
-        int result = JOptionPane.showConfirmDialog(
+        SubjectFormDialog.SubjectFormResult formResult = SubjectFormDialog.showDialog(
                 this,
-                formPanel,
-                existingItem == null ? "Thêm môn học" : "Cập nhật môn học",
-                JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.PLAIN_MESSAGE
+                new SubjectFormDialog.SubjectFormModel(
+                        existingItem == null ? "Thêm môn học" : "Cập nhật môn học",
+                        existingItem == null ? "" : existingItem.getSubjectCode(),
+                        existingItem == null ? "" : existingItem.getSubjectName(),
+                        existingItem == null || existingItem.getCredits() == null ? "" : String.valueOf(existingItem.getCredits()),
+                        existingItem == null ? "" : existingItem.getDescription(),
+                        facultyController.getFacultiesForSelection(),
+                        existingItem == null ? null : existingItem.getFaculty()
+                )
         );
-        if (result != JOptionPane.OK_OPTION) {
+        if (formResult == null) {
             return null;
         }
 
         Subject subject = existingItem == null ? new Subject() : existingItem;
-        subject.setSubjectCode(codeField.getText().trim());
-        subject.setSubjectName(nameField.getText().trim());
-        subject.setCredits(Integer.parseInt(creditsField.getText().trim()));
-        subject.setFaculty((Faculty) facultyComboBox.getSelectedItem());
-        subject.setDescription(descriptionField.getText().trim());
+        subject.setSubjectCode(formResult.subjectCode().trim());
+        subject.setSubjectName(formResult.subjectName().trim());
+        subject.setCredits(Integer.parseInt(formResult.credits().trim()));
+        subject.setFaculty(formResult.faculty());
+        subject.setDescription(formResult.description().trim());
         return subject;
     }
 

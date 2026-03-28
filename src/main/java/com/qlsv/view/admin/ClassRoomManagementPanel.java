@@ -9,16 +9,14 @@ import com.qlsv.utils.DisplayTextUtil;
 import com.qlsv.view.common.AbstractCrudPanel;
 import com.qlsv.view.common.DetailSectionPanel;
 import com.qlsv.view.common.FilterOption;
+import com.qlsv.view.dialog.ClassRoomFormDialog;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
 import java.awt.FlowLayout;
-import java.awt.GridLayout;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -112,40 +110,26 @@ public class ClassRoomManagementPanel extends AbstractCrudPanel<ClassRoom> {
 
     @Override
     protected ClassRoom promptForEntity(ClassRoom existingItem) {
-        JTextField codeField = new JTextField(existingItem == null ? "" : existingItem.getClassCode());
-        JTextField nameField = new JTextField(existingItem == null ? "" : existingItem.getClassName());
-        JTextField yearField = new JTextField(existingItem == null ? "" : AcademicFormatUtil.formatAcademicYear(existingItem.getAcademicYear()));
-        JComboBox<Faculty> facultyComboBox = new JComboBox<>(facultyController.getFacultiesForSelection().toArray(new Faculty[0]));
-        if (existingItem != null && existingItem.getFaculty() != null) {
-            facultyComboBox.setSelectedItem(existingItem.getFaculty());
-        }
-
-        JPanel formPanel = new JPanel(new GridLayout(0, 2, 10, 10));
-        formPanel.add(new JLabel("Mã lớp"));
-        formPanel.add(codeField);
-        formPanel.add(new JLabel("Tên lớp"));
-        formPanel.add(nameField);
-        formPanel.add(new JLabel("Niên khóa"));
-        formPanel.add(yearField);
-        formPanel.add(new JLabel("Khoa"));
-        formPanel.add(facultyComboBox);
-
-        int result = JOptionPane.showConfirmDialog(
+        ClassRoomFormDialog.ClassRoomFormResult formResult = ClassRoomFormDialog.showDialog(
                 this,
-                formPanel,
-                existingItem == null ? "Thêm lớp" : "Cập nhật lớp",
-                JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.PLAIN_MESSAGE
+                new ClassRoomFormDialog.ClassRoomFormModel(
+                        existingItem == null ? "Thêm lớp" : "Cập nhật lớp",
+                        existingItem == null ? "" : existingItem.getClassCode(),
+                        existingItem == null ? "" : existingItem.getClassName(),
+                        existingItem == null ? "" : AcademicFormatUtil.formatAcademicYear(existingItem.getAcademicYear()),
+                        facultyController.getFacultiesForSelection(),
+                        existingItem == null ? null : existingItem.getFaculty()
+                )
         );
-        if (result != JOptionPane.OK_OPTION) {
+        if (formResult == null) {
             return null;
         }
 
         ClassRoom classRoom = existingItem == null ? new ClassRoom() : existingItem;
-        classRoom.setClassCode(codeField.getText().trim());
-        classRoom.setClassName(nameField.getText().trim());
-        classRoom.setAcademicYear(AcademicFormatUtil.normalizeAcademicYear(yearField.getText(), "Niên khóa"));
-        classRoom.setFaculty((Faculty) facultyComboBox.getSelectedItem());
+        classRoom.setClassCode(formResult.classCode().trim());
+        classRoom.setClassName(formResult.className().trim());
+        classRoom.setAcademicYear(AcademicFormatUtil.normalizeAcademicYear(formResult.academicYear(), "Niên khóa"));
+        classRoom.setFaculty(formResult.faculty());
         return classRoom;
     }
 

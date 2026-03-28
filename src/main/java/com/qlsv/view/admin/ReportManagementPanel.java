@@ -100,6 +100,10 @@ public class ReportManagementPanel extends BasePanel {
         JButton exportButton = new JButton("Xuất PDF");
         styleActionButton(loadButton, AppColors.BUTTON_PRIMARY);
         styleActionButton(exportButton, AppColors.BUTTON_SUCCESS);
+        reportTypeComboBox.setPreferredSize(new Dimension(230, 38));
+        filterComboBox.setPreferredSize(new Dimension(230, 38));
+        reportTypeComboBox.setFont(reportTypeComboBox.getFont().deriveFont(Font.PLAIN, 13.5f));
+        filterComboBox.setFont(filterComboBox.getFont().deriveFont(Font.PLAIN, 13.5f));
 
         loadButton.addActionListener(event -> loadReport());
         exportButton.addActionListener(event -> exportCurrentTable());
@@ -140,14 +144,24 @@ public class ReportManagementPanel extends BasePanel {
         JPanel tableHeadingPanel = new JPanel(new BorderLayout(12, 0));
         tableHeadingPanel.setOpaque(false);
 
+        JPanel tableTitlePanel = new JPanel(new BorderLayout(0, 4));
+        tableTitlePanel.setOpaque(false);
+
         JLabel tableTitleLabel = new JLabel("Dữ liệu báo cáo");
         tableTitleLabel.setForeground(AppColors.CARD_TITLE_TEXT);
         tableTitleLabel.setFont(tableTitleLabel.getFont().deriveFont(Font.BOLD, 16f));
 
+        JLabel tableDescriptionLabel = new JLabel("Xem trước dữ liệu và xuất nhanh PDF từ đúng bộ lọc đang áp dụng.");
+        tableDescriptionLabel.setForeground(AppColors.CARD_MUTED_TEXT);
+        tableDescriptionLabel.setFont(tableDescriptionLabel.getFont().deriveFont(Font.PLAIN, 12.5f));
+
         tableSummaryLabel.setForeground(AppColors.CARD_MUTED_TEXT);
         tableSummaryLabel.setFont(tableSummaryLabel.getFont().deriveFont(Font.PLAIN, 12.5f));
 
-        tableHeadingPanel.add(tableTitleLabel, BorderLayout.WEST);
+        tableTitlePanel.add(tableTitleLabel, BorderLayout.NORTH);
+        tableTitlePanel.add(tableDescriptionLabel, BorderLayout.CENTER);
+
+        tableHeadingPanel.add(tableTitlePanel, BorderLayout.WEST);
         tableHeadingPanel.add(tableSummaryLabel, BorderLayout.EAST);
 
         tablePanel.add(tableHeadingPanel, BorderLayout.NORTH);
@@ -165,6 +179,8 @@ public class ReportManagementPanel extends BasePanel {
         splitPane.setContinuousLayout(true);
         splitPane.setOneTouchExpandable(true);
         splitPane.setDividerSize(10);
+        tablePanel.setMinimumSize(new Dimension(0, 220));
+        detailScrollPane.setMinimumSize(new Dimension(0, 180));
 
         JPanel northPanel = new JPanel(new BorderLayout(0, 12));
         northPanel.setOpaque(false);
@@ -306,7 +322,7 @@ public class ReportManagementPanel extends BasePanel {
     }
 
     private void configureTable(JTable table) {
-        table.setRowHeight(28);
+        table.setRowHeight(34);
         table.setFillsViewportHeight(true);
         table.setGridColor(AppColors.CARD_BORDER);
         table.setBackground(Color.WHITE);

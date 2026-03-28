@@ -1,7 +1,7 @@
 package com.qlsv.view.dialog;
 
-import com.qlsv.model.Lecturer;
-import com.qlsv.model.Subject;
+import com.qlsv.model.CourseSection;
+import com.qlsv.model.Room;
 import com.qlsv.view.common.AppColors;
 
 import javax.swing.BorderFactory;
@@ -15,7 +15,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -30,30 +29,29 @@ import java.awt.Insets;
 import java.awt.Window;
 import java.util.List;
 
-public class CourseSectionFormDialog extends JDialog {
+public class ScheduleFormDialog extends JDialog {
 
-    private final JTextField sectionCodeField = new JTextField();
-    private final JComboBox<Subject> subjectComboBox = new JComboBox<>();
-    private final JComboBox<Lecturer> lecturerComboBox = new JComboBox<>();
-    private final JComboBox<String> semesterComboBox = new JComboBox<>();
-    private final JTextField schoolYearField = new JTextField();
-    private final JTextField maxStudentsField = new JTextField();
+    private final JComboBox<CourseSection> courseSectionComboBox = new JComboBox<>();
+    private final JComboBox<String> dayOfWeekComboBox = new JComboBox<>();
+    private final JComboBox<Integer> startPeriodComboBox = new JComboBox<>();
+    private final JComboBox<Integer> endPeriodComboBox = new JComboBox<>();
+    private final JComboBox<Room> roomComboBox = new JComboBox<>();
     private final JTextArea noteArea = new JTextArea();
 
-    private CourseSectionFormResult result;
+    private ScheduleFormResult result;
 
-    private CourseSectionFormDialog(Component parent, CourseSectionFormModel model) {
+    private ScheduleFormDialog(Component parent, ScheduleFormModel model) {
         super(resolveOwner(parent), model.title(), Dialog.ModalityType.APPLICATION_MODAL);
         initComponents(model);
     }
 
-    public static CourseSectionFormResult showDialog(Component parent, CourseSectionFormModel model) {
-        CourseSectionFormDialog dialog = new CourseSectionFormDialog(parent, model);
+    public static ScheduleFormResult showDialog(Component parent, ScheduleFormModel model) {
+        ScheduleFormDialog dialog = new ScheduleFormDialog(parent, model);
         dialog.setVisible(true);
         return dialog.result;
     }
 
-    private void initComponents(CourseSectionFormModel model) {
+    private void initComponents(ScheduleFormModel model) {
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
         JPanel rootPanel = new JPanel(new BorderLayout());
@@ -67,18 +65,16 @@ public class CourseSectionFormDialog extends JDialog {
         titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 22f));
         titleLabel.setForeground(AppColors.CARD_VALUE_TEXT);
 
-;
 
         headerPanel.add(titleLabel, BorderLayout.NORTH);
-
 
         JPanel bodyPanel = new JPanel();
         bodyPanel.setOpaque(false);
         bodyPanel.setLayout(new BoxLayout(bodyPanel, BoxLayout.Y_AXIS));
         bodyPanel.setBorder(BorderFactory.createEmptyBorder(16, 24, 20, 24));
-        bodyPanel.add(createOverviewSection());
+        bodyPanel.add(createCourseSectionSection());
         bodyPanel.add(Box.createVerticalStrut(24));
-        bodyPanel.add(createAcademicSection());
+        bodyPanel.add(createScheduleSection());
         bodyPanel.add(Box.createVerticalStrut(24));
         bodyPanel.add(createNoteSection());
 
@@ -112,79 +108,81 @@ public class CourseSectionFormDialog extends JDialog {
         bindModel(model);
 
         getRootPane().setDefaultButton(saveButton);
-        setMinimumSize(new Dimension(720, 580));
-        setSize(new Dimension(760, 620));
+        setMinimumSize(new Dimension(720, 620));
+        setSize(new Dimension(760, 660));
         setLocationRelativeTo(getOwner());
     }
 
-    private void bindModel(CourseSectionFormModel model) {
-        sectionCodeField.setText(model.sectionCode());
-        schoolYearField.setText(model.schoolYear());
-        maxStudentsField.setText(model.maxStudents());
-        noteArea.setText(model.infoMessage());
+    private void bindModel(ScheduleFormModel model) {
+        courseSectionComboBox.removeAllItems();
+        for (CourseSection courseSection : model.courseSections()) {
+            courseSectionComboBox.addItem(courseSection);
+        }
+        if (model.selectedCourseSection() != null) {
+            courseSectionComboBox.setSelectedItem(model.selectedCourseSection());
+        }
+        courseSectionComboBox.setEnabled(model.courseSectionEditable());
 
-        subjectComboBox.removeAllItems();
-        for (Subject subject : model.subjects()) {
-            subjectComboBox.addItem(subject);
+        dayOfWeekComboBox.removeAllItems();
+        for (String dayOfWeek : model.daysOfWeek()) {
+            dayOfWeekComboBox.addItem(dayOfWeek);
         }
-        if (model.selectedSubject() != null) {
-            subjectComboBox.setSelectedItem(model.selectedSubject());
+        dayOfWeekComboBox.setSelectedItem(model.selectedDayOfWeek());
+
+        startPeriodComboBox.removeAllItems();
+        endPeriodComboBox.removeAllItems();
+        for (Integer option : model.periodOptions()) {
+            startPeriodComboBox.addItem(option);
+            endPeriodComboBox.addItem(option);
+        }
+        startPeriodComboBox.setSelectedItem(model.selectedStartPeriod());
+        endPeriodComboBox.setSelectedItem(model.selectedEndPeriod());
+
+        roomComboBox.removeAllItems();
+        for (Room room : model.rooms()) {
+            roomComboBox.addItem(room);
+        }
+        if (model.selectedRoom() != null) {
+            roomComboBox.setSelectedItem(model.selectedRoom());
         }
 
-        lecturerComboBox.removeAllItems();
-        for (Lecturer lecturer : model.lecturers()) {
-            lecturerComboBox.addItem(lecturer);
-        }
-        if (model.selectedLecturer() != null) {
-            lecturerComboBox.setSelectedItem(model.selectedLecturer());
-        }
-
-        semesterComboBox.removeAllItems();
-        for (String semester : model.semesters()) {
-            semesterComboBox.addItem(semester);
-        }
-        if (model.selectedSemester() != null) {
-            semesterComboBox.setSelectedItem(model.selectedSemester());
-        }
-
-        SwingUtilities.invokeLater(() -> sectionCodeField.requestFocusInWindow());
+        noteArea.setText(model.note());
+        SwingUtilities.invokeLater(() -> {
+            if (courseSectionComboBox.isEnabled()) {
+                courseSectionComboBox.requestFocusInWindow();
+            } else {
+                dayOfWeekComboBox.requestFocusInWindow();
+            }
+        });
     }
 
-    private JPanel createOverviewSection() {
+    private JPanel createCourseSectionSection() {
         JPanel contentPanel = createFieldGridPanel();
-        contentPanel.add(createField("Mã học phần", styleTextField(sectionCodeField)), fieldConstraints(0, 0));
-        contentPanel.add(createField("Môn học", styleComboBox(subjectComboBox)), fieldConstraints(1, 0));
-        contentPanel.add(createField("Giảng viên", styleComboBox(lecturerComboBox)), fieldConstraints(0, 1, 2));
-        return createSection("Thông tin cơ bản", "Cấu hình học phần và giảng viên phụ trách.", contentPanel);
+        contentPanel.add(createField("Học phần", styleComboBox(courseSectionComboBox)), fieldConstraints(0, 0, 2));
+        return createSection("Thông tin học phần", "Giữ nguyên học phần đang chọn khi cập nhật lịch hiện hữu.", contentPanel);
     }
 
-    private JPanel createAcademicSection() {
+    private JPanel createScheduleSection() {
         JPanel contentPanel = createFieldGridPanel();
-        contentPanel.add(createField("Học kỳ", styleComboBox(semesterComboBox)), fieldConstraints(0, 0));
-        contentPanel.add(createField("Năm học", styleTextField(schoolYearField)), fieldConstraints(1, 0));
-        contentPanel.add(createField("Sĩ số tối đa", styleTextField(maxStudentsField)), fieldConstraints(0, 1, 2));
-        return createSection("Thông tin học vụ", "Thiết lập học kỳ, năm học và sức chứa lớp.", contentPanel);
+        contentPanel.add(createField("Thứ học", styleComboBox(dayOfWeekComboBox)), fieldConstraints(0, 0));
+        contentPanel.add(createField("Phòng học", styleComboBox(roomComboBox)), fieldConstraints(1, 0));
+        contentPanel.add(createField("Tiết bắt đầu", styleComboBox(startPeriodComboBox)), fieldConstraints(0, 1));
+        contentPanel.add(createField("Tiết kết thúc", styleComboBox(endPeriodComboBox)), fieldConstraints(1, 1));
+        return createSection("Lịch học", "Thiết lập ngày học, tiết học và phòng học.", contentPanel);
     }
 
     private JPanel createNoteSection() {
-        noteArea.setEditable(false);
         noteArea.setLineWrap(true);
         noteArea.setWrapStyleWord(true);
-        noteArea.setRows(3);
-        noteArea.setFont(noteArea.getFont().deriveFont(Font.PLAIN, 13f));
-        noteArea.setForeground(AppColors.CARD_MUTED_TEXT);
-        noteArea.setBackground(AppColors.CARD_BACKGROUND);
-        noteArea.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        noteArea.setRows(4);
+        noteArea.setFont(noteArea.getFont().deriveFont(Font.PLAIN, 13.5f));
+        noteArea.setBorder(BorderFactory.createEmptyBorder(10, 12, 10, 12));
 
         JScrollPane scrollPane = new JScrollPane(noteArea);
-        scrollPane.setBorder(BorderFactory.createLineBorder(AppColors.CARD_BORDER));
+        scrollPane.setBorder(BorderFactory.createLineBorder(AppColors.INPUT_BORDER));
         scrollPane.getViewport().setBackground(AppColors.CARD_BACKGROUND);
 
-        return createSection(
-                "Ghi chú",
-                "Lịch học và phòng học tiếp tục được quản lý tại màn hình lịch học.",
-                scrollPane
-        );
+        return createSection("Ghi chú", "Ghi nhận thêm nếu cần cho buổi học hoặc học phần này.", scrollPane);
     }
 
     private JPanel createSection(String title, String subtitle, JComponent content) {
@@ -250,15 +248,6 @@ public class CourseSectionFormDialog extends JDialog {
         return panel;
     }
 
-    private JTextField styleTextField(JTextField textField) {
-        textField.setFont(textField.getFont().deriveFont(Font.PLAIN, 13.5f));
-        textField.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(AppColors.INPUT_BORDER),
-                BorderFactory.createEmptyBorder(10, 12, 10, 12)
-        ));
-        return textField;
-    }
-
     private <T> JComboBox<T> styleComboBox(JComboBox<T> comboBox) {
         comboBox.setFont(comboBox.getFont().deriveFont(Font.PLAIN, 13.5f));
         comboBox.setBorder(BorderFactory.createLineBorder(AppColors.INPUT_BORDER));
@@ -287,13 +276,13 @@ public class CourseSectionFormDialog extends JDialog {
     }
 
     private void handleSave() {
-        result = new CourseSectionFormResult(
-                sectionCodeField.getText(),
-                (Subject) subjectComboBox.getSelectedItem(),
-                (Lecturer) lecturerComboBox.getSelectedItem(),
-                (String) semesterComboBox.getSelectedItem(),
-                schoolYearField.getText(),
-                maxStudentsField.getText()
+        result = new ScheduleFormResult(
+                (CourseSection) courseSectionComboBox.getSelectedItem(),
+                (String) dayOfWeekComboBox.getSelectedItem(),
+                (Integer) startPeriodComboBox.getSelectedItem(),
+                (Integer) endPeriodComboBox.getSelectedItem(),
+                (Room) roomComboBox.getSelectedItem(),
+                noteArea.getText()
         );
         dispose();
     }
@@ -305,28 +294,29 @@ public class CourseSectionFormDialog extends JDialog {
         return SwingUtilities.getWindowAncestor(parent);
     }
 
-    public record CourseSectionFormModel(
+    public record ScheduleFormModel(
             String title,
-            String sectionCode,
-            List<Subject> subjects,
-            Subject selectedSubject,
-            List<Lecturer> lecturers,
-            Lecturer selectedLecturer,
-            List<String> semesters,
-            String selectedSemester,
-            String schoolYear,
-            String maxStudents,
-            String infoMessage
+            List<CourseSection> courseSections,
+            CourseSection selectedCourseSection,
+            boolean courseSectionEditable,
+            String[] daysOfWeek,
+            String selectedDayOfWeek,
+            Integer[] periodOptions,
+            Integer selectedStartPeriod,
+            Integer selectedEndPeriod,
+            List<Room> rooms,
+            Room selectedRoom,
+            String note
     ) {
     }
 
-    public record CourseSectionFormResult(
-            String sectionCode,
-            Subject subject,
-            Lecturer lecturer,
-            String semester,
-            String schoolYear,
-            String maxStudents
+    public record ScheduleFormResult(
+            CourseSection courseSection,
+            String dayOfWeek,
+            Integer startPeriod,
+            Integer endPeriod,
+            Room room,
+            String note
     ) {
     }
 }

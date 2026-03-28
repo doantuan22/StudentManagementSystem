@@ -16,17 +16,14 @@ import com.qlsv.view.common.AppColors;
 import com.qlsv.view.common.AbstractCrudPanel;
 import com.qlsv.view.common.DetailSectionPanel;
 import com.qlsv.view.common.FilterOption;
+import com.qlsv.view.dialog.StudentFormDialog;
 
 import javax.swing.BorderFactory;
-import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
 import java.awt.FlowLayout;
-import java.awt.GridLayout;
 import java.util.List;
 
 public class StudentManagementPanel extends AbstractCrudPanel<Student> {
@@ -170,96 +167,44 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
 
     @Override
     protected Student promptForEntity(Student existingItem) {
-        JTextField codeField = new JTextField(existingItem == null ? "" : existingItem.getStudentCode());
-        JTextField nameField = new JTextField(existingItem == null ? "" : existingItem.getFullName());
-        JComboBox<String> genderComboBox = new JComboBox<>(new String[]{"Nam", "Nữ", "Khác"});
-        JTextField birthField = new JTextField(existingItem == null || existingItem.getDateOfBirth() == null ? "" : existingItem.getDateOfBirth().toString());
-        JTextField emailField = new JTextField(existingItem == null ? "" : existingItem.getEmail());
-        JTextField phoneField = new JTextField(existingItem == null ? "" : existingItem.getPhone());
-        JTextField addressField = new JTextField(existingItem == null ? "" : existingItem.getAddress());
-        JTextField academicYearField = new JTextField(existingItem == null ? "" : AcademicFormatUtil.formatAcademicYear(existingItem.getAcademicYear()));
-
-        JComboBox<Faculty> facultyComboBox = new JComboBox<>(screenController.loadFaculties().toArray(new Faculty[0]));
-        JComboBox<ClassRoom> classRoomComboBox = new JComboBox<>();
-        JComboBox<FilterOption<String>> statusComboBox = new JComboBox<>(new DefaultComboBoxModel<>(new FilterOption[]{
-                new FilterOption<>("Đang hoạt động", "ACTIVE"),
-                new FilterOption<>("Ngừng hoạt động", "INACTIVE")
-        }));
-
         List<ClassRoom> allClassRooms = screenController.loadClassRooms();
-
-        if (existingItem != null) {
-            genderComboBox.setSelectedItem(DisplayTextUtil.formatGender(existingItem.getGender()));
-            if (existingItem.getFaculty() != null) {
-                facultyComboBox.setSelectedItem(existingItem.getFaculty());
-            }
-        }
-
-        facultyComboBox.addActionListener(event -> reloadClassRoomOptions(
-                classRoomComboBox,
-                allClassRooms,
-                (Faculty) facultyComboBox.getSelectedItem(),
-                null
-        ));
-        reloadClassRoomOptions(classRoomComboBox, allClassRooms, (Faculty) facultyComboBox.getSelectedItem(),
-                existingItem == null ? null : existingItem.getClassRoom());
-
-        if (existingItem != null) {
-            selectStatus(statusComboBox, existingItem.getStatus());
-        } else {
-            selectStatus(statusComboBox, "ACTIVE");
-        }
-
-        JPanel formPanel = new JPanel(new GridLayout(0, 2, 10, 10));
-        formPanel.add(new JLabel("Mã sinh viên"));
-        formPanel.add(codeField);
-        formPanel.add(new JLabel("Họ và tên"));
-        formPanel.add(nameField);
-        formPanel.add(new JLabel("Giới tính"));
-        formPanel.add(genderComboBox);
-        formPanel.add(new JLabel("Ngày sinh (yyyy-MM-dd)"));
-        formPanel.add(birthField);
-        formPanel.add(new JLabel("Email"));
-        formPanel.add(emailField);
-        formPanel.add(new JLabel("Số điện thoại"));
-        formPanel.add(phoneField);
-        formPanel.add(new JLabel("Địa chỉ"));
-        formPanel.add(addressField);
-        formPanel.add(new JLabel("Khoa"));
-        formPanel.add(facultyComboBox);
-        formPanel.add(new JLabel("Lớp"));
-        formPanel.add(classRoomComboBox);
-        formPanel.add(new JLabel("Niên khóa"));
-        formPanel.add(academicYearField);
-        formPanel.add(new JLabel("Trạng thái"));
-        formPanel.add(statusComboBox);
-
-        int result = JOptionPane.showConfirmDialog(
+        StudentFormDialog.StudentFormResult formResult = StudentFormDialog.showDialog(
                 this,
-                formPanel,
-                existingItem == null ? "Thêm sinh viên" : "Cập nhật sinh viên",
-                JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.PLAIN_MESSAGE
+                new StudentFormDialog.StudentFormModel(
+                        existingItem == null ? "Thêm sinh viên" : "Cập nhật sinh viên",
+                        existingItem == null ? "" : existingItem.getStudentCode(),
+                        existingItem == null ? "" : existingItem.getFullName(),
+                        existingItem == null ? "Nam" : DisplayTextUtil.formatGender(existingItem.getGender()),
+                        existingItem == null || existingItem.getDateOfBirth() == null ? "" : existingItem.getDateOfBirth().toString(),
+                        existingItem == null ? "" : existingItem.getEmail(),
+                        existingItem == null ? "" : existingItem.getPhone(),
+                        existingItem == null ? "" : existingItem.getAddress(),
+                        existingItem == null ? "" : AcademicFormatUtil.formatAcademicYear(existingItem.getAcademicYear()),
+                        existingItem == null ? "ACTIVE" : existingItem.getStatus(),
+                        screenController.loadFaculties(),
+                        allClassRooms,
+                        existingItem == null ? null : existingItem.getFaculty(),
+                        existingItem == null ? null : existingItem.getClassRoom()
+                )
         );
-        if (result != JOptionPane.OK_OPTION) {
+        if (formResult == null) {
             return null;
         }
 
-        FilterOption<String> selectedStatus = (FilterOption<String>) statusComboBox.getSelectedItem();
         return screenController.applyFormData(
                 existingItem,
                 new StudentManagementScreenController.StudentFormData(
-                        codeField.getText(),
-                        nameField.getText(),
-                        (String) genderComboBox.getSelectedItem(),
-                        birthField.getText(),
-                        emailField.getText(),
-                        phoneField.getText(),
-                        addressField.getText(),
-                        (Faculty) facultyComboBox.getSelectedItem(),
-                        (ClassRoom) classRoomComboBox.getSelectedItem(),
-                        academicYearField.getText(),
-                        selectedStatus == null ? "ACTIVE" : selectedStatus.value()
+                        formResult.studentCode(),
+                        formResult.fullName(),
+                        formResult.gender(),
+                        formResult.dateOfBirth(),
+                        formResult.email(),
+                        formResult.phone(),
+                        formResult.address(),
+                        formResult.faculty(),
+                        formResult.classRoom(),
+                        formResult.academicYear(),
+                        formResult.status()
                 )
         );
     }
@@ -350,32 +295,6 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
             return null;
         }
         return type.cast(selectedOption.value());
-    }
-
-    private void reloadClassRoomOptions(
-            JComboBox<ClassRoom> classRoomComboBox,
-            List<ClassRoom> allClassRooms,
-            Faculty selectedFaculty,
-            ClassRoom preferredClassRoom
-    ) {
-        classRoomComboBox.removeAllItems();
-        for (ClassRoom classRoom : screenController.filterClassRooms(allClassRooms, selectedFaculty)) {
-            classRoomComboBox.addItem(classRoom);
-        }
-        if (preferredClassRoom != null) {
-            classRoomComboBox.setSelectedItem(preferredClassRoom);
-        }
-    }
-
-    private void selectStatus(JComboBox<FilterOption<String>> statusComboBox, String statusCode) {
-        for (int index = 0; index < statusComboBox.getItemCount(); index++) {
-            FilterOption<String> option = statusComboBox.getItemAt(index);
-            if (option != null && option.value().equalsIgnoreCase(statusCode == null ? "" : statusCode)) {
-                statusComboBox.setSelectedIndex(index);
-                return;
-            }
-        }
-        statusComboBox.setSelectedIndex(0);
     }
 
     private void openAdminChangePasswordDialog() {

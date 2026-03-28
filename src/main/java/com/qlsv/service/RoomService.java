@@ -29,7 +29,7 @@ public class RoomService {
     public void saveRoom(Room room) {
         permissionService.requireAnyRole(Role.ADMIN);
         JpaBootstrap.executeInTransaction(
-                "KhÃ´ng thá»ƒ lÆ°u phÃ²ng há»c.",
+                "Không thể lưu phòng học.",
                 ignored -> {
                     validateRoom(room);
                     if (room.getId() == null) {
@@ -45,10 +45,10 @@ public class RoomService {
     public void deleteRoom(Long id) {
         permissionService.requireAnyRole(Role.ADMIN);
         if (id == null || id <= 0) {
-            throw new AppException("Dá»¯ liá»‡u khÃ´ng há»£p lá»‡ Ä‘á»ƒ xÃ³a phÃ²ng há»c.");
+            throw new AppException("Dữ liệu không hợp lệ để xóa phòng học.");
         }
         JpaBootstrap.executeInTransaction(
-                "KhÃ´ng thá»ƒ xÃ³a phÃ²ng há»c.",
+                "Không thể xóa phòng học.",
                 ignored -> {
                     roomDAO.delete(id);
                     return null;
@@ -58,13 +58,13 @@ public class RoomService {
 
     private void validateRoom(Room room) {
         if (room == null) {
-            throw new AppException("Dá»¯ liá»‡u phÃ²ng há»c khÃ´ng há»£p lá»‡.");
+            throw new AppException("Dữ liệu phòng học không hợp lệ.");
         }
         if (room.getRoomCode() == null || room.getRoomCode().isBlank()) {
-            throw new AppException("Vui lÃ²ng nháº­p mÃ£ phÃ²ng há»c.");
+            throw new AppException("Vui lòng nhập mã phòng học.");
         }
         if (room.getRoomName() == null || room.getRoomName().isBlank()) {
-            throw new AppException("Vui lÃ²ng nháº­p tÃªn phÃ²ng há»c.");
+            throw new AppException("Vui lòng nhập tên phòng học.");
         }
     }
 }

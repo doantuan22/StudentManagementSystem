@@ -104,6 +104,8 @@ public class LecturerScorePanel extends BasePanel {
                 BorderFactory.createLineBorder(AppColors.INPUT_BORDER),
                 BorderFactory.createEmptyBorder(7, 10, 7, 10)
         ));
+        courseComboBox.setPreferredSize(new Dimension(220, 36));
+        courseComboBox.setFont(courseComboBox.getFont().deriveFont(Font.PLAIN, 13.5f));
 
         searchDebounceTimer = new Timer(250, event -> {
             currentKeyword = normalize(searchField.getText());
@@ -144,18 +146,29 @@ public class LecturerScorePanel extends BasePanel {
         titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 18f));
         titleLabel.setForeground(AppColors.CARD_VALUE_TEXT);
 
+
+
         JPanel controlPanel = new JPanel(new BorderLayout(10, 8));
         controlPanel.setOpaque(false);
         controlPanel.add(filterPanel, BorderLayout.CENTER);
         controlPanel.add(actionPanel, BorderLayout.EAST);
 
-        headerPanel.add(titleLabel, BorderLayout.NORTH);
+        JPanel headerTextPanel = new JPanel(new BorderLayout(0, 4));
+        headerTextPanel.setOpaque(false);
+        headerTextPanel.add(titleLabel, BorderLayout.NORTH);
+
+        headerPanel.add(headerTextPanel, BorderLayout.NORTH);
         headerPanel.add(controlPanel, BorderLayout.CENTER);
 
         JPanel scoreListPanel = createSectionCard(new BorderLayout(0, 12));
         JLabel scoreListTitle = createSectionTitle("Bảng thông tin điểm sinh viên");
+        JLabel scoreListDescription = createMutedDescription("Danh sách điểm được giữ theo bộ lọc hiện tại để chọn nhanh sinh viên cần cập nhật.");
+        JPanel scoreListHeading = new JPanel(new BorderLayout(0, 4));
+        scoreListHeading.setOpaque(false);
+        scoreListHeading.add(scoreListTitle, BorderLayout.NORTH);
+        scoreListHeading.add(scoreListDescription, BorderLayout.CENTER);
         JScrollPane scoreTableScrollPane = createTableScrollPane(scoreTable);
-        scoreListPanel.add(scoreListTitle, BorderLayout.NORTH);
+        scoreListPanel.add(scoreListHeading, BorderLayout.NORTH);
         scoreListPanel.add(scoreTableScrollPane, BorderLayout.CENTER);
 
         JPanel editPanel = createSectionCard(new BorderLayout(0, 12));
@@ -163,9 +176,7 @@ public class LecturerScorePanel extends BasePanel {
 
         JPanel editHintPanel = new JPanel(new BorderLayout());
         editHintPanel.setOpaque(false);
-        JLabel editHintLabel = new JLabel("Chọn 1 sinh viên ở bảng trên rồi chỉnh trực tiếp các cột QT, GK, CK trên hàng bên dưới.");
-        editHintLabel.setForeground(AppColors.CARD_MUTED_TEXT);
-        editHintPanel.add(editHintLabel, BorderLayout.WEST);
+    
 
         JPanel editTopPanel = new JPanel(new BorderLayout(0, 8));
         editTopPanel.setOpaque(false);
@@ -186,6 +197,10 @@ public class LecturerScorePanel extends BasePanel {
         splitPane.setResizeWeight(0.63);
         splitPane.setBorder(null);
         splitPane.setContinuousLayout(true);
+        splitPane.setOneTouchExpandable(true);
+        splitPane.setDividerSize(10);
+        scoreListPanel.setMinimumSize(new Dimension(0, 220));
+        editPanel.setMinimumSize(new Dimension(0, 220));
 
         add(headerPanel, BorderLayout.NORTH);
         add(splitPane, BorderLayout.CENTER);
@@ -232,7 +247,7 @@ public class LecturerScorePanel extends BasePanel {
     }
 
     private void configureBaseTable(JTable table) {
-        table.setRowHeight(30);
+        table.setRowHeight(34);
         table.setFillsViewportHeight(true);
         table.setGridColor(AppColors.CARD_BORDER);
         table.setBackground(Color.WHITE);
@@ -265,6 +280,13 @@ public class LecturerScorePanel extends BasePanel {
         JLabel label = new JLabel(text);
         label.setFont(label.getFont().deriveFont(Font.BOLD, 16f));
         label.setForeground(AppColors.CARD_TITLE_TEXT);
+        return label;
+    }
+
+    private JLabel createMutedDescription(String text) {
+        JLabel label = new JLabel(text);
+        label.setFont(label.getFont().deriveFont(Font.PLAIN, 12.5f));
+        label.setForeground(AppColors.CARD_MUTED_TEXT);
         return label;
     }
 

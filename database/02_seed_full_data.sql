@@ -72,11 +72,11 @@ VALUES
 -- ------------------------------------------------------------
 -- 6. GIANG VIEN (lecturers)
 -- ------------------------------------------------------------
-INSERT INTO lecturers (id, user_id, lecturer_code, full_name, email, date_of_birth, phone, address, faculty_id, status)
+INSERT INTO lecturers (id, user_id, lecturer_code, full_name, gender, email, date_of_birth, phone, address, faculty_id, status)
 VALUES
-    (1, 2, 'GV001', 'Nguyễn Văn Minh', 'nv.minh@sms.edu.vn', '1986-09-12', '0901234567', '99 Nguyễn Trãi, Thanh Xuân, Hà Nội', 1, 'ACTIVE'),
-    (2, 3, 'GV002', 'Lê Thị Lan',      'lt.lan@sms.edu.vn',  '1988-03-08', '0901234568', '12 Cầu Giấy, Hà Nội', 2, 'ACTIVE'),
-    (3, 4, 'GV003', 'Trần Văn Hùng',   'tv.hung@sms.edu.vn', '1984-11-21', '0901234569', '45 Lê Lợi, Hà Đông, Hà Nội', 1, 'ACTIVE');
+    (1, 2, 'GV001', 'Nguyễn Văn Minh', 'Nam', 'nv.minh@sms.edu.vn', '1986-09-12', '0901234567', '99 Nguyễn Trãi, Thanh Xuân, Hà Nội', 1, 'ACTIVE'),
+    (2, 3, 'GV002', 'Lê Thị Lan',      'Nữ',  'lt.lan@sms.edu.vn',  '1988-03-08', '0901234568', '12 Cầu Giấy, Hà Nội', 2, 'ACTIVE'),
+    (3, 4, 'GV003', 'Trần Văn Hùng',   'Nam', 'tv.hung@sms.edu.vn', '1984-11-21', '0901234569', '45 Lê Lợi, Hà Đông, Hà Nội', 1, 'ACTIVE');
 
 -- ------------------------------------------------------------
 -- 7. SINH VIEN (students)
@@ -120,7 +120,7 @@ INSERT INTO schedules (id, course_section_id, day_of_week, start_period, end_per
 VALUES
     (1, 1, 'Thứ Hai', 1, 3, 1, 'Lịch chính thức học phần Nhập môn Java - Nhóm 01'),
     (2, 2, 'Thứ Tư',  4, 6, 4, 'Lịch chính thức học phần Cơ sở Dữ liệu - Nhóm 01'),
-    (3, 3, 'Thứ Hai', 2, 4, 5, 'Lịch chính thức học phần Cơ sở Dữ liệu - Nhóm 02'),
+    (3, 3, 'Thứ Hai', 4, 6, 5, 'Lịch chính thức học phần Cơ sở Dữ liệu - Nhóm 02'),
     (4, 4, 'Thứ Ba',  1, 3, 6, 'Lịch chính thức học phần Nguyên lý Quản trị'),
     (5, 5, 'Thứ Năm', 1, 3, 2, 'Lịch chính thức học phần Nhập môn Java - Nhóm 02');
 

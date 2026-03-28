@@ -12,8 +12,8 @@ import com.qlsv.utils.DateUtil;
 import com.qlsv.utils.DialogUtil;
 import com.qlsv.utils.DisplayTextUtil;
 import com.qlsv.view.auth.ChangePasswordDialog;
-import com.qlsv.view.common.AppColors;
 import com.qlsv.view.common.AbstractCrudPanel;
+import com.qlsv.view.common.AppColors;
 import com.qlsv.view.common.DetailSectionPanel;
 import com.qlsv.view.common.FilterOption;
 import com.qlsv.view.dialog.LecturerFormDialog;
@@ -57,7 +57,7 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
 
     @Override
     protected String[] getColumnNames() {
-        return new String[]{"ID", "Mã giảng viên", "Họ và tên", "Ngày sinh", "Email", "Khoa", "Trạng thái"};
+        return new String[]{"ID", "Mã giảng viên", "Họ và tên", "Giới tính", "Ngày sinh", "Email", "Khoa", "Trạng thái"};
     }
 
     @Override
@@ -91,6 +91,7 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
                 item.getId(),
                 item.getLecturerCode(),
                 item.getFullName(),
+                DisplayTextUtil.formatGender(item.getGender()),
                 DisplayTextUtil.formatDate(item.getDateOfBirth()),
                 item.getEmail(),
                 item.getFaculty() == null ? "" : item.getFaculty().getFacultyName(),
@@ -123,6 +124,7 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
         detailSectionPanel.showFields(new String[][]{
                 {"Mã giảng viên", DisplayTextUtil.defaultText(selectedItem.getLecturerCode())},
                 {"Họ và tên", DisplayTextUtil.defaultText(selectedItem.getFullName())},
+                {"Giới tính", DisplayTextUtil.formatGender(selectedItem.getGender())},
                 {"Ngày sinh", DisplayTextUtil.formatDate(selectedItem.getDateOfBirth())},
                 {"Số điện thoại", DisplayTextUtil.defaultText(selectedItem.getPhone())},
                 {"Email", DisplayTextUtil.defaultText(selectedItem.getEmail())},
@@ -142,6 +144,7 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
                         existingItem == null ? "Thêm giảng viên" : "Cập nhật giảng viên",
                         existingItem == null ? "" : existingItem.getLecturerCode(),
                         existingItem == null ? "" : existingItem.getFullName(),
+                        existingItem == null ? "Nam" : DisplayTextUtil.formatGender(existingItem.getGender()),
                         existingItem == null ? "" : DateUtil.formatForInput(existingItem.getDateOfBirth()),
                         existingItem == null ? "" : existingItem.getEmail(),
                         existingItem == null ? "" : existingItem.getPhone(),
@@ -158,6 +161,7 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
         Lecturer lecturer = existingItem == null ? new Lecturer() : existingItem;
         lecturer.setLecturerCode(formResult.lecturerCode().trim());
         lecturer.setFullName(formResult.fullName().trim());
+        lecturer.setGender(formResult.gender());
         lecturer.setDateOfBirth(DateUtil.parseRequiredDate(formResult.dateOfBirth(), "Ngày sinh"));
         lecturer.setEmail(formResult.email().trim());
         lecturer.setPhone(formResult.phone().trim());

@@ -32,6 +32,7 @@ import java.util.List;
 
 public class LecturerFormDialog extends JDialog {
 
+    private static final String[] GENDER_OPTIONS = {"Nam", "Nữ", "Khác"};
     private static final FilterOption<String>[] STATUS_OPTIONS = new FilterOption[]{
             new FilterOption<>("Đang hoạt động", "ACTIVE"),
             new FilterOption<>("Ngừng hoạt động", "INACTIVE")
@@ -39,6 +40,7 @@ public class LecturerFormDialog extends JDialog {
 
     private final JTextField lecturerCodeField = new JTextField();
     private final JTextField fullNameField = new JTextField();
+    private final JComboBox<String> genderComboBox = new JComboBox<>(GENDER_OPTIONS);
     private final JTextField dateOfBirthField = new JTextField();
     private final JTextField emailField = new JTextField();
     private final JTextField phoneField = new JTextField();
@@ -74,7 +76,6 @@ public class LecturerFormDialog extends JDialog {
         titleLabel.setForeground(AppColors.CARD_VALUE_TEXT);
 
         headerPanel.add(titleLabel, BorderLayout.NORTH);
-
 
         JPanel bodyPanel = new JPanel();
         bodyPanel.setOpaque(false);
@@ -125,6 +126,7 @@ public class LecturerFormDialog extends JDialog {
     private void bindModel(LecturerFormModel model) {
         lecturerCodeField.setText(model.lecturerCode());
         fullNameField.setText(model.fullName());
+        genderComboBox.setSelectedItem(model.gender());
         dateOfBirthField.setText(model.dateOfBirth());
         emailField.setText(model.email());
         phoneField.setText(model.phone());
@@ -146,7 +148,8 @@ public class LecturerFormDialog extends JDialog {
         JPanel contentPanel = createFieldGridPanel();
         contentPanel.add(createField("Mã giảng viên", styleTextField(lecturerCodeField)), fieldConstraints(0, 0));
         contentPanel.add(createField("Họ và tên", styleTextField(fullNameField)), fieldConstraints(1, 0));
-        contentPanel.add(createField("Ngày sinh (yyyy-MM-dd)", styleTextField(dateOfBirthField)), fieldConstraints(0, 1, 2));
+        contentPanel.add(createField("Giới tính", styleComboBox(genderComboBox)), fieldConstraints(0, 1));
+        contentPanel.add(createField("Ngày sinh (yyyy-MM-dd)", styleTextField(dateOfBirthField)), fieldConstraints(1, 1));
         return createSection("Thông tin cơ bản", "Thông tin định danh và nhân sự của giảng viên.", contentPanel);
     }
 
@@ -292,6 +295,7 @@ public class LecturerFormDialog extends JDialog {
         result = new LecturerFormResult(
                 lecturerCodeField.getText(),
                 fullNameField.getText(),
+                (String) genderComboBox.getSelectedItem(),
                 dateOfBirthField.getText(),
                 emailField.getText(),
                 phoneField.getText(),
@@ -313,6 +317,7 @@ public class LecturerFormDialog extends JDialog {
             String title,
             String lecturerCode,
             String fullName,
+            String gender,
             String dateOfBirth,
             String email,
             String phone,
@@ -326,6 +331,7 @@ public class LecturerFormDialog extends JDialog {
     public record LecturerFormResult(
             String lecturerCode,
             String fullName,
+            String gender,
             String dateOfBirth,
             String email,
             String phone,

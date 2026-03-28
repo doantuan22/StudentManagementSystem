@@ -7,6 +7,7 @@ import com.qlsv.dao.LecturerDAO;
 import com.qlsv.dao.ScheduleDAO;
 import com.qlsv.dao.StudentDAO;
 import com.qlsv.exception.ValidationException;
+import com.qlsv.model.CourseSection;
 import com.qlsv.model.Lecturer;
 import com.qlsv.model.Schedule;
 import com.qlsv.model.Student;
@@ -16,6 +17,11 @@ import com.qlsv.utils.ValidationUtil;
 import java.util.List;
 
 public class ScheduleService {
+
+    private static final String ROOM_CONFLICT_MESSAGE =
+            "Phòng học đã bị trùng lịch trong ngày và khoảng tiết đã chọn.";
+    private static final String LECTURER_CONFLICT_MESSAGE =
+            "Giảng viên đã có lịch dạy trùng trong ngày và khoảng tiết đã chọn.";
 
     private final ScheduleDAO scheduleDAO = new ScheduleDAO();
     private final CourseSectionDAO courseSectionDAO = new CourseSectionDAO();
@@ -62,15 +68,8 @@ public class ScheduleService {
         return JpaBootstrap.executeInTransaction(
                 "Không thể lưu lịch học.",
                 ignored -> {
-                    validate(schedule);
-
-                    if (scheduleDAO.hasLecturerScheduleConflict(schedule, schedule.getId())) {
-                        throw new ValidationException("Lịch học bị trùng với lịch dạy khác của giảng viên.");
-                    }
-                    if (scheduleDAO.hasRoomScheduleConflict(schedule, schedule.getId())) {
-                        throw new ValidationException("Lịch học bị trùng với lịch khác của phòng học.");
-                    }
-
+                    CourseSection courseSection = validate(schedule);
+                    validateScheduleConflicts(schedule, courseSection);
                     return schedule.getId() == null ? scheduleDAO.insert(schedule) : updateAndReturn(schedule);
                 }
         );
@@ -93,11 +92,14 @@ public class ScheduleService {
         return schedule;
     }
 
-    private void validate(Schedule schedule) {
+    private CourseSection validate(Schedule schedule) {
         if (schedule.getCourseSection() == null || schedule.getCourseSection().getId() == null) {
             throw new ValidationException("Lịch học phải gắn với một học phần.");
         }
-        ValidationUtil.requireNotBlank(schedule.getDayOfWeek(), "Thứ học không được để trống.");
+        schedule.setDayOfWeek(ValidationUtil.requireNotBlank(
+                schedule.getDayOfWeek(),
+                "Thứ học không được để trống."
+        ));
         ValidationUtil.requirePositive(schedule.getStartPeriod(), "Tiết bắt đầu phải lớn hơn 0.");
         ValidationUtil.requirePositive(schedule.getEndPeriod(), "Tiết kết thúc phải lớn hơn 0.");
         if (schedule.getRoom() == null || schedule.getRoom().getId() == null) {
@@ -106,7 +108,34 @@ public class ScheduleService {
         if (schedule.getStartPeriod() >= schedule.getEndPeriod()) {
             throw new ValidationException("Tiết bắt đầu phải nhỏ hơn tiết kết thúc.");
         }
-        courseSectionDAO.findById(schedule.getCourseSection().getId())
+        return courseSectionDAO.findById(schedule.getCourseSection().getId())
                 .orElseThrow(() -> new ValidationException("Học phần của lịch học không tồn tại."));
+    }
+
+    private void validateScheduleConflicts(Schedule schedule, CourseSection courseSection) {
+        if (scheduleDAO.hasRoomScheduleConflict(
+                schedule.getRoom().getId(),
+                schedule.getDayOfWeek(),
+                schedule.getStartPeriod(),
+                schedule.getEndPeriod(),
+                schedule.getId()
+        )) {
+            throw new ValidationException(ROOM_CONFLICT_MESSAGE);
+        }
+
+        Long lecturerId = courseSection.getLecturer() == null ? null : courseSection.getLecturer().getId();
+        if (lecturerId == null) {
+            throw new ValidationException("Học phần phải có giảng viên phụ trách.");
+        }
+
+        if (scheduleDAO.hasLecturerScheduleConflict(
+                lecturerId,
+                schedule.getDayOfWeek(),
+                schedule.getStartPeriod(),
+                schedule.getEndPeriod(),
+                schedule.getId()
+        )) {
+            throw new ValidationException(LECTURER_CONFLICT_MESSAGE);
+        }
     }
 }

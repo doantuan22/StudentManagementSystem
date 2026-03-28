@@ -128,6 +128,7 @@ public class LecturerDAO {
         target.setUser(resolveUserReference(entityManager, source.getUserId()));
         target.setLecturerCode(source.getLecturerCode());
         target.setFullName(source.getFullName());
+        target.setGender(source.getGender());
         target.setEmail(source.getEmail());
         target.setDateOfBirth(source.getDateOfBirth());
         target.setPhone(source.getPhone());

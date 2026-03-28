@@ -32,6 +32,9 @@ public class Lecturer {
     @Column(name = "full_name", nullable = false, length = 150)
     private String fullName;
 
+    @Column(name = "gender", length = 20)
+    private String gender;
+
     @Column(name = "email", length = 150)
     private String email;
 
@@ -54,12 +57,13 @@ public class Lecturer {
     public Lecturer() {
     }
 
-    public Lecturer(Long id, Long userId, String lecturerCode, String fullName, String email, LocalDate dateOfBirth, String phone,
+    public Lecturer(Long id, Long userId, String lecturerCode, String fullName, String gender, String email, LocalDate dateOfBirth, String phone,
                     String address, Faculty faculty, String status) {
         this.id = id;
         setUserId(userId);
         this.lecturerCode = lecturerCode;
         this.fullName = fullName;
+        this.gender = gender;
         this.email = email;
         this.dateOfBirth = dateOfBirth;
         this.phone = phone;
@@ -113,6 +117,14 @@ public class Lecturer {
 
     public void setFullName(String fullName) {
         this.fullName = fullName;
+    }
+
+    public String getGender() {
+        return gender;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
     }
 
     public String getEmail() {

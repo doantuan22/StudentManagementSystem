@@ -6,7 +6,6 @@ import com.qlsv.model.CourseSection;
 import com.qlsv.model.Room;
 import com.qlsv.model.Schedule;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityTransaction;
 import org.hibernate.exception.ConstraintViolationException;
 
 import java.sql.SQLIntegrityConstraintViolationException;
@@ -177,32 +176,30 @@ public class ScheduleDAO {
         );
     }
 
-    public boolean hasLecturerScheduleConflict(Schedule schedule, Long excludeScheduleId) {
+    public boolean hasLecturerScheduleConflict(Long lecturerId, String dayOfWeek, Integer startPeriod,
+                                               Integer endPeriod, Long excludeScheduleId) {
         return executeRead("Không thể kiểm tra trùng lịch của giảng viên.", entityManager -> {
             Long total = entityManager.createQuery("""
                             SELECT COUNT(s)
                             FROM Schedule s
                             JOIN s.courseSection otherSection
-                            WHERE otherSection.lecturer.id = (
-                                SELECT currentSection.lecturer.id
-                                FROM CourseSection currentSection
-                                WHERE currentSection.id = :courseSectionId
-                            )
+                            WHERE otherSection.lecturer.id = :lecturerId
                               AND s.dayOfWeek = :dayOfWeek
                               AND NOT (s.endPeriod < :startPeriod OR s.startPeriod > :endPeriod)
                               AND (:excludeScheduleId IS NULL OR s.id <> :excludeScheduleId)
                             """, Long.class)
-                    .setParameter("courseSectionId", schedule.getCourseSection().getId())
-                    .setParameter("dayOfWeek", schedule.getDayOfWeek())
-                    .setParameter("startPeriod", schedule.getStartPeriod())
-                    .setParameter("endPeriod", schedule.getEndPeriod())
+                    .setParameter("lecturerId", lecturerId)
+                    .setParameter("dayOfWeek", dayOfWeek)
+                    .setParameter("startPeriod", startPeriod)
+                    .setParameter("endPeriod", endPeriod)
                     .setParameter("excludeScheduleId", excludeScheduleId)
                     .getSingleResult();
             return total != null && total > 0;
         });
     }
 
-    public boolean hasRoomScheduleConflict(Schedule schedule, Long excludeScheduleId) {
+    public boolean hasRoomScheduleConflict(Long roomId, String dayOfWeek, Integer startPeriod,
+                                           Integer endPeriod, Long excludeScheduleId) {
         return executeRead("Không thể kiểm tra trùng lịch của phòng học.", entityManager -> {
             Long total = entityManager.createQuery("""
                             SELECT COUNT(s)
@@ -212,10 +209,10 @@ public class ScheduleDAO {
                               AND NOT (s.endPeriod < :startPeriod OR s.startPeriod > :endPeriod)
                               AND (:excludeScheduleId IS NULL OR s.id <> :excludeScheduleId)
                             """, Long.class)
-                    .setParameter("roomId", schedule.getRoom().getId())
-                    .setParameter("dayOfWeek", schedule.getDayOfWeek())
-                    .setParameter("startPeriod", schedule.getStartPeriod())
-                    .setParameter("endPeriod", schedule.getEndPeriod())
+                    .setParameter("roomId", roomId)
+                    .setParameter("dayOfWeek", dayOfWeek)
+                    .setParameter("startPeriod", startPeriod)
+                    .setParameter("endPeriod", endPeriod)
                     .setParameter("excludeScheduleId", excludeScheduleId)
                     .getSingleResult();
             return total != null && total > 0;

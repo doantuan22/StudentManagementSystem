@@ -89,6 +89,7 @@ CREATE TABLE IF NOT EXISTS lecturers (
     user_id       BIGINT UNIQUE,
     lecturer_code VARCHAR(50)  NOT NULL UNIQUE,
     full_name     VARCHAR(150) NOT NULL,
+    gender        VARCHAR(20),
     email         VARCHAR(150),
     date_of_birth DATE,
     phone         VARCHAR(30),
@@ -146,6 +147,9 @@ CREATE TABLE IF NOT EXISTS course_sections (
     CONSTRAINT chk_course_sections_max_students CHECK (max_students > 0)
 );
 
+-- NOTE:
+-- Khong the enforce xung dot overlap cua phong hoc / giang vien bang UNIQUE constraint don gian
+-- vi rule phu thuoc vao khoang tiet giao nhau. Rule nay duoc kiem tra o service/DAO.
 CREATE TABLE IF NOT EXISTS schedules (
     id                BIGINT PRIMARY KEY AUTO_INCREMENT,
     course_section_id BIGINT NOT NULL,
@@ -317,4 +321,4 @@ CREATE INDEX idx_enrollments_section       ON enrollments (course_section_id);
 CREATE INDEX idx_enrollments_student       ON enrollments (student_id);
 CREATE INDEX idx_scores_enrollment         ON scores (enrollment_id);
 CREATE INDEX idx_schedules_section_day     ON schedules (course_section_id, day_of_week, start_period, end_period);
-CREATE INDEX idx_schedules_room            ON schedules (room_id);
+CREATE INDEX idx_schedules_room_day_period ON schedules (room_id, day_of_week, start_period, end_period);

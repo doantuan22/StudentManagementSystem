@@ -59,11 +59,37 @@ WHERE table_schema = 'student_management'
   AND table_name = 'course_sections'
   AND column_name IN ('room_id', 'schedule_text');
 
--- 6. Thu nghiem View
+-- 6. Kiem tra xung dot phong hoc (Ky vong: 0)
+SELECT 'Room schedule conflicts' AS Issue, COUNT(*) AS Count
+FROM (
+    SELECT s1.id
+    FROM schedules s1
+    JOIN schedules s2
+      ON s1.id < s2.id
+     AND s1.room_id = s2.room_id
+     AND s1.day_of_week = s2.day_of_week
+     AND NOT (s1.end_period < s2.start_period OR s1.start_period > s2.end_period)
+) room_conflicts;
+
+-- 7. Kiem tra xung dot giang vien (Ky vong: 0)
+SELECT 'Lecturer schedule conflicts' AS Issue, COUNT(*) AS Count
+FROM (
+    SELECT s1.id
+    FROM schedules s1
+    JOIN course_sections cs1 ON cs1.id = s1.course_section_id
+    JOIN schedules s2
+      ON s1.id < s2.id
+     AND s1.day_of_week = s2.day_of_week
+     AND NOT (s1.end_period < s2.start_period OR s1.start_period > s2.end_period)
+    JOIN course_sections cs2 ON cs2.id = s2.course_section_id
+    WHERE cs1.lecturer_id = cs2.lecturer_id
+) lecturer_conflicts;
+
+-- 8. Thu nghiem View
 SELECT * FROM vw_student_schedules LIMIT 5;
 SELECT * FROM vw_section_scores LIMIT 5;
 
--- 7. Kiem tra Trigger tu tao User
+-- 9. Kiem tra Trigger tu tao User
 INSERT INTO lecturers (lecturer_code, full_name, faculty_id) VALUES ('GV_TEST', 'Test Trigger Lecturer', 1);
 
 SELECT u.username, u.full_name, l.lecturer_code

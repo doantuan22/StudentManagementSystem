@@ -169,14 +169,14 @@ public class ScoreManagementPanel extends BasePanel {
         headerPanel.add(subtitleLabel);
 
         styleTextField(keywordField);
-        keywordField.setPreferredSize(new Dimension(150, 40));
-        keywordField.setMinimumSize(new Dimension(160, 40));
+        keywordField.setPreferredSize(new Dimension(180, 36));
+        keywordField.setMinimumSize(new Dimension(160, 36));
         keywordField.addActionListener(event -> reloadData());
 
         filterTypeComboBox.setPreferredSize(new Dimension(170, 36));
         filterTypeComboBox.setMinimumSize(new Dimension(150, 36));
-        filterValueComboBox.setPreferredSize(new Dimension(160, 36));
-        filterValueComboBox.setMinimumSize(new Dimension(150, 36));
+        filterValueComboBox.setPreferredSize(new Dimension(280, 36));
+        filterValueComboBox.setMinimumSize(new Dimension(220, 36));
         filterValueComboBox.setEnabled(false);
 
         styleActionButton(searchButton, AppColors.BUTTON_PRIMARY);
@@ -218,21 +218,21 @@ public class ScoreManagementPanel extends BasePanel {
         filterFieldsPanel.add(new JLabel("Giá trị"), filterConstraints);
 
         filterConstraints.gridx = 3;
+        filterConstraints.weightx = 1.0;
+        filterConstraints.fill = GridBagConstraints.HORIZONTAL;
+        filterConstraints.insets = new Insets(0, 0, 0, TOOLBAR_GAP);
         filterFieldsPanel.add(filterValueComboBox, filterConstraints);
 
         filterConstraints.gridx = 4;
+        filterConstraints.weightx = 0.0;
+        filterConstraints.fill = GridBagConstraints.NONE;
         filterFieldsPanel.add(new JLabel("Từ khóa"), filterConstraints);
 
         filterConstraints.gridx = 5;
-        filterConstraints.weightx = 1.0;
-        filterConstraints.fill = GridBagConstraints.HORIZONTAL;
         filterConstraints.insets = new Insets(0, 0, 0, TOOLBAR_GAP);
         filterFieldsPanel.add(keywordField, filterConstraints);
 
         filterConstraints.gridx = 6;
-        filterConstraints.weightx = 0.0;
-        filterConstraints.fill = GridBagConstraints.NONE;
-        filterConstraints.insets = new Insets(0, 0, 0, 0);
         filterFieldsPanel.add(searchButton, filterConstraints);
 
         toolbarButtonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, TOOLBAR_GAP, 0));

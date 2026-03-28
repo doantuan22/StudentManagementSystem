@@ -8,24 +8,32 @@ import com.qlsv.view.common.AppColors;
 import com.qlsv.view.common.BasePanel;
 import com.qlsv.view.common.DashboardCard;
 
+import com.qlsv.service.GroqService;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextArea;
+import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableModel;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 public class StudentScorePanel extends BasePanel {
 
     private final ScoreController scoreController = new ScoreController();
+    private final GroqService groqService = new GroqService();
+    private List<Score> currentScores;
     private final DefaultTableModel tableModel = new DefaultTableModel(
             new String[]{"Học phần", "Môn học", "QT", "GK", "CK", "Tổng kết", "Kết quả"}, 0) {
         @Override
@@ -70,15 +78,23 @@ public class StudentScorePanel extends BasePanel {
         styleNeutralButton(reloadButton);
         reloadButton.addActionListener(event -> reloadData());
 
+        JButton analyzeButton = new JButton("Phân tích điểm (AI)");
+        stylePrimaryButton(analyzeButton);
+        analyzeButton.addActionListener(event -> handleAnalyzeScores(analyzeButton, reloadButton));
+
         JPanel titlePanel = new JPanel(new BorderLayout(0, 6));
         titlePanel.setOpaque(false);
         titlePanel.add(titleLabel, BorderLayout.NORTH);
 
+        JPanel buttonGroup = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        buttonGroup.setOpaque(false);
+        buttonGroup.add(analyzeButton);
+        buttonGroup.add(reloadButton);
 
         JPanel actionPanel = new JPanel(new BorderLayout());
         actionPanel.setOpaque(false);
         actionPanel.add(titlePanel, BorderLayout.WEST);
-        actionPanel.add(reloadButton, BorderLayout.EAST);
+        actionPanel.add(buttonGroup, BorderLayout.EAST);
 
         JPanel topWrapper = new JPanel(new BorderLayout(0, 12));
         topWrapper.setOpaque(false);
@@ -92,7 +108,8 @@ public class StudentScorePanel extends BasePanel {
     @Override
     public void reloadData() {
         try {
-            List<Score> scores = scoreController.getCurrentStudentScores();
+            currentScores = scoreController.getCurrentStudentScores();
+            List<Score> scores = currentScores;
             avgCard.setValue(calculateAverageScore(scores));
             passCard.setValue(String.valueOf(scores.stream().filter(score -> "PASS".equalsIgnoreCase(score.getResult())).count()));
             failCard.setValue(String.valueOf(scores.stream().filter(score -> "FAIL".equalsIgnoreCase(score.getResult())).count()));
@@ -186,5 +203,80 @@ public class StudentScorePanel extends BasePanel {
         button.setForeground(AppColors.BUTTON_TEXT);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         button.setBorder(BorderFactory.createEmptyBorder(9, 16, 9, 16));
+    }
+
+    private void stylePrimaryButton(JButton button) {
+        button.setFocusPainted(false);
+        button.setBorderPainted(false);
+        button.setOpaque(true);
+        button.setBackground(AppColors.BUTTON_PRIMARY);
+        button.setForeground(AppColors.BUTTON_TEXT);
+        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        button.setBorder(BorderFactory.createEmptyBorder(9, 16, 9, 16));
+    }
+
+    private void handleAnalyzeScores(JButton analyzeButton, JButton reloadButton) {
+        if (currentScores == null || currentScores.isEmpty()) {
+            DialogUtil.showInfo(this, "Không có dữ liệu điểm để phân tích.");
+            return;
+        }
+
+        analyzeButton.setEnabled(false);
+        reloadButton.setEnabled(false);
+        String originalText = analyzeButton.getText();
+        analyzeButton.setText("Đang phân tích...");
+
+        new SwingWorker<String, Void>() {
+            @Override
+            protected String doInBackground() {
+                return groqService.analyzeScores(currentScores);
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    String result = get();
+                    showAnalysisDialog(result);
+                } catch (InterruptedException | ExecutionException e) {
+                    DialogUtil.showError(StudentScorePanel.this, "Lỗi khi phân tích dữ liệu: " + e.getMessage());
+                } finally {
+                    analyzeButton.setEnabled(true);
+                    reloadButton.setEnabled(true);
+                    analyzeButton.setText(originalText);
+                }
+            }
+        }.execute();
+    }
+
+    private void showAnalysisDialog(String text) {
+        JDialog dialog = new JDialog(javax.swing.SwingUtilities.getWindowAncestor(this), "Phân tích kết quả học tập AI", JDialog.ModalityType.APPLICATION_MODAL);
+        dialog.setLayout(new BorderLayout());
+
+        JTextArea textArea = new JTextArea(text);
+        textArea.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        textArea.setLineWrap(true);
+        textArea.setWrapStyleWord(true);
+        textArea.setEditable(false);
+        textArea.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
+
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        scrollPane.setBorder(null);
+
+        dialog.add(scrollPane, BorderLayout.CENTER);
+
+        JButton closeButton = new JButton("Đóng");
+        styleNeutralButton(closeButton);
+        closeButton.addActionListener(e -> dialog.dispose());
+
+        JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        footer.setBackground(Color.WHITE);
+        footer.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
+        footer.add(closeButton);
+        dialog.add(footer, BorderLayout.SOUTH);
+
+        dialog.setPreferredSize(new Dimension(600, 450));
+        dialog.pack();
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
     }
 }

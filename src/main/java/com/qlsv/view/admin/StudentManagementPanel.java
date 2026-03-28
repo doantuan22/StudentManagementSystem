@@ -244,7 +244,8 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
         filterTypeComboBox.addActionListener(event -> reloadFilterValues());
 
         filterTypeComboBox.setPreferredSize(new java.awt.Dimension(170, 36));
-        filterValueComboBox.setPreferredSize(new java.awt.Dimension(160, 36));
+        filterValueComboBox.setPreferredSize(new java.awt.Dimension(220, 36));
+        filterValueComboBox.setMinimumSize(new java.awt.Dimension(220, 36));
 
         JPanel filterPanel = new JPanel(new BorderLayout(12, 8));
         filterPanel.setBorder(BorderFactory.createCompoundBorder(

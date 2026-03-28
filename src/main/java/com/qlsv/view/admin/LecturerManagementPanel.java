@@ -197,7 +197,8 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
         resetButton.addActionListener(event -> resetFilter());
         filterTypeComboBox.addActionListener(event -> reloadFilterValues());
         filterTypeComboBox.setPreferredSize(new Dimension(170, 36));
-        filterValueComboBox.setPreferredSize(new Dimension(160, 36));
+        filterValueComboBox.setPreferredSize(new Dimension(220, 36));
+        filterValueComboBox.setMinimumSize(new Dimension(220, 36));
 
         JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         filterPanel.setBorder(BorderFactory.createCompoundBorder(

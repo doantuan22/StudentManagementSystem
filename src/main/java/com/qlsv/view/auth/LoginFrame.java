@@ -14,6 +14,7 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
@@ -34,6 +35,7 @@ public class LoginFrame extends BaseFrame {
     private static final int FORM_WIDTH = 344;
     private static final int INPUT_HEIGHT = 42;
     private static final int BUTTON_HEIGHT = 44;
+    private static final int HEADER_HEIGHT = 140;
     private static final int HEADER_GAP = 8;
     private static final int TITLE_GAP = 6;
     private static final int SECTION_GAP = 24;
@@ -41,6 +43,7 @@ public class LoginFrame extends BaseFrame {
     private static final int LABEL_GAP = 10;
     private static final double TOP_SPACER_WEIGHT = 0.40;
     private static final double BOTTOM_SPACER_WEIGHT = 0.60;
+    private static final float APP_TITLE_FONT_SIZE = 58f;
 
     private final LoginController loginController;
     private final AppNavigator navigator;
@@ -53,6 +56,7 @@ public class LoginFrame extends BaseFrame {
         super("Đăng nhập");
         this.navigator = navigator;
         this.loginController = loginController;
+        setExtendedState(JFrame.NORMAL);
         setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
         setMinimumSize(new Dimension(440, 560));
         setLocationRelativeTo(null);
@@ -138,15 +142,16 @@ public class LoginFrame extends BaseFrame {
         headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
         headerPanel.setOpaque(false);
         headerPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        headerPanel.setPreferredSize(new Dimension(FORM_WIDTH, 110));
-        headerPanel.setMinimumSize(new Dimension(FORM_WIDTH, 110));
-        headerPanel.setMaximumSize(new Dimension(FORM_WIDTH, 110));
+        headerPanel.setPreferredSize(new Dimension(FORM_WIDTH, HEADER_HEIGHT));
+        headerPanel.setMinimumSize(new Dimension(FORM_WIDTH, HEADER_HEIGHT));
+        headerPanel.setMaximumSize(new Dimension(FORM_WIDTH, HEADER_HEIGHT));
 
         JLabel appLabel = new JLabel("TKL");
         appLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         appLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        appLabel.setForeground(AppColors.LOGIN_PRIMARY);
-        appLabel.setFont(new Font("Segoe UI", Font.BOLD, 34));
+        appLabel.setForeground(AppColors.INPUT_BORDER_FOCUS);
+        appLabel.setFont(new Font("Segoe UI", Font.BOLD, Math.round(APP_TITLE_FONT_SIZE)));
+        appLabel.putClientProperty("appTheme.labelStyled", Boolean.TRUE);
 
         JLabel subTitleLabel = new JLabel("HỆ THỐNG QUẢN LÝ SINH VIÊN");
         subTitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);

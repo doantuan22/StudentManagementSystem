@@ -46,6 +46,10 @@ public class LecturerScorePanel extends BasePanel {
     private static final String[] EDIT_TABLE_COLUMNS = {
             "Mã SV", "Họ và tên", "Học phần", "QT", "GK", "CK", "Tổng kết", "Kết quả"
     };
+    private static final int CONTROL_HEIGHT = 32;
+    private static final int TABLE_ROW_HEIGHT = 30;
+    private static final int SCORE_TABLE_VIEWPORT_HEIGHT = 260;
+    private static final int EDIT_TABLE_VIEWPORT_HEIGHT = 104;
 
     private final ScoreController scoreController = new ScoreController();
     private final LecturerController lecturerController = new LecturerController();
@@ -104,12 +108,12 @@ public class LecturerScorePanel extends BasePanel {
         saveButton.addActionListener(event -> handleSaveScore());
 
         searchField.setToolTipText("Tìm theo mã sinh viên hoặc họ tên trong danh sách đang lọc.");
-        searchField.setPreferredSize(new Dimension(240, 36));
+        searchField.setPreferredSize(new Dimension(220, CONTROL_HEIGHT));
         searchField.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(AppColors.INPUT_BORDER),
-                BorderFactory.createEmptyBorder(7, 10, 7, 10)
+                BorderFactory.createEmptyBorder(6, 10, 6, 10)
         ));
-        courseComboBox.setPreferredSize(new Dimension(220, 36));
+        courseComboBox.setPreferredSize(new Dimension(200, CONTROL_HEIGHT));
         courseComboBox.setFont(courseComboBox.getFont().deriveFont(Font.PLAIN, 13.5f));
 
         searchDebounceTimer = new Timer(250, event -> {
@@ -134,7 +138,7 @@ public class LecturerScorePanel extends BasePanel {
             }
         });
 
-        JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
+        JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
         filterPanel.setOpaque(false);
         filterPanel.add(new JLabel("Học phần:"));
         filterPanel.add(courseComboBox);
@@ -142,7 +146,7 @@ public class LecturerScorePanel extends BasePanel {
         filterPanel.add(new JLabel("Từ khóa:"));
         filterPanel.add(searchField);
 
-        JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
+        JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 4));
         actionPanel.setOpaque(false);
         actionPanel.add(reloadButton);
 
@@ -197,8 +201,8 @@ public class LecturerScorePanel extends BasePanel {
         editPanel.add(editTableScrollPane, BorderLayout.CENTER);
         editPanel.add(editActionPanel, BorderLayout.SOUTH);
 
-        scoreListPanel.setMinimumSize(new Dimension(0, 220));
-        editPanel.setMinimumSize(new Dimension(0, 220));
+        scoreListPanel.setMinimumSize(new Dimension(0, 200));
+        editPanel.setMinimumSize(new Dimension(0, 180));
 
         add(headerPanel, BorderLayout.NORTH);
         add(scoreListPanel, BorderLayout.CENTER);
@@ -259,7 +263,7 @@ public class LecturerScorePanel extends BasePanel {
     }
 
     private void configureBaseTable(JTable table) {
-        table.setRowHeight(34);
+        table.setRowHeight(TABLE_ROW_HEIGHT);
         table.setFillsViewportHeight(true);
         table.setGridColor(AppColors.CARD_BORDER);
         table.setBackground(Color.WHITE);
@@ -283,7 +287,7 @@ public class LecturerScorePanel extends BasePanel {
         panel.setBackground(AppColors.CARD_BACKGROUND);
         panel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(AppColors.CARD_BORDER),
-                BorderFactory.createEmptyBorder(16, 18, 16, 18)
+                BorderFactory.createEmptyBorder(14, 16, 14, 16)
         ));
         return panel;
     }
@@ -310,6 +314,14 @@ public class LecturerScorePanel extends BasePanel {
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         scrollPane.getHorizontalScrollBar().setUnitIncrement(16);
+        Dimension preferredSize = scrollPane.getPreferredSize();
+        if (table == editTable) {
+            scrollPane.setPreferredSize(new Dimension(preferredSize.width, EDIT_TABLE_VIEWPORT_HEIGHT));
+            scrollPane.setMinimumSize(new Dimension(0, EDIT_TABLE_VIEWPORT_HEIGHT));
+        } else if (table == scoreTable) {
+            scrollPane.setPreferredSize(new Dimension(preferredSize.width, SCORE_TABLE_VIEWPORT_HEIGHT));
+            scrollPane.setMinimumSize(new Dimension(0, 190));
+        }
         return scrollPane;
     }
 
@@ -320,7 +332,7 @@ public class LecturerScorePanel extends BasePanel {
         button.setBackground(AppColors.BUTTON_NEUTRAL);
         button.setForeground(AppColors.BUTTON_TEXT);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        button.setBorder(BorderFactory.createEmptyBorder(9, 16, 9, 16));
+        button.setBorder(BorderFactory.createEmptyBorder(8, 14, 8, 14));
     }
 
     private void styleSaveButton(JButton button) {
@@ -330,7 +342,7 @@ public class LecturerScorePanel extends BasePanel {
         button.setBackground(AppColors.BUTTON_SUCCESS);
         button.setForeground(AppColors.BUTTON_TEXT);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        button.setBorder(BorderFactory.createEmptyBorder(9, 18, 9, 18));
+        button.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
         button.setFont(button.getFont().deriveFont(Font.BOLD));
     }
 

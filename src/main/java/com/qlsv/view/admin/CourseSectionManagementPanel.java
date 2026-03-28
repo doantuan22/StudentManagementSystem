@@ -50,6 +50,7 @@ public class CourseSectionManagementPanel extends AbstractCrudPanel<CourseSectio
 
     public CourseSectionManagementPanel() {
         super("Quản lý học phần");
+        filterTypeComboBox.setSelectedItem(FILTER_ALL);
         setFilterPanel(buildFilterPanel());
         setDetailPanel(detailSectionPanel);
         reloadFilterValues();
@@ -184,10 +185,9 @@ public class CourseSectionManagementPanel extends AbstractCrudPanel<CourseSectio
     }
 
     private void reloadFilterValues() {
-        filterReady = false;
-        filterValueComboBox.removeAllItems();
-
         String filterType = (String) filterTypeComboBox.getSelectedItem();
+        filterReady = FILTER_ALL.equals(filterType);
+        filterValueComboBox.removeAllItems();
         if (FILTER_SECTION_CODE.equals(filterType)) {
             filterValueComboBox.setEnabled(true);
             filterValueComboBox.addItem(new FilterOption<>("Chọn mã học phần", null));
@@ -219,10 +219,8 @@ public class CourseSectionManagementPanel extends AbstractCrudPanel<CourseSectio
     }
 
     private void resetFilter() {
-        filterTypeComboBox.setSelectedItem(FILTER_NONE);
-        filterValueComboBox.removeAllItems();
-        filterValueComboBox.setEnabled(false);
-        filterReady = false;
+        filterTypeComboBox.setSelectedItem(FILTER_ALL);
+        reloadFilterValues();
         refreshData();
     }
 

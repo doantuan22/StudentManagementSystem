@@ -24,6 +24,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableModel;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -55,13 +56,19 @@ public class LecturerStudentListPanel extends BasePanel {
 
     private final JTable table = new ResponsiveTable(tableModel);
     private final JComboBox<Object> courseComboBox = new JComboBox<>();
+    private final JButton filterButton = new JButton("Lọc");
+    private final JButton exportButton = new JButton("Xuất PDF");
+    private final JButton reloadButton = new JButton("Tải lại");
     private final List<Enrollment> allEnrollments = new ArrayList<>();
+    private final List<Enrollment> visibleEnrollments = new ArrayList<>();
     private LecturerStudentDetailDialog detailDialog;
     private final DetailSectionPanel detailSectionPanel = new DetailSectionPanel(
             "Chi tiết sinh viên",
             "Chọn một sinh viên từ danh sách để xem chi tiết."
     );
     private final JLabel summaryLabel = new JLabel("Đang tải danh sách sinh viên...");
+    private SwingWorker<LoadResult, Void> loadWorker;
+    private boolean loadingData;
 
     public LecturerStudentListPanel() {
         configureTable();
@@ -82,9 +89,6 @@ public class LecturerStudentListPanel extends BasePanel {
 
         courseComboBox.addItem("Tất cả học phần");
 
-        JButton filterButton = new JButton("Lọc");
-        JButton exportButton = new JButton("Xuất PDF");
-        JButton reloadButton = new JButton("Tải lại");
         styleSecondaryButton(filterButton);
         stylePrimaryButton(exportButton);
         styleSecondaryButton(reloadButton);
@@ -155,7 +159,7 @@ public class LecturerStudentListPanel extends BasePanel {
     }
 
     private void handleTableSelectionChanged() {
-        handleTableSelectionChanged();
+        updateDetailPanel();
         if (table.getSelectedRow() < 0) {
             hideDetailDialog();
             return;
@@ -235,38 +239,25 @@ public class LecturerStudentListPanel extends BasePanel {
     }
 
     private void updateDetailPanel() {
-        int selectedRow = table.getSelectedRow();
-        if (selectedRow == -1) {
+        Enrollment selectedEnrollment = getSelectedEnrollment();
+        if (selectedEnrollment == null || selectedEnrollment.getStudent() == null) {
             detailSectionPanel.showMessage("Chọn một sinh viên từ danh sách để xem chi tiết.");
             return;
         }
 
-        String sectionCode = (String) tableModel.getValueAt(selectedRow, 0);
-        String studentCode = (String) tableModel.getValueAt(selectedRow, 1);
-
-        Enrollment selectedEnrollment = allEnrollments.stream()
-                .filter(enrollment -> enrollment.getCourseSection() != null
-                        && enrollment.getCourseSection().getSectionCode().equals(sectionCode)
-                        && enrollment.getStudent() != null
-                        && enrollment.getStudent().getStudentCode().equals(studentCode))
-                .findFirst()
-                .orElse(null);
-
-        if (selectedEnrollment != null && selectedEnrollment.getStudent() != null) {
-            var student = selectedEnrollment.getStudent();
-            detailSectionPanel.showFields(new String[][]{
-                    {"Mã sinh viên", student.getStudentCode()},
-                    {"Họ và tên", student.getFullName()},
-                    {"Giới tính", DisplayTextUtil.formatGender(student.getGender())},
-                    {"Ngày sinh", DisplayTextUtil.formatDate(student.getDateOfBirth())},
-                    {"Email", student.getEmail()},
-                    {"Số điện thoại", student.getPhone()},
-                    {"Khoa", student.getFaculty() != null ? student.getFaculty().getFacultyName() : "Chưa cập nhật"},
-                    {"Lớp", student.getClassRoom() != null ? student.getClassRoom().getClassName() : "Chưa cập nhật"},
-                    {"Niên khóa", AcademicFormatUtil.formatAcademicYear(student.getAcademicYear())},
-                    {"Trạng thái", DisplayTextUtil.formatStatus(student.getStatus())}
-            });
-        }
+        var student = selectedEnrollment.getStudent();
+        detailSectionPanel.showFields(new String[][]{
+                {"Mã sinh viên", student.getStudentCode()},
+                {"Họ và tên", student.getFullName()},
+                {"Giới tính", DisplayTextUtil.formatGender(student.getGender())},
+                {"Ngày sinh", DisplayTextUtil.formatDate(student.getDateOfBirth())},
+                {"Email", student.getEmail()},
+                {"Số điện thoại", student.getPhone()},
+                {"Khoa", student.getFaculty() != null ? student.getFaculty().getFacultyName() : "Chưa cập nhật"},
+                {"Lớp", student.getClassRoom() != null ? student.getClassRoom().getClassName() : "Chưa cập nhật"},
+                {"Niên khóa", AcademicFormatUtil.formatAcademicYear(student.getAcademicYear())},
+                {"Trạng thái", DisplayTextUtil.formatStatus(student.getStatus())}
+        });
     }
 
     private void showDetailDialog() {
@@ -289,52 +280,52 @@ public class LecturerStudentListPanel extends BasePanel {
         }
     }
 
-    private void loadCourseSections() {
-        try {
-            Lecturer lecturer = lecturerController.getCurrentLecturer();
-            List<CourseSection> sections = courseSectionController.getCourseSectionsByLecturer(lecturer.getId());
-            Object selectedItem = courseComboBox.getSelectedItem();
-
-            courseComboBox.removeAllItems();
-            courseComboBox.addItem("Tất cả học phần");
-            for (CourseSection section : sections) {
-                courseComboBox.addItem(section);
-            }
-
-            if (selectedItem instanceof CourseSection previousSection) {
-                for (int index = 0; index < courseComboBox.getItemCount(); index++) {
-                    Object item = courseComboBox.getItemAt(index);
-                    if (item instanceof CourseSection currentSection
-                            && currentSection.getId() != null
-                            && currentSection.getId().equals(previousSection.getId())) {
-                        courseComboBox.setSelectedIndex(index);
-                        return;
-                    }
-                }
-            } else {
-                courseComboBox.setSelectedIndex(0);
-            }
-        } catch (Exception exception) {
-            DialogUtil.showError(this, "Không thể tải danh sách học phần phụ trách: " + exception.getMessage());
-        }
-    }
-
     @Override
     public void reloadData() {
-        try {
-            loadCourseSections();
-            Lecturer lecturer = lecturerController.getCurrentLecturer();
-            allEnrollments.clear();
-            allEnrollments.addAll(enrollmentController.getLecturerEnrollments(lecturer.getId()));
-            filterData();
-        } catch (Exception exception) {
-            DialogUtil.showError(this, exception.getMessage());
+        if (loadWorker != null && !loadWorker.isDone()) {
+            loadWorker.cancel(true);
         }
+
+        Long preferredCourseSectionId = getSelectedCourseSectionId();
+        setLoadingState(true, "Đang tải danh sách sinh viên...");
+
+        loadWorker = new SwingWorker<>() {
+            @Override
+            protected LoadResult doInBackground() {
+                Lecturer lecturer = lecturerController.getCurrentLecturer();
+                List<CourseSection> sections = courseSectionController.getCourseSectionsByLecturer(lecturer.getId());
+                List<Enrollment> enrollments = enrollmentController.getLecturerEnrollments(lecturer.getId());
+                return new LoadResult(sections, enrollments, preferredCourseSectionId);
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    if (isCancelled()) {
+                        return;
+                    }
+
+                    LoadResult loadResult = get();
+                    allEnrollments.clear();
+                    allEnrollments.addAll(loadResult.enrollments());
+                    bindCourseSections(loadResult.sections(), loadResult.preferredCourseSectionId());
+                    filterData();
+                } catch (Exception exception) {
+                    summaryLabel.setText("Không thể tải danh sách sinh viên.");
+                    DialogUtil.showError(LecturerStudentListPanel.this, exception.getMessage());
+                } finally {
+                    setLoadingState(false, summaryLabel.getText());
+                }
+            }
+        };
+        loadWorker.execute();
     }
 
     private void filterData() {
+        Long preferredEnrollmentId = getSelectedEnrollmentId();
         Object selected = courseComboBox.getSelectedItem();
         tableModel.setRowCount(0);
+        visibleEnrollments.clear();
 
         int visibleCount = 0;
         for (Enrollment enrollment : allEnrollments) {
@@ -348,6 +339,7 @@ public class LecturerStudentListPanel extends BasePanel {
 
             if (matches) {
                 visibleCount++;
+                visibleEnrollments.add(enrollment);
                 tableModel.addRow(new Object[]{
                         enrollment.getCourseSection() == null ? "" : enrollment.getCourseSection().getSectionCode(),
                         enrollment.getStudent() == null ? "" : enrollment.getStudent().getStudentCode(),
@@ -359,6 +351,8 @@ public class LecturerStudentListPanel extends BasePanel {
         }
 
         summaryLabel.setText(visibleCount + " sinh viên");
+        exportButton.setEnabled(visibleCount > 0 && !loadingData);
+        restoreSelectedEnrollment(preferredEnrollmentId);
         updateDetailPanel();
     }
 
@@ -397,5 +391,87 @@ public class LecturerStudentListPanel extends BasePanel {
         public boolean getScrollableTracksViewportWidth() {
             return getPreferredSize().width < getParent().getWidth();
         }
+    }
+
+    private Enrollment getSelectedEnrollment() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow < 0 || selectedRow >= visibleEnrollments.size()) {
+            return null;
+        }
+        return visibleEnrollments.get(selectedRow);
+    }
+
+    private Long getSelectedEnrollmentId() {
+        Enrollment selectedEnrollment = getSelectedEnrollment();
+        return selectedEnrollment == null ? null : selectedEnrollment.getId();
+    }
+
+    private Long getSelectedCourseSectionId() {
+        Object selectedItem = courseComboBox.getSelectedItem();
+        if (selectedItem instanceof CourseSection section) {
+            return section.getId();
+        }
+        return null;
+    }
+
+    private void bindCourseSections(List<CourseSection> sections, Long preferredCourseSectionId) {
+        courseComboBox.removeAllItems();
+        courseComboBox.addItem("Tất cả học phần");
+        for (CourseSection section : sections) {
+            courseComboBox.addItem(section);
+        }
+
+        if (preferredCourseSectionId == null) {
+            courseComboBox.setSelectedIndex(0);
+            return;
+        }
+
+        for (int index = 0; index < courseComboBox.getItemCount(); index++) {
+            Object item = courseComboBox.getItemAt(index);
+            if (item instanceof CourseSection currentSection
+                    && currentSection.getId() != null
+                    && currentSection.getId().equals(preferredCourseSectionId)) {
+                courseComboBox.setSelectedIndex(index);
+                return;
+            }
+        }
+
+        courseComboBox.setSelectedIndex(0);
+    }
+
+    private void restoreSelectedEnrollment(Long preferredEnrollmentId) {
+        if (preferredEnrollmentId == null) {
+            table.clearSelection();
+            return;
+        }
+
+        for (int index = 0; index < visibleEnrollments.size(); index++) {
+            Enrollment enrollment = visibleEnrollments.get(index);
+            if (enrollment != null
+                    && enrollment.getId() != null
+                    && enrollment.getId().equals(preferredEnrollmentId)) {
+                table.setRowSelectionInterval(index, index);
+                table.scrollRectToVisible(table.getCellRect(index, 0, true));
+                return;
+            }
+        }
+
+        table.clearSelection();
+    }
+
+    private void setLoadingState(boolean loading, String message) {
+        loadingData = loading;
+        courseComboBox.setEnabled(!loading);
+        filterButton.setEnabled(!loading);
+        exportButton.setEnabled(!loading && table.getRowCount() > 0);
+        reloadButton.setEnabled(!loading);
+        summaryLabel.setText(message);
+    }
+
+    private record LoadResult(
+            List<CourseSection> sections,
+            List<Enrollment> enrollments,
+            Long preferredCourseSectionId
+    ) {
     }
 }

@@ -22,8 +22,12 @@ public class RoomManagementPanel extends AbstractCrudPanel<Room> {
 
     public RoomManagementPanel() {
         super("Quản lý phòng học");
-        setFilterPanel(buildFilterPanel());
         refreshData();
+    }
+
+    @Override
+    protected boolean isHeaderSearchVisible() {
+        return false;
     }
 
     @Override

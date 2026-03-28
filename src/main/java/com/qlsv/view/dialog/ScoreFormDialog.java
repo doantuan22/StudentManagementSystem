@@ -12,6 +12,7 @@ import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import java.awt.BorderLayout;
@@ -72,6 +73,12 @@ public class ScoreFormDialog extends JDialog {
         bodyPanel.add(Box.createVerticalStrut(24));
         bodyPanel.add(createScoreSection());
 
+        JScrollPane scrollPane = new JScrollPane(bodyPanel);
+        scrollPane.setBorder(null);
+        scrollPane.getViewport().setBackground(AppColors.CARD_BACKGROUND);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        scrollPane.getHorizontalScrollBar().setUnitIncrement(16);
+
         JButton cancelButton = new JButton("Hủy");
         styleSecondaryButton(cancelButton);
         cancelButton.addActionListener(event -> {
@@ -90,7 +97,7 @@ public class ScoreFormDialog extends JDialog {
         footerPanel.add(saveButton);
 
         rootPanel.add(headerPanel, BorderLayout.NORTH);
-        rootPanel.add(bodyPanel, BorderLayout.CENTER);
+        rootPanel.add(scrollPane, BorderLayout.CENTER);
         rootPanel.add(footerPanel, BorderLayout.SOUTH);
 
         setContentPane(rootPanel);

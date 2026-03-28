@@ -33,6 +33,8 @@ import java.util.List;
 
 public class StudentFormDialog extends JDialog {
 
+    private static final int INPUT_HEIGHT = 40;
+
     private static final String[] GENDER_OPTIONS = {"Nam", "Nữ", "Khác"};
     private static final FilterOption<String>[] STATUS_OPTIONS = new FilterOption[]{
             new FilterOption<>("Đang hoạt động", "ACTIVE"),
@@ -267,12 +269,16 @@ public class StudentFormDialog extends JDialog {
                 BorderFactory.createLineBorder(AppColors.INPUT_BORDER),
                 BorderFactory.createEmptyBorder(10, 12, 10, 12)
         ));
+        textField.setPreferredSize(new Dimension(textField.getPreferredSize().width, INPUT_HEIGHT));
+        textField.setMinimumSize(new Dimension(0, INPUT_HEIGHT));
         return textField;
     }
 
     private <T> JComboBox<T> styleComboBox(JComboBox<T> comboBox) {
         comboBox.setFont(comboBox.getFont().deriveFont(Font.PLAIN, 13.5f));
         comboBox.setBorder(BorderFactory.createLineBorder(AppColors.INPUT_BORDER));
+        comboBox.setPreferredSize(new Dimension(comboBox.getPreferredSize().width, INPUT_HEIGHT));
+        comboBox.setMinimumSize(new Dimension(0, INPUT_HEIGHT));
         return comboBox;
     }
 

@@ -51,6 +51,7 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
 
     public LecturerManagementPanel() {
         super("Quản lý giảng viên");
+        filterTypeComboBox.setSelectedItem(FILTER_ALL);
         setFilterPanel(buildFilterPanel());
         setDetailPanel(detailSectionPanel);
         reloadFilterValues();
@@ -210,10 +211,11 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
     }
 
     private void reloadFilterValues() {
-        filterReady = false;
+        String filterType = (String) filterTypeComboBox.getSelectedItem();
+        filterReady = FILTER_ALL.equals(filterType);
         filterValueComboBox.removeAllItems();
 
-        if (!FILTER_FACULTY.equals(filterTypeComboBox.getSelectedItem())) {
+        if (!FILTER_FACULTY.equals(filterType)) {
             filterValueComboBox.setEnabled(false);
             return;
         }
@@ -226,10 +228,8 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
     }
 
     private void resetFilter() {
-        filterTypeComboBox.setSelectedItem(FILTER_NONE);
-        filterValueComboBox.removeAllItems();
-        filterValueComboBox.setEnabled(false);
-        filterReady = false;
+        filterTypeComboBox.setSelectedItem(FILTER_ALL);
+        reloadFilterValues();
         refreshData();
     }
 

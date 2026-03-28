@@ -65,6 +65,7 @@ public class EnrollmentManagementPanel extends AbstractCrudPanel<Enrollment> {
 
     public EnrollmentManagementPanel() {
         super("Quản lý đăng ký học phần");
+        filterTypeComboBox.setSelectedItem(FILTER_ALL);
         setFilterPanel(buildFilterPanel());
         setDetailPanel(detailSectionPanel);
         reloadFilterValues();
@@ -189,10 +190,9 @@ public class EnrollmentManagementPanel extends AbstractCrudPanel<Enrollment> {
     }
 
     private void reloadFilterValues() {
-        filterReady = false;
-        filterValueComboBox.removeAllItems();
-
         String filterType = (String) filterTypeComboBox.getSelectedItem();
+        filterReady = FILTER_ALL.equals(filterType);
+        filterValueComboBox.removeAllItems();
         if (FILTER_SECTION_CODE.equals(filterType)) {
             filterValueComboBox.setEnabled(true);
             filterValueComboBox.addItem(new FilterOption<>("Chọn học phần", null));
@@ -224,10 +224,8 @@ public class EnrollmentManagementPanel extends AbstractCrudPanel<Enrollment> {
     }
 
     private void resetFilter() {
-        filterTypeComboBox.setSelectedItem(FILTER_NONE);
-        filterValueComboBox.removeAllItems();
-        filterValueComboBox.setEnabled(false);
-        filterReady = false;
+        filterTypeComboBox.setSelectedItem(FILTER_ALL);
+        reloadFilterValues();
         refreshData();
     }
 

@@ -42,6 +42,7 @@ public class ClassRoomManagementPanel extends AbstractCrudPanel<ClassRoom> {
 
     public ClassRoomManagementPanel() {
         super("Quản lý lớp");
+        filterTypeComboBox.setSelectedItem(FILTER_ALL);
         setFilterPanel(buildFilterPanel());
         reloadFilterValues();
         refreshData();
@@ -181,10 +182,9 @@ public class ClassRoomManagementPanel extends AbstractCrudPanel<ClassRoom> {
     }
 
     private void reloadFilterValues() {
-        filterReady = false;
-        filterValueComboBox.removeAllItems();
-
         String filterType = (String) filterTypeComboBox.getSelectedItem();
+        filterReady = FILTER_ALL.equals(filterType);
+        filterValueComboBox.removeAllItems();
         if (FILTER_FACULTY.equals(filterType)) {
             filterValueComboBox.setEnabled(true);
             filterValueComboBox.addItem(new FilterOption<>("Chọn khoa", null));
@@ -214,10 +214,8 @@ public class ClassRoomManagementPanel extends AbstractCrudPanel<ClassRoom> {
     }
 
     private void resetFilter() {
-        filterTypeComboBox.setSelectedItem(FILTER_NONE);
-        filterValueComboBox.removeAllItems();
-        filterValueComboBox.setEnabled(false);
-        filterReady = false;
+        filterTypeComboBox.setSelectedItem(FILTER_ALL);
+        reloadFilterValues();
         refreshData();
     }
 

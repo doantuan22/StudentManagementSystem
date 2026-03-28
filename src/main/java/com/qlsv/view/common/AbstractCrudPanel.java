@@ -93,7 +93,9 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
         JPanel topHeaderPanel = new JPanel(new BorderLayout(12, 8));
         topHeaderPanel.setOpaque(false);
         topHeaderPanel.add(titleLabel, BorderLayout.WEST);
-        topHeaderPanel.add(searchPanel, BorderLayout.CENTER);
+        if (isHeaderSearchVisible()) {
+            topHeaderPanel.add(searchPanel, BorderLayout.CENTER);
+        }
         topHeaderPanel.add(actionPanel, BorderLayout.EAST);
 
         extraTopPanel.setOpaque(false);
@@ -199,6 +201,10 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
     }
 
     protected void configureCustomActionButtons(JPanel actionPanel) {
+    }
+
+    protected boolean isHeaderSearchVisible() {
+        return true;
     }
 
     protected final void setFilterPanel(JComponent filterPanel) {

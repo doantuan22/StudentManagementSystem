@@ -102,6 +102,12 @@ public class EnrollmentFormDialog extends JDialog {
         bodyPanel.add(Box.createVerticalStrut(24));
         bodyPanel.add(createEnrollmentSection());
 
+        JScrollPane scrollPane = new JScrollPane(bodyPanel);
+        scrollPane.setBorder(null);
+        scrollPane.getViewport().setBackground(AppColors.CARD_BACKGROUND);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        scrollPane.getHorizontalScrollBar().setUnitIncrement(16);
+
         JButton cancelButton = new JButton("Hủy");
         styleSecondaryButton(cancelButton);
         cancelButton.addActionListener(event -> {
@@ -120,7 +126,7 @@ public class EnrollmentFormDialog extends JDialog {
         footerPanel.add(saveButton);
 
         rootPanel.add(headerPanel, BorderLayout.NORTH);
-        rootPanel.add(bodyPanel, BorderLayout.CENTER);
+        rootPanel.add(scrollPane, BorderLayout.CENTER);
         rootPanel.add(footerPanel, BorderLayout.SOUTH);
 
         setContentPane(rootPanel);
@@ -153,13 +159,15 @@ public class EnrollmentFormDialog extends JDialog {
 
     private JPanel createStudentSection() {
         suggestionList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        suggestionList.setVisibleRowCount(6);
-        suggestionList.setFixedCellHeight(28);
+        suggestionList.setVisibleRowCount(12);
+        suggestionList.setFixedCellHeight(30);
         suggestionList.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
 
         JScrollPane suggestionScrollPane = new JScrollPane(suggestionList);
         suggestionScrollPane.setBorder(BorderFactory.createLineBorder(AppColors.INPUT_BORDER));
-        suggestionScrollPane.setPreferredSize(new Dimension(320, 150));
+        suggestionScrollPane.setPreferredSize(new Dimension(320, 420));
+        suggestionScrollPane.setMinimumSize(new Dimension(0, 360));
+        suggestionScrollPane.getVerticalScrollBar().setUnitIncrement(16);
 
         selectedStudentLabel.setFont(selectedStudentLabel.getFont().deriveFont(Font.BOLD, 12.5f));
         selectedStudentLabel.setForeground(AppColors.CARD_TITLE_TEXT);

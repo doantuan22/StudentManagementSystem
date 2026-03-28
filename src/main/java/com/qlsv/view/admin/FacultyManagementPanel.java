@@ -28,6 +28,7 @@ public class FacultyManagementPanel extends AbstractCrudPanel<Faculty> {
 
     public FacultyManagementPanel() {
         super("Quản lý khoa");
+        filterTypeComboBox.setSelectedItem(FILTER_ALL);
         setFilterPanel(buildFilterPanel());
         reloadFilterValues();
         refreshData();
@@ -123,10 +124,11 @@ public class FacultyManagementPanel extends AbstractCrudPanel<Faculty> {
     }
 
     private void reloadFilterValues() {
-        filterReady = false;
+        String filterType = (String) filterTypeComboBox.getSelectedItem();
+        filterReady = FILTER_ALL.equals(filterType);
         filterValueComboBox.removeAllItems();
 
-        if (!FILTER_CODE.equals(filterTypeComboBox.getSelectedItem())) {
+        if (!FILTER_CODE.equals(filterType)) {
             filterValueComboBox.setEnabled(false);
             return;
         }
@@ -139,10 +141,8 @@ public class FacultyManagementPanel extends AbstractCrudPanel<Faculty> {
     }
 
     private void resetFilter() {
-        filterTypeComboBox.setSelectedItem(FILTER_NONE);
-        filterValueComboBox.removeAllItems();
-        filterValueComboBox.setEnabled(false);
-        filterReady = false;
+        filterTypeComboBox.setSelectedItem(FILTER_ALL);
+        reloadFilterValues();
         refreshData();
     }
 

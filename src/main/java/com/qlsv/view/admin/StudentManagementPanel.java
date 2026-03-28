@@ -52,6 +52,7 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
 
     public StudentManagementPanel() {
         super("Quản lý sinh viên");
+        filterTypeComboBox.setSelectedItem(FILTER_ALL);
         setFilterPanel(buildFilterPanel());
         setDetailPanel(detailSectionPanel);
         reloadFilterValues();
@@ -252,10 +253,9 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
     }
 
     private void reloadFilterValues() {
-        filterReady = false;
-        filterValueComboBox.removeAllItems();
-
         String filterType = (String) filterTypeComboBox.getSelectedItem();
+        filterReady = FILTER_ALL.equals(filterType);
+        filterValueComboBox.removeAllItems();
         boolean requiresValue = FILTER_FACULTY.equals(filterType)
                 || FILTER_CLASS_ROOM.equals(filterType)
                 || FILTER_ACADEMIC_YEAR.equals(filterType);
@@ -280,10 +280,8 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
     }
 
     private void resetFilter() {
-        filterTypeComboBox.setSelectedItem(FILTER_NONE);
-        filterValueComboBox.removeAllItems();
-        filterValueComboBox.setEnabled(false);
-        filterReady = false;
+        filterTypeComboBox.setSelectedItem(FILTER_ALL);
+        reloadFilterValues();
         refreshData();
     }
 

@@ -23,6 +23,12 @@ public class BaseFrame extends JFrame {
         getContentPane().setBackground(AppColors.CONTENT_BACKGROUND);
     }
 
+    @Override
+    public void addNotify() {
+        super.addNotify();
+        AppTheme.applyTree(this);
+    }
+
     protected JPanel createHeader(String userInfo, JButton logoutButton) {
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setBorder(BorderFactory.createEmptyBorder(12, 16, 12, 16));
@@ -69,12 +75,7 @@ public class BaseFrame extends JFrame {
     }
 
     protected void styleHeaderActionButton(JButton button) {
-        button.setFocusPainted(false);
-        button.setBorderPainted(false);
-        button.setOpaque(true);
         button.setBackground(AppColors.SIDEBAR_BUTTON_HOVER);
-        button.setForeground(AppColors.BUTTON_TEXT);
-        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         button.setBorder(BorderFactory.createEmptyBorder(8, 14, 8, 14));
     }
 }

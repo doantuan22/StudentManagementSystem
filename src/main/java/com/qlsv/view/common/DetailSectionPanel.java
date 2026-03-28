@@ -19,16 +19,11 @@ public class DetailSectionPanel extends JPanel {
         setLayout(new BorderLayout(0, 14));
         setOpaque(true);
         setBackground(AppColors.CARD_BACKGROUND);
-
-        Border outerBorder = BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(AppColors.CARD_BORDER),
-                BorderFactory.createEmptyBorder(18, 18, 18, 18)
-        );
+        Border outerBorder = AppTheme.createCardBorder();
         setBorder(outerBorder);
 
         titleLabel = new JLabel(title);
-        titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 17f));
-        titleLabel.setForeground(AppColors.CARD_VALUE_TEXT);
+        AppTheme.styleSectionTitle(titleLabel);
 
         bodyPanel.setOpaque(false);
         add(titleLabel, BorderLayout.NORTH);

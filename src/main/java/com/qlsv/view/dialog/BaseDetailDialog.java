@@ -1,6 +1,7 @@
 package com.qlsv.view.dialog;
 
 import com.qlsv.view.common.AppColors;
+import com.qlsv.view.common.AppTheme;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
@@ -33,6 +34,7 @@ public class BaseDetailDialog extends JDialog {
         add(scrollPane, BorderLayout.CENTER);
         setMinimumSize(new Dimension(640, 420));
         setSize(width, height);
+        AppTheme.applyTree(this);
     }
 
     public void openDialog() {

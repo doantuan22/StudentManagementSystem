@@ -25,6 +25,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -195,6 +196,8 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
         });
         resetButton.addActionListener(event -> resetFilter());
         filterTypeComboBox.addActionListener(event -> reloadFilterValues());
+        filterTypeComboBox.setPreferredSize(new Dimension(170, 36));
+        filterValueComboBox.setPreferredSize(new Dimension(160, 36));
 
         JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         filterPanel.setBorder(BorderFactory.createCompoundBorder(

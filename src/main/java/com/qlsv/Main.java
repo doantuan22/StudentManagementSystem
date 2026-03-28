@@ -4,6 +4,7 @@ import com.qlsv.config.JpaBootstrap;
 import com.qlsv.navigation.AppNavigator;
 import com.qlsv.navigation.SwingAppNavigator;
 import com.qlsv.utils.DialogUtil;
+import com.qlsv.view.common.AppTheme;
 
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -18,6 +19,7 @@ public class Main {
                 UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             } catch (Exception ignored) {
             }
+            AppTheme.install();
 
             startApplication(
                     new SwingAppNavigator(),

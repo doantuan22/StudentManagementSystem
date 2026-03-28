@@ -9,6 +9,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JLabel;
 import javax.swing.SwingConstants;
 import javax.swing.border.LineBorder;
+import javax.swing.border.EmptyBorder;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Cursor;
@@ -43,7 +44,7 @@ public class SidebarMenu extends JPanel {
         headerPanel.setOpaque(false);
 
         JLabel titleLabel = new JLabel(title);
-        titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 20f));
+        titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 19f));
         titleLabel.setForeground(AppColors.SIDEBAR_TEXT);
 
         headerPanel.add(titleLabel, BorderLayout.NORTH);
@@ -72,12 +73,14 @@ public class SidebarMenu extends JPanel {
     public JButton addMenuItem(String key, String text, Runnable action) {
         JButton button = new JButton(text);
         button.setAlignmentX(Component.LEFT_ALIGNMENT);
-        button.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
-        button.setMinimumSize(new Dimension(210, 44));
-        button.setPreferredSize(new Dimension(210, 44));
-        button.setBorder(BorderFactory.createEmptyBorder(10, 14, 10, 14));
+        button.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
+        button.setMinimumSize(new Dimension(210, 42));
+        button.setPreferredSize(new Dimension(210, 42));
+        button.setBorder(new EmptyBorder(10, 14, 10, 14));
         button.setFocusPainted(false);
         button.setBorderPainted(false);
+        button.setContentAreaFilled(false);
+        button.setOpaque(true);
         button.setHorizontalAlignment(SwingConstants.LEFT);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         button.setForeground(AppColors.SIDEBAR_TEXT);
@@ -105,7 +108,7 @@ public class SidebarMenu extends JPanel {
 
         menuButtons.put(key, button);
         if (menuItemsPanel.getComponentCount() > 0) {
-            menuItemsPanel.add(Box.createVerticalStrut(8));
+            menuItemsPanel.add(Box.createVerticalStrut(6));
         }
         menuItemsPanel.add(button);
         return button;

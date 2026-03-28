@@ -83,6 +83,7 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
         styleFilledButton(editButton, AppColors.BUTTON_WARNING);
         styleFilledButton(deleteButton, AppColors.BUTTON_DANGER);
         styleFilledButton(reloadButton, AppColors.BUTTON_NEUTRAL);
+        configureCustomActionButtons(actionPanel);
         actionPanel.add(addButton);
         actionPanel.add(editButton);
         actionPanel.add(deleteButton);
@@ -184,6 +185,9 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
     }
 
     protected void onSelectionChanged(T selectedItem) {
+    }
+
+    protected void configureCustomActionButtons(JPanel actionPanel) {
     }
 
     protected final void setFilterPanel(JComponent filterPanel) {

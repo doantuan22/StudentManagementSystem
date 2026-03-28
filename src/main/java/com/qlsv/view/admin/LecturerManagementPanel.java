@@ -3,10 +3,16 @@ package com.qlsv.view.admin;
 import com.qlsv.controller.CourseSectionController;
 import com.qlsv.controller.FacultyController;
 import com.qlsv.controller.LecturerController;
+import com.qlsv.controller.UserController;
 import com.qlsv.model.CourseSection;
 import com.qlsv.model.Faculty;
 import com.qlsv.model.Lecturer;
+import com.qlsv.model.Role;
+import com.qlsv.utils.DateUtil;
+import com.qlsv.utils.DialogUtil;
 import com.qlsv.utils.DisplayTextUtil;
+import com.qlsv.view.auth.ChangePasswordDialog;
+import com.qlsv.view.common.AppColors;
 import com.qlsv.view.common.AbstractCrudPanel;
 import com.qlsv.view.common.DetailSectionPanel;
 import com.qlsv.view.common.FilterOption;
@@ -33,6 +39,7 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
     private final LecturerController lecturerController = new LecturerController();
     private final FacultyController facultyController = new FacultyController();
     private final CourseSectionController courseSectionController = new CourseSectionController();
+    private final UserController userController = new UserController();
 
     private final JComboBox<String> filterTypeComboBox = new JComboBox<>(new String[]{FILTER_NONE, FILTER_ALL, FILTER_FACULTY});
     private final JComboBox<FilterOption<?>> filterValueComboBox = new JComboBox<>();
@@ -53,7 +60,15 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
 
     @Override
     protected String[] getColumnNames() {
-        return new String[]{"ID", "Mã giảng viên", "Họ và tên", "Email", "Khoa", "Trạng thái"};
+        return new String[]{"ID", "Mã giảng viên", "Họ và tên", "Ngày sinh", "Email", "Khoa", "Trạng thái"};
+    }
+
+    @Override
+    protected void configureCustomActionButtons(JPanel actionPanel) {
+        JButton changePasswordButton = new JButton("Đổi MK");
+        styleActionButton(changePasswordButton, AppColors.BUTTON_PRIMARY);
+        actionPanel.add(changePasswordButton);
+        changePasswordButton.addActionListener(event -> openAdminChangePasswordDialog());
     }
 
     @Override
@@ -79,6 +94,7 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
                 item.getId(),
                 item.getLecturerCode(),
                 item.getFullName(),
+                DisplayTextUtil.formatDate(item.getDateOfBirth()),
                 item.getEmail(),
                 item.getFaculty() == null ? "" : item.getFaculty().getFacultyName(),
                 DisplayTextUtil.formatStatus(item.getStatus())
@@ -110,13 +126,11 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
         detailSectionPanel.showFields(new String[][]{
                 {"Mã giảng viên", DisplayTextUtil.defaultText(selectedItem.getLecturerCode())},
                 {"Họ và tên", DisplayTextUtil.defaultText(selectedItem.getFullName())},
-                {"Giới tính", "Chưa cập nhật"},
-                {"Ngày sinh", "Chưa cập nhật"},
+                {"Ngày sinh", DisplayTextUtil.formatDate(selectedItem.getDateOfBirth())},
                 {"Số điện thoại", DisplayTextUtil.defaultText(selectedItem.getPhone())},
                 {"Email", DisplayTextUtil.defaultText(selectedItem.getEmail())},
                 {"Địa chỉ", DisplayTextUtil.defaultText(selectedItem.getAddress())},
                 {"Khoa", selectedItem.getFaculty() == null ? "Chưa cập nhật" : DisplayTextUtil.defaultText(selectedItem.getFaculty().getFacultyName())},
-                {"Chức vụ", "Chưa cập nhật"},
                 {"Môn giảng dạy", subjects},
                 {"Phòng học phụ trách", rooms},
                 {"Trạng thái", DisplayTextUtil.formatStatus(selectedItem.getStatus())}
@@ -127,6 +141,7 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
     protected Lecturer promptForEntity(Lecturer existingItem) {
         JTextField codeField = new JTextField(existingItem == null ? "" : existingItem.getLecturerCode());
         JTextField nameField = new JTextField(existingItem == null ? "" : existingItem.getFullName());
+        JTextField birthField = new JTextField(existingItem == null ? "" : DateUtil.formatForInput(existingItem.getDateOfBirth()));
         JTextField emailField = new JTextField(existingItem == null ? "" : existingItem.getEmail());
         JTextField phoneField = new JTextField(existingItem == null ? "" : existingItem.getPhone());
         JTextField addressField = new JTextField(existingItem == null ? "" : existingItem.getAddress());
@@ -146,6 +161,8 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
         formPanel.add(codeField);
         formPanel.add(new JLabel("Họ và tên"));
         formPanel.add(nameField);
+        formPanel.add(new JLabel("Ngày sinh (yyyy-MM-dd)"));
+        formPanel.add(birthField);
         formPanel.add(new JLabel("Email"));
         formPanel.add(emailField);
         formPanel.add(new JLabel("Số điện thoại"));
@@ -171,6 +188,7 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
         Lecturer lecturer = existingItem == null ? new Lecturer() : existingItem;
         lecturer.setLecturerCode(codeField.getText().trim());
         lecturer.setFullName(nameField.getText().trim());
+        lecturer.setDateOfBirth(DateUtil.parseRequiredDate(birthField.getText(), "Ngày sinh"));
         lecturer.setEmail(emailField.getText().trim());
         lecturer.setPhone(phoneField.getText().trim());
         lecturer.setAddress(addressField.getText().trim());
@@ -265,5 +283,47 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
             }
         }
         statusComboBox.setSelectedIndex(0);
+    }
+
+    private void openAdminChangePasswordDialog() {
+        Lecturer selectedItem = getSelectedItem();
+        if (selectedItem == null) {
+            DialogUtil.showError(this, "Hãy chọn đúng 1 giảng viên để đổi mật khẩu.");
+            return;
+        }
+        if (selectedItem.getUserId() == null) {
+            DialogUtil.showError(this, "Giảng viên được chọn chưa liên kết tài khoản đăng nhập.");
+            return;
+        }
+
+        ChangePasswordDialog.PasswordChangeRequest request = ChangePasswordDialog.showAdminResetDialog(
+                this,
+                "Đổi mật khẩu giảng viên"
+        );
+        if (request == null) {
+            return;
+        }
+
+        try {
+            userController.adminChangePassword(
+                    selectedItem.getUserId(),
+                    Role.LECTURER,
+                    request.newPassword(),
+                    request.confirmPassword()
+            );
+            DialogUtil.showInfo(this, "Đổi mật khẩu giảng viên thành công.");
+        } catch (Exception exception) {
+            DialogUtil.showError(this, exception.getMessage());
+        }
+    }
+
+    private void styleActionButton(JButton button, java.awt.Color background) {
+        button.setFocusPainted(false);
+        button.setBorderPainted(false);
+        button.setOpaque(true);
+        button.setBackground(background);
+        button.setForeground(AppColors.BUTTON_TEXT);
+        button.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+        button.setBorder(BorderFactory.createEmptyBorder(9, 16, 9, 16));
     }
 }

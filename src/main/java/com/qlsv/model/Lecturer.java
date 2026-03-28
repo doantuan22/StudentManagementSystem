@@ -11,6 +11,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
+import java.time.LocalDate;
 import java.util.Objects;
 
 @Entity
@@ -34,6 +35,9 @@ public class Lecturer {
     @Column(name = "email", length = 150)
     private String email;
 
+    @Column(name = "date_of_birth")
+    private LocalDate dateOfBirth;
+
     @Column(name = "phone", length = 30)
     private String phone;
 
@@ -50,13 +54,14 @@ public class Lecturer {
     public Lecturer() {
     }
 
-    public Lecturer(Long id, Long userId, String lecturerCode, String fullName, String email, String phone,
+    public Lecturer(Long id, Long userId, String lecturerCode, String fullName, String email, LocalDate dateOfBirth, String phone,
                     String address, Faculty faculty, String status) {
         this.id = id;
         setUserId(userId);
         this.lecturerCode = lecturerCode;
         this.fullName = fullName;
         this.email = email;
+        this.dateOfBirth = dateOfBirth;
         this.phone = phone;
         this.address = address;
         this.faculty = faculty;
@@ -116,6 +121,14 @@ public class Lecturer {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public LocalDate getDateOfBirth() {
+        return dateOfBirth;
+    }
+
+    public void setDateOfBirth(LocalDate dateOfBirth) {
+        this.dateOfBirth = dateOfBirth;
     }
 
     public String getPhone() {

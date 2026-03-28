@@ -1,9 +1,11 @@
 package com.qlsv.view.student;
 
 import com.qlsv.controller.StudentProfileScreenController;
+import com.qlsv.controller.UserController;
 import com.qlsv.dto.StudentProfileDto;
 import com.qlsv.utils.DialogUtil;
 import com.qlsv.utils.DisplayTextUtil;
+import com.qlsv.view.auth.ChangePasswordDialog;
 import com.qlsv.view.common.AppColors;
 import com.qlsv.view.common.BasePanel;
 
@@ -41,6 +43,7 @@ public class StudentProfilePanel extends BasePanel {
     private static final int TEXT_AREA_HEIGHT = 96;
 
     private final StudentProfileScreenController screenController = new StudentProfileScreenController();
+    private final UserController userController = new UserController();
     private final JPanel contentPanel = new JPanel();
 
     private StudentProfileDto currentStudent;
@@ -182,6 +185,10 @@ public class StudentProfilePanel extends BasePanel {
         actionPanel.setOpaque(false);
 
         if (!isEditing) {
+            JButton changePasswordButton = new JButton("Đổi MK");
+            styleFilledButton(changePasswordButton, AppColors.BUTTON_PRIMARY);
+            changePasswordButton.addActionListener(event -> openChangePasswordDialog());
+
             JButton editButton = new JButton("Cập nhật thông tin");
             styleFilledButton(editButton, AppColors.BUTTON_WARNING);
             editButton.addActionListener(event -> {
@@ -193,6 +200,7 @@ public class StudentProfilePanel extends BasePanel {
             styleFilledButton(reloadButton, AppColors.BUTTON_NEUTRAL);
             reloadButton.addActionListener(event -> reloadData());
 
+            actionPanel.add(changePasswordButton);
             actionPanel.add(editButton);
             actionPanel.add(reloadButton);
         }
@@ -443,8 +451,29 @@ public class StudentProfilePanel extends BasePanel {
                     phoneField.getText(),
                     addressArea.getText()
             );
-            DialogUtil.showInfo(this, "Cap nhat thong tin thanh cong.");
+            DialogUtil.showInfo(this, "Cập nhật thông tin thành công.");
             reloadData();
+        } catch (Exception exception) {
+            DialogUtil.showError(this, exception.getMessage());
+        }
+    }
+
+    private void openChangePasswordDialog() {
+        ChangePasswordDialog.PasswordChangeRequest request = ChangePasswordDialog.showSelfChangeDialog(
+                this,
+                "Đổi mật khẩu sinh viên"
+        );
+        if (request == null) {
+            return;
+        }
+
+        try {
+            userController.changeCurrentPassword(
+                    request.currentPassword(),
+                    request.newPassword(),
+                    request.confirmPassword()
+            );
+            DialogUtil.showInfo(this, "Đổi mật khẩu thành công.");
         } catch (Exception exception) {
             DialogUtil.showError(this, exception.getMessage());
         }

@@ -2,12 +2,17 @@ package com.qlsv.view.admin;
 
 import com.qlsv.controller.DisplayField;
 import com.qlsv.controller.StudentManagementScreenController;
+import com.qlsv.controller.UserController;
 import com.qlsv.dto.StudentDisplayDto;
 import com.qlsv.model.ClassRoom;
 import com.qlsv.model.Faculty;
+import com.qlsv.model.Role;
 import com.qlsv.model.Student;
 import com.qlsv.utils.AcademicFormatUtil;
+import com.qlsv.utils.DialogUtil;
 import com.qlsv.utils.DisplayTextUtil;
+import com.qlsv.view.auth.ChangePasswordDialog;
+import com.qlsv.view.common.AppColors;
 import com.qlsv.view.common.AbstractCrudPanel;
 import com.qlsv.view.common.DetailSectionPanel;
 import com.qlsv.view.common.FilterOption;
@@ -33,6 +38,7 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
     private static final String FILTER_ACADEMIC_YEAR = "Theo niên khóa";
 
     private final StudentManagementScreenController screenController = new StudentManagementScreenController();
+    private final UserController userController = new UserController();
 
     private final JComboBox<String> filterTypeComboBox = new JComboBox<>(
             new String[]{FILTER_NONE, FILTER_ALL, FILTER_FACULTY, FILTER_CLASS_ROOM, FILTER_ACADEMIC_YEAR}
@@ -56,6 +62,14 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
     @Override
     protected String[] getColumnNames() {
         return new String[]{"ID", "Mã sinh viên", "Họ và tên", "Email", "Lớp", "Khoa", "Niên khóa", "Trạng thái"};
+    }
+
+    @Override
+    protected void configureCustomActionButtons(JPanel actionPanel) {
+        JButton changePasswordButton = new JButton("Đổi MK");
+        styleActionButton(changePasswordButton, AppColors.BUTTON_PRIMARY);
+        actionPanel.add(changePasswordButton);
+        changePasswordButton.addActionListener(event -> openAdminChangePasswordDialog());
     }
 
     @Override
@@ -362,5 +376,47 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
             }
         }
         statusComboBox.setSelectedIndex(0);
+    }
+
+    private void openAdminChangePasswordDialog() {
+        Student selectedItem = getSelectedItem();
+        if (selectedItem == null) {
+            DialogUtil.showError(this, "Hãy chọn đúng 1 sinh viên để đổi mật khẩu.");
+            return;
+        }
+        if (selectedItem.getUserId() == null) {
+            DialogUtil.showError(this, "Sinh viên được chọn chưa liên kết tài khoản đăng nhập.");
+            return;
+        }
+
+        ChangePasswordDialog.PasswordChangeRequest request = ChangePasswordDialog.showAdminResetDialog(
+                this,
+                "Đổi mật khẩu sinh viên"
+        );
+        if (request == null) {
+            return;
+        }
+
+        try {
+            userController.adminChangePassword(
+                    selectedItem.getUserId(),
+                    Role.STUDENT,
+                    request.newPassword(),
+                    request.confirmPassword()
+            );
+            DialogUtil.showInfo(this, "Đổi mật khẩu sinh viên thành công.");
+        } catch (Exception exception) {
+            DialogUtil.showError(this, exception.getMessage());
+        }
+    }
+
+    private void styleActionButton(JButton button, java.awt.Color background) {
+        button.setFocusPainted(false);
+        button.setBorderPainted(false);
+        button.setOpaque(true);
+        button.setBackground(background);
+        button.setForeground(AppColors.BUTTON_TEXT);
+        button.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+        button.setBorder(BorderFactory.createEmptyBorder(9, 16, 9, 16));
     }
 }

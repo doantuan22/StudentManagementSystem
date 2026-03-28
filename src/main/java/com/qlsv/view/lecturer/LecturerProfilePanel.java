@@ -1,12 +1,14 @@
 package com.qlsv.view.lecturer;
 
 import com.qlsv.controller.LecturerController;
+import com.qlsv.controller.UserController;
 import com.qlsv.model.Lecturer;
-import com.qlsv.utils.DisplayTextUtil;
 import com.qlsv.utils.DialogUtil;
+import com.qlsv.utils.DisplayTextUtil;
+import com.qlsv.utils.ValidationUtil;
+import com.qlsv.view.auth.ChangePasswordDialog;
 import com.qlsv.view.common.AppColors;
 import com.qlsv.view.common.BasePanel;
-import com.qlsv.utils.ValidationUtil;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -21,12 +23,13 @@ import java.awt.GridLayout;
 public class LecturerProfilePanel extends BasePanel {
 
     private final LecturerController lecturerController = new LecturerController();
+    private final UserController userController = new UserController();
     private final JPanel container = new JPanel(new BorderLayout());
     private final JPanel profileFieldsPanel = new JPanel(new GridLayout(0, 1, 15, 15));
     private JTextField emailField;
     private JTextField phoneField;
     private JTextField addressField;
-    private boolean isEditing = false;
+    private boolean isEditing;
     private Lecturer currentLecturer;
 
     public LecturerProfilePanel() {
@@ -34,7 +37,6 @@ public class LecturerProfilePanel extends BasePanel {
         profileFieldsPanel.setOpaque(false);
         container.add(profileFieldsPanel, BorderLayout.NORTH);
 
-        // Thêm JScrollPane để nội dung không bị che khuất khi cửa sổ nhỏ
         JScrollPane scrollPane = new JScrollPane(container);
         scrollPane.setBorder(null);
         scrollPane.setOpaque(false);
@@ -65,7 +67,6 @@ public class LecturerProfilePanel extends BasePanel {
                 BorderFactory.createEmptyBorder(24, 24, 24, 24)
         ));
 
-        // Header panel với tiêu đề và nút bấm
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setOpaque(false);
 
@@ -78,21 +79,27 @@ public class LecturerProfilePanel extends BasePanel {
         buttonPanel.setOpaque(false);
 
         if (!isEditing) {
+            JButton changePasswordButton = new JButton("Đổi MK");
+            styleFilledButton(changePasswordButton, AppColors.BUTTON_PRIMARY);
+            changePasswordButton.addActionListener(event -> openChangePasswordDialog());
+
             JButton editButton = new JButton("Sửa thông tin");
-            styleFilledButton(editButton, AppColors.BUTTON_WARNING); // Đồng bộ màu vàng với nút Sửa của ADMIN
-            editButton.addActionListener(e -> {
+            styleFilledButton(editButton, AppColors.BUTTON_WARNING);
+            editButton.addActionListener(event -> {
                 isEditing = true;
                 renderProfile();
             });
+
+            buttonPanel.add(changePasswordButton);
             buttonPanel.add(editButton);
         } else {
             JButton saveButton = new JButton("Lưu thay đổi");
-            styleFilledButton(saveButton, AppColors.BUTTON_SUCCESS); // Nút Lưu màu xanh
-            saveButton.addActionListener(e -> handleSave());
+            styleFilledButton(saveButton, AppColors.BUTTON_SUCCESS);
+            saveButton.addActionListener(event -> handleSave());
 
             JButton cancelButton = new JButton("Hủy");
-            styleFilledButton(cancelButton, AppColors.BUTTON_NEUTRAL); // Nút Hủy màu xám
-            cancelButton.addActionListener(e -> {
+            styleFilledButton(cancelButton, AppColors.BUTTON_NEUTRAL);
+            cancelButton.addActionListener(event -> {
                 isEditing = false;
                 renderProfile();
             });
@@ -107,13 +114,13 @@ public class LecturerProfilePanel extends BasePanel {
 
         addProfileField(fieldsPanel, "Mã giảng viên", DisplayTextUtil.defaultText(currentLecturer.getLecturerCode()), false);
         addProfileField(fieldsPanel, "Họ và tên", DisplayTextUtil.defaultText(currentLecturer.getFullName()), false);
+        addProfileField(fieldsPanel, "Ngày sinh", DisplayTextUtil.formatDate(currentLecturer.getDateOfBirth()), false);
 
         if (isEditing) {
             emailField = new JTextField(currentLecturer.getEmail());
             phoneField = new JTextField(currentLecturer.getPhone());
             addressField = new JTextField(currentLecturer.getAddress());
 
-            // Style cho các ô nhập liệu
             styleTextField(emailField);
             styleTextField(phoneField);
             styleTextField(addressField);
@@ -127,7 +134,9 @@ public class LecturerProfilePanel extends BasePanel {
             addProfileField(fieldsPanel, "Địa chỉ", DisplayTextUtil.defaultText(currentLecturer.getAddress()), false);
         }
 
-        addProfileField(fieldsPanel, "Khoa", currentLecturer.getFaculty() != null ? currentLecturer.getFaculty().getFacultyName() : "Chưa cập nhật", false);
+        addProfileField(fieldsPanel, "Khoa", currentLecturer.getFaculty() != null
+                ? currentLecturer.getFaculty().getFacultyName()
+                : "Chưa cập nhật", false);
 
         profileCard.add(fieldsPanel, BorderLayout.CENTER);
         profileFieldsPanel.add(profileCard);
@@ -140,12 +149,12 @@ public class LecturerProfilePanel extends BasePanel {
         JLabel labelComp = new JLabel(label);
         labelComp.setFont(labelComp.getFont().deriveFont(java.awt.Font.BOLD, 13f));
         labelComp.setForeground(AppColors.CARD_MUTED_TEXT);
-        
+
         JPanel itemPanel = new JPanel(new BorderLayout(0, 5));
         itemPanel.setOpaque(false);
         itemPanel.add(labelComp, BorderLayout.NORTH);
         itemPanel.add(component, BorderLayout.CENTER);
-        
+
         panel.add(itemPanel);
     }
 
@@ -186,8 +195,29 @@ public class LecturerProfilePanel extends BasePanel {
             DialogUtil.showInfo(this, "Cập nhật thông tin thành công!");
             isEditing = false;
             reloadData();
-        } catch (Exception e) {
-            DialogUtil.showError(this, e.getMessage());
+        } catch (Exception exception) {
+            DialogUtil.showError(this, exception.getMessage());
+        }
+    }
+
+    private void openChangePasswordDialog() {
+        ChangePasswordDialog.PasswordChangeRequest request = ChangePasswordDialog.showSelfChangeDialog(
+                this,
+                "Đổi mật khẩu giảng viên"
+        );
+        if (request == null) {
+            return;
+        }
+
+        try {
+            userController.changeCurrentPassword(
+                    request.currentPassword(),
+                    request.newPassword(),
+                    request.confirmPassword()
+            );
+            DialogUtil.showInfo(this, "Đổi mật khẩu thành công.");
+        } catch (Exception exception) {
+            DialogUtil.showError(this, exception.getMessage());
         }
     }
 

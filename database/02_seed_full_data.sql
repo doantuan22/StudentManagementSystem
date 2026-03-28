@@ -1,9 +1,9 @@
 -- ============================================================
 -- FILE: 02_seed_full_data.sql
--- MỤC ĐÍCH: Chèn toàn bộ dữ liệu mẫu bằng tiếng Việt có dấu.
--- Dữ liệu đã bao gồm các trường địa chỉ và nhất quán username.
+-- MUC DICH: Chen toan bo du lieu mau bang tieng Viet co dau.
+-- Du lieu da bao gom cac truong dia chi va nhat quan username.
 -- CHAY SAU: 01_create_schema.sql
--- MẬT KHẨU: Tất cả tài khoản dùng mật khẩu "123456"
+-- MAT KHAU: Tat ca tai khoan dung mat khau "123456"
 --           SHA-256: 8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92
 -- ============================================================
 
@@ -24,16 +24,16 @@ VALUES (1, 'ADMIN',    'Quản trị viên'),
 -- ------------------------------------------------------------
 INSERT INTO users (id, username, password_hash, full_name, email, role_id, active)
 VALUES
-    (1,  'admin',  '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Nguyễn Hoàng Anh', 'admin@sms.edu.vn',   1, TRUE),
-    (2,  'gv001',  '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Nguyễn Văn Minh',  'nv.minh@sms.edu.vn', 2, TRUE),
-    (3,  'gv002',  '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Lê Thị Lan',       'lt.lan@sms.edu.vn',  2, TRUE),
-    (4,  'gv003',  '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Trần Văn Hùng',    'tv.hung@sms.edu.vn', 2, TRUE),
-    (5,  'sv2200001', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Trần Thị Mai', 'tt.mai@sms.edu.vn',  3, TRUE),
-    (6,  'sv2200002', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Nguyễn Văn Nam', 'pv.nam@sms.edu.vn',  3, TRUE),
+    (1,  'admin',     '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Nguyễn Hoàng Anh', 'admin@sms.edu.vn',   1, TRUE),
+    (2,  'gv001',     '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Nguyễn Văn Minh',  'nv.minh@sms.edu.vn', 2, TRUE),
+    (3,  'gv002',     '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Lê Thị Lan',       'lt.lan@sms.edu.vn',  2, TRUE),
+    (4,  'gv003',     '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Trần Văn Hùng',    'tv.hung@sms.edu.vn', 2, TRUE),
+    (5,  'sv2200001', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Trần Thị Mai',     'tt.mai@sms.edu.vn',  3, TRUE),
+    (6,  'sv2200002', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Nguyễn Văn Nam',   'pv.nam@sms.edu.vn',  3, TRUE),
     (7,  'sv2200003', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Nguyễn Đặng Minh Khôi', 'nm.khoi@sms.edu.vn', 3, TRUE),
-    (8,  'sv2200004', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Đỗ Thị Linh',  'dt.linh@sms.edu.vn', 3, TRUE),
-    (9,  'sv2200005', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Đoàn Anh Tuấn', 'lm.tuan@sms.edu.vn', 3, TRUE),
-    (10, 'sv2200006', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Ngô Minh Khánh',  'bt.hoa@sms.edu.vn',  3, TRUE);
+    (8,  'sv2200004', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Đỗ Thị Linh',      'dt.linh@sms.edu.vn', 3, TRUE),
+    (9,  'sv2200005', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Đoàn Anh Tuấn',    'lm.tuan@sms.edu.vn', 3, TRUE),
+    (10, 'sv2200006', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Ngô Minh Khánh',   'bt.hoa@sms.edu.vn',  3, TRUE);
 
 -- ------------------------------------------------------------
 -- 3. KHOA (faculties)
@@ -72,35 +72,35 @@ VALUES
 -- ------------------------------------------------------------
 -- 6. GIANG VIEN (lecturers)
 -- ------------------------------------------------------------
-INSERT INTO lecturers (id, user_id, lecturer_code, full_name, email, phone, address, faculty_id, status)
+INSERT INTO lecturers (id, user_id, lecturer_code, full_name, email, date_of_birth, phone, address, faculty_id, status)
 VALUES
-    (1, 2, 'GV001', 'Nguyễn Văn Minh', 'nv.minh@sms.edu.vn', '0901234567', '99 Nguyễn Trãi, Thanh Xuân, Hà Nội', 1, 'ACTIVE'),
-    (2, 3, 'GV002', 'Lê Thị Lan',       'lt.lan@sms.edu.vn',  '0901234568', '12 Cầu Giấy, Hà Nội', 2, 'ACTIVE'),
-    (3, 4, 'GV003', 'Trần Văn Hùng',   'tv.hung@sms.edu.vn', '0901234569', '45 Lê Lợi, Hà Đông, Hà Nội', 1, 'ACTIVE');
+    (1, 2, 'GV001', 'Nguyễn Văn Minh', 'nv.minh@sms.edu.vn', '1986-09-12', '0901234567', '99 Nguyễn Trãi, Thanh Xuân, Hà Nội', 1, 'ACTIVE'),
+    (2, 3, 'GV002', 'Lê Thị Lan',      'lt.lan@sms.edu.vn',  '1988-03-08', '0901234568', '12 Cầu Giấy, Hà Nội', 2, 'ACTIVE'),
+    (3, 4, 'GV003', 'Trần Văn Hùng',   'tv.hung@sms.edu.vn', '1984-11-21', '0901234569', '45 Lê Lợi, Hà Đông, Hà Nội', 1, 'ACTIVE');
 
 -- ------------------------------------------------------------
 -- 7. SINH VIEN (students)
 -- ------------------------------------------------------------
 INSERT INTO students (id, user_id, student_code, full_name, gender, date_of_birth, email, phone, address, faculty_id, class_room_id, academic_year, status)
 VALUES
-    (1, 5,  'SV2200001', 'Trần Thị Mai',  'Nữ',  '2004-05-20', 'tt.mai@sms.edu.vn',  '0912000001', 'Số 1 Đại Cồ Việt, Hai Bà Trưng, Hà Nội', 1, 1, '2022 - 2026', 'ACTIVE'),
-    (2, 6,  'SV2200002', 'Nguyễn Văn Nam',  'Nam', '2004-03-15', 'pv.nam@sms.edu.vn',  '0912000002', 'Ngõ 10 Tôn Thất Tùng, Đống Đa, Hà Nội',   1, 1, '2022 - 2026', 'ACTIVE'),
-    (3, 7,  'SV2200003', 'Nguyễn Đặng Minh Khôi', 'Nam', '2004-08-01', 'nm.khoi@sms.edu.vn', '0912000003', 'Thôn 5, Đông Anh, Hà Nội',               2, 3, '2022 - 2026', 'ACTIVE'),
-    (4, 8,  'SV2200004', 'Đỗ Thị Linh',   'Nữ',  '2004-11-25', 'dt.linh@sms.edu.vn', '0912000004', 'Mỹ Đình, Nam Từ Liêm, Hà Nội',           1, 2, '2022 - 2026', 'ACTIVE'),
-    (5, 9,  'SV2200005', 'Đoàn Anh Tuấn',  'Nam', '2004-07-10', 'lm.tuan@sms.edu.vn', '0912000005', 'Phường Mộ Lao, Hà Đông, Hà Nội',        3, 4, '2022 - 2026', 'ACTIVE'),
-    (6, 10, 'SV2200006', 'Ngô Minh Khánh',   'Nữ',  '2004-02-14', 'bt.hoa@sms.edu.vn',  '0912000006', 'Phố Huế, Hai Bà Trưng, Hà Nội',          1, 1, '2022 - 2026', 'ACTIVE');
+    (1, 5,  'SV2200001', 'Trần Thị Mai',              'Nữ',  '2004-05-20', 'tt.mai@sms.edu.vn',  '0912000001', 'Số 1 Đại Cồ Việt, Hai Bà Trưng, Hà Nội', 1, 1, '2022 - 2026', 'ACTIVE'),
+    (2, 6,  'SV2200002', 'Nguyễn Văn Nam',            'Nam', '2004-03-15', 'pv.nam@sms.edu.vn',  '0912000002', 'Ngõ 10 Tôn Thất Tùng, Đống Đa, Hà Nội', 1, 1, '2022 - 2026', 'ACTIVE'),
+    (3, 7,  'SV2200003', 'Nguyễn Đặng Minh Khôi',     'Nam', '2004-08-01', 'nm.khoi@sms.edu.vn', '0912000003', 'Thôn 5, Đông Anh, Hà Nội', 2, 3, '2022 - 2026', 'ACTIVE'),
+    (4, 8,  'SV2200004', 'Đỗ Thị Linh',               'Nữ',  '2004-11-25', 'dt.linh@sms.edu.vn', '0912000004', 'Mỹ Đình, Nam Từ Liêm, Hà Nội', 1, 2, '2022 - 2026', 'ACTIVE'),
+    (5, 9,  'SV2200005', 'Đoàn Anh Tuấn',             'Nam', '2004-07-10', 'lm.tuan@sms.edu.vn', '0912000005', 'Phường Mộ Lao, Hà Đông, Hà Nội', 3, 4, '2022 - 2026', 'ACTIVE'),
+    (6, 10, 'SV2200006', 'Ngô Minh Khánh',            'Nữ',  '2004-02-14', 'bt.hoa@sms.edu.vn',  '0912000006', 'Phố Huế, Hai Bà Trưng, Hà Nội', 1, 1, '2022 - 2026', 'ACTIVE');
 
 -- ------------------------------------------------------------
 -- 8. MON HOC (subjects)
 -- ------------------------------------------------------------
 INSERT INTO subjects (id, subject_code, subject_name, credits, faculty_id, description)
 VALUES
-    (1, 'INT101', 'Nhập môn Lập trình Java',    3, 1, 'Môn học cơ bản về ngôn ngữ lập trình Java'),
-    (2, 'INT102', 'Cơ sở Dữ liệu',              3, 1, 'Lý thuyết và thực hành thiết kế cơ sở dữ liệu'),
-    (3, 'INT103', 'Lập trình Hướng đối tượng',   3, 1, 'Các nguyên lý OOP với Java'),
-    (4, 'INT104', 'Mạng Máy tính',               3, 1, 'Kiến trúc và giao thức mạng máy tính'),
-    (5, 'BUS101', 'Nguyên lý Quản trị',          2, 2, 'Các nguyên lý cơ bản trong quản trị doanh nghiệp'),
-    (6, 'BUS102', 'Marketing Căn bản',            2, 2, 'Tổng quan về marketing và hành vi tiêu dùng');
+    (1, 'INT101', 'Nhập môn Lập trình Java', 3, 1, 'Môn học cơ bản về ngôn ngữ lập trình Java'),
+    (2, 'INT102', 'Cơ sở Dữ liệu',           3, 1, 'Lý thuyết và thực hành thiết kế cơ sở dữ liệu'),
+    (3, 'INT103', 'Lập trình Hướng đối tượng', 3, 1, 'Các nguyên lý OOP với Java'),
+    (4, 'INT104', 'Mạng Máy tính',           3, 1, 'Kiến trúc và giao thức mạng máy tính'),
+    (5, 'BUS101', 'Nguyên lý Quản trị',      2, 2, 'Các nguyên lý cơ bản trong quản trị doanh nghiệp'),
+    (6, 'BUS102', 'Marketing Căn bản',       2, 2, 'Tổng quan về marketing và hành vi tiêu dùng');
 
 -- ------------------------------------------------------------
 -- 9. HOC PHAN MO (course_sections)

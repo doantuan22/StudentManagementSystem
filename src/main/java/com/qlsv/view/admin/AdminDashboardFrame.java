@@ -1,8 +1,11 @@
 package com.qlsv.view.admin;
 
 import com.qlsv.controller.LoginController;
+import com.qlsv.controller.UserController;
 import com.qlsv.model.User;
 import com.qlsv.navigation.AppNavigator;
+import com.qlsv.utils.DialogUtil;
+import com.qlsv.view.auth.ChangePasswordDialog;
 import com.qlsv.view.common.AppColors;
 import com.qlsv.view.common.BaseFrame;
 import com.qlsv.view.common.BasePanel;
@@ -13,11 +16,13 @@ import javax.swing.JButton;
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
+import java.awt.Component;
 import java.awt.Cursor;
 
 public class AdminDashboardFrame extends BaseFrame {
 
     private final LoginController loginController;
+    private final UserController userController = new UserController();
     private final AppNavigator navigator;
 
     public AdminDashboardFrame(User user, AppNavigator navigator) {
@@ -32,6 +37,10 @@ public class AdminDashboardFrame extends BaseFrame {
     }
 
     private void initComponents(User user) {
+        JButton changePasswordButton = new JButton("Đổi MK");
+        configureHeaderButton(changePasswordButton);
+        changePasswordButton.addActionListener(event -> openAdminChangePasswordDialog());
+
         JButton logoutButton = new JButton("Đăng xuất");
         configureHeaderButton(logoutButton);
         logoutButton.addActionListener(event -> {
@@ -41,6 +50,7 @@ public class AdminDashboardFrame extends BaseFrame {
         });
 
         JPanel headerPanel = createHeader(user.getFullName() + " - " + user.getRole().getDisplayName(), logoutButton);
+        attachHeaderAction(headerPanel, changePasswordButton, true);
 
         CardLayout cardLayout = new CardLayout();
         JPanel contentPanel = new JPanel(cardLayout);
@@ -125,5 +135,40 @@ public class AdminDashboardFrame extends BaseFrame {
         button.setForeground(AppColors.BUTTON_TEXT);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         button.setBorder(BorderFactory.createEmptyBorder(8, 14, 8, 14));
+    }
+
+    private void attachHeaderAction(JPanel headerPanel, JButton actionButton, boolean insertBeforeLast) {
+        if (headerPanel == null || actionButton == null) {
+            return;
+        }
+        Component eastComponent = ((BorderLayout) headerPanel.getLayout()).getLayoutComponent(BorderLayout.EAST);
+        if (!(eastComponent instanceof JPanel rightPanel)) {
+            return;
+        }
+        int index = insertBeforeLast ? Math.max(1, rightPanel.getComponentCount() - 1) : rightPanel.getComponentCount();
+        rightPanel.add(actionButton, index);
+        rightPanel.revalidate();
+        rightPanel.repaint();
+    }
+
+    private void openAdminChangePasswordDialog() {
+        ChangePasswordDialog.PasswordChangeRequest request = ChangePasswordDialog.showSelfChangeDialog(
+                this,
+                "Đổi mật khẩu quản trị viên"
+        );
+        if (request == null) {
+            return;
+        }
+
+        try {
+            userController.changeCurrentPassword(
+                    request.currentPassword(),
+                    request.newPassword(),
+                    request.confirmPassword()
+            );
+            DialogUtil.showInfo(this, "Đổi mật khẩu quản trị viên thành công.");
+        } catch (Exception exception) {
+            DialogUtil.showError(this, exception.getMessage());
+        }
     }
 }

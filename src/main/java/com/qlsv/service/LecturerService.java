@@ -44,7 +44,7 @@ public class LecturerService {
     public Lecturer save(Lecturer lecturer) {
         if (lecturer.getId() != null) {
             if (permissionService.hasPermission(RolePermission.MANAGE_LECTURERS)) {
-                // Admin duoc phep cap nhat day du.
+                // Admin được phép cập nhật đầy đủ.
             } else if (permissionService.hasPermission(RolePermission.EDIT_OWN_PROFILE)) {
                 Lecturer current = findCurrentLecturer();
                 if (!current.getId().equals(lecturer.getId())) {
@@ -102,6 +102,9 @@ public class LecturerService {
         ValidationUtil.requireWithinLength(lecturer.getLecturerCode(), 50, "Mã giảng viên");
         ValidationUtil.requireNotBlank(lecturer.getFullName(), "Họ tên giảng viên không được để trống.");
         ValidationUtil.requireEmail(lecturer.getEmail(), "Email giảng viên");
+        if (lecturer.getDateOfBirth() == null) {
+            throw new ValidationException("Ngày sinh giảng viên không được để trống.");
+        }
         ValidationUtil.requirePhone(lecturer.getPhone(), "Số điện thoại giảng viên");
         if (lecturer.getFaculty() == null || lecturer.getFaculty().getId() == null) {
             throw new ValidationException("Giảng viên phải thuộc một khoa.");

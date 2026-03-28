@@ -6,8 +6,8 @@ import com.qlsv.model.ClassRoom;
 import com.qlsv.model.Faculty;
 import com.qlsv.model.Student;
 import com.qlsv.utils.AcademicFormatUtil;
+import com.qlsv.utils.DateUtil;
 
-import java.time.LocalDate;
 import java.util.List;
 
 public class StudentManagementScreenController {
@@ -122,7 +122,7 @@ public class StudentManagementScreenController {
         student.setStudentCode(formData.studentCode().trim());
         student.setFullName(formData.fullName().trim());
         student.setGender(formData.gender());
-        student.setDateOfBirth(formData.dateOfBirth().isBlank() ? null : LocalDate.parse(formData.dateOfBirth().trim()));
+        student.setDateOfBirth(DateUtil.parseOptionalDate(formData.dateOfBirth(), "Ngày sinh"));
         student.setEmail(formData.email().trim());
         student.setPhone(formData.phone().trim());
         student.setAddress(formData.address().trim());

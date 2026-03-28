@@ -47,6 +47,11 @@ SELECT 'Mismatch Name (Student)', COUNT(*)
 FROM students s JOIN users u ON s.user_id = u.id
 WHERE s.full_name <> u.full_name;
 
+-- 4b. Kiem tra giang vien da co ngay sinh
+SELECT 'Lecturers missing DOB' AS Issue, COUNT(*) AS Count
+FROM lecturers
+WHERE date_of_birth IS NULL;
+
 -- 5. Kiem tra course_sections khong con luu phong/lich truc tiep
 SELECT column_name
 FROM information_schema.columns

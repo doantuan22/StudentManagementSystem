@@ -90,6 +90,7 @@ CREATE TABLE IF NOT EXISTS lecturers (
     lecturer_code VARCHAR(50)  NOT NULL UNIQUE,
     full_name     VARCHAR(150) NOT NULL,
     email         VARCHAR(150),
+    date_of_birth DATE,
     phone         VARCHAR(30),
     address       VARCHAR(255),
     faculty_id    BIGINT NOT NULL,

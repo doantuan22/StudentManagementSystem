@@ -6,7 +6,6 @@ import com.qlsv.model.Role;
 import com.qlsv.model.RoleEntity;
 import com.qlsv.model.User;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityTransaction;
 import org.hibernate.exception.ConstraintViolationException;
 
 import java.sql.SQLIntegrityConstraintViolationException;
@@ -105,6 +104,14 @@ public class UserDAO {
         );
     }
 
+    public boolean updatePasswordHash(Long userId, String passwordHash) {
+        return executeWrite(
+                "Không thể cập nhật mật khẩu người dùng.",
+                "Không thể cập nhật mật khẩu người dùng.",
+                entityManager -> updatePasswordHash(entityManager, userId, passwordHash)
+        );
+    }
+
     private Optional<User> findById(EntityManager entityManager, Long id) {
         return entityManager.createQuery(FETCH_BASE + " WHERE u.id = :id", User.class)
                 .setParameter("id", id)
@@ -155,6 +162,16 @@ public class UserDAO {
             return false;
         }
         entity.setEmail(email);
+        entityManager.flush();
+        return true;
+    }
+
+    private boolean updatePasswordHash(EntityManager entityManager, Long userId, String passwordHash) {
+        User entity = entityManager.find(User.class, userId);
+        if (entity == null) {
+            return false;
+        }
+        entity.setPasswordHash(passwordHash);
         entityManager.flush();
         return true;
     }

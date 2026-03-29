@@ -68,7 +68,7 @@ public class StudentEnrollmentPanel extends BasePanel {
     };
 
     private final DefaultTableModel enrollmentTableModel = new DefaultTableModel(
-            new String[]{"ID", "Học phần", "Môn học", "Giảng viên", "Trạng thái", "Đăng ký lúc"}, 0) {
+            new String[]{"ID", "Học phần", "Môn học", "Giảng viên", "Học kỳ", "Năm học", "Trạng thái", "Đăng ký lúc"}, 0) {
         /**
          * Xác định ô có cho phép chỉnh sửa hay không.
          */
@@ -332,6 +332,8 @@ public class StudentEnrollmentPanel extends BasePanel {
                     row.sectionCode(),
                     row.subjectName(),
                     row.lecturerName(),
+                    row.semester(),
+                    row.schoolYear(),
                     row.statusText(),
                     row.enrolledAtText()
             });
@@ -422,7 +424,7 @@ public class StudentEnrollmentPanel extends BasePanel {
         table.setBackground(Color.WHITE);
         table.setSelectionBackground(AppColors.TABLE_SELECTION_BACKGROUND);
         table.setSelectionForeground(AppColors.CARD_VALUE_TEXT);
-        table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        table.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
         table.getTableHeader().setReorderingAllowed(false);
         table.getTableHeader().setBackground(AppColors.TABLE_HEADER_BACKGROUND);
         table.getTableHeader().setForeground(AppColors.CARD_VALUE_TEXT);
@@ -446,7 +448,7 @@ public class StudentEnrollmentPanel extends BasePanel {
      */
     private void configureEnrollmentColumns() {
         TableColumnModel columnModel = enrollmentTable.getColumnModel();
-        int[] widths = {70, 130, 260, 180, 130, 170};
+        int[] widths = {70, 130, 260, 180, 100, 100, 130, 170};
         for (int index = 0; index < widths.length && index < columnModel.getColumnCount(); index++) {
             columnModel.getColumn(index).setPreferredWidth(widths[index]);
         }

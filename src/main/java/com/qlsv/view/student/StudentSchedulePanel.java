@@ -30,7 +30,7 @@ public class StudentSchedulePanel extends BasePanel {
 
     private final ScheduleController scheduleController = new ScheduleController();
     private final DefaultTableModel tableModel = new DefaultTableModel(
-            new String[]{"Học phần", "Môn học", "Giảng viên", "Thứ", "Tiết", "Phòng", "Ghi chú"}, 0) {
+            new String[]{"Học phần", "Môn học", "Học kỳ", "Năm học", "Giảng viên", "Thứ", "Tiết", "Phòng", "Ghi chú"}, 0) {
         /**
          * Xác định ô có cho phép chỉnh sửa hay không.
          */
@@ -120,6 +120,8 @@ public class StudentSchedulePanel extends BasePanel {
                         schedule.getCourseSection() == null ? "" : schedule.getCourseSection().getSectionCode(),
                         schedule.getCourseSection() == null || schedule.getCourseSection().getSubject() == null
                                 ? "" : schedule.getCourseSection().getSubject().getSubjectName(),
+                        schedule.getCourseSection() == null ? "" : DisplayTextUtil.defaultText(schedule.getCourseSection().getSemester()),
+                        schedule.getCourseSection() == null ? "" : DisplayTextUtil.defaultText(schedule.getCourseSection().getSchoolYear()),
                         schedule.getCourseSection() == null || schedule.getCourseSection().getLecturer() == null
                                 ? "" : schedule.getCourseSection().getLecturer().getFullName(),
                         DisplayTextUtil.defaultText(schedule.getDayOfWeek()),

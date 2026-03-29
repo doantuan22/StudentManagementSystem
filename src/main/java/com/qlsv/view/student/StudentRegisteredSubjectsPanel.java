@@ -30,7 +30,7 @@ public class StudentRegisteredSubjectsPanel extends BasePanel {
 
     private final EnrollmentController enrollmentController = new EnrollmentController();
     private final DefaultTableModel tableModel = new DefaultTableModel(
-            new String[]{"Học phần", "Môn học", "Tín chỉ", "Giảng viên", "Trạng thái", "Lịch học"}, 0) {
+            new String[]{"Học phần", "Môn học", "Tín chỉ", "Học kỳ", "Năm học", "Giảng viên", "Trạng thái", "Lịch học"}, 0) {
         /**
          * Xác định ô có cho phép chỉnh sửa hay không.
          */
@@ -116,6 +116,8 @@ public class StudentRegisteredSubjectsPanel extends BasePanel {
                                 ? "" : enrollment.getCourseSection().getSubject().getSubjectName(),
                         enrollment.getCourseSection() == null || enrollment.getCourseSection().getSubject() == null
                                 ? "" : enrollment.getCourseSection().getSubject().getCredits(),
+                        enrollment.getCourseSection() == null ? "" : DisplayTextUtil.defaultText(enrollment.getCourseSection().getSemester()),
+                        enrollment.getCourseSection() == null ? "" : DisplayTextUtil.defaultText(enrollment.getCourseSection().getSchoolYear()),
                         enrollment.getCourseSection() == null || enrollment.getCourseSection().getLecturer() == null
                                 ? "" : enrollment.getCourseSection().getLecturer().getFullName(),
                         DisplayTextUtil.formatStatus(enrollment.getStatus()),

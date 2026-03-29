@@ -11,6 +11,8 @@ public record ScheduleDisplayDto(
         String sectionCode,
         String subjectName,
         String lecturerName,
+        String semester,
+        String schoolYear,
         String dayOfWeek,
         String periodText,
         String roomName,

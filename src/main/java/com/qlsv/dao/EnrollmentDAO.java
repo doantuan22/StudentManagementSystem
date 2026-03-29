@@ -89,6 +89,28 @@ public class EnrollmentDAO {
     }
 
     /**
+     * Lấy danh sách học phần đã đăng ký nhưng chưa có điểm của một sinh viên.
+     */
+    public List<Enrollment> findByStudentIdWithoutScore(Long studentId) {
+        return executeRead("Không thể tải học phần chưa có điểm.", entityManager -> {
+            List<Enrollment> enrollments = entityManager.createQuery(
+                            FETCH_BASE + """
+                                      WHERE student.id = :studentId
+                                        AND NOT EXISTS (
+                                            SELECT 1 FROM Score s WHERE s.enrollment.id = e.id
+                                        )
+                                      ORDER BY e.id
+                                     """,
+                            Enrollment.class
+                    )
+                    .setParameter("studentId", studentId)
+                    .getResultList();
+            hydrateCourseSectionCompatibility(entityManager, enrollments);
+            return enrollments;
+        });
+    }
+
+    /**
      * Lấy danh sách đăng ký học phần của các lớp do giảng viên phụ trách.
      */
     public List<Enrollment> findByLecturerId(Long lecturerId) {

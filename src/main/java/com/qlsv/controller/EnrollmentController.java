@@ -27,6 +27,13 @@ public class EnrollmentController {
     }
 
     /**
+     * Lấy danh sách các học phần mà sinh viên đang đăng nhập đã đăng ký và chưa có điểm.
+     */
+    public List<Enrollment> getCurrentStudentEnrollmentsWithoutScore() {
+        return enrollmentService.findByCurrentStudentWithoutScore();
+    }
+
+    /**
      * Lấy danh sách đăng ký căn cứ theo mã giảng viên phụ trách.
      */
     public List<Enrollment> getLecturerEnrollments(Long lecturerId) {

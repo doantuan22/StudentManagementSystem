@@ -84,6 +84,8 @@ public class ScheduleManagementScreenController {
                 new DisplayField("Mã học phần", displayDto.sectionCode()),
                 new DisplayField("Môn học", displayDto.subjectName()),
                 new DisplayField("Giảng viên", displayDto.lecturerName()),
+                new DisplayField("Học kỳ", displayDto.semester()),
+                new DisplayField("Năm học", displayDto.schoolYear()),
                 new DisplayField("Thứ học", displayDto.dayOfWeek()),
                 new DisplayField("Tiết học", displayDto.periodText()),
                 new DisplayField("Phòng học", displayDto.roomName()),

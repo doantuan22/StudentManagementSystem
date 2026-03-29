@@ -37,13 +37,23 @@ public class EnrollmentService {
     }
 
     /**
-     * Lay danh sach hoc phan da dang ky cua sinh vien hien dang dang nhap.
+     * Lấy danh sách học phần đã đăng ký của sinh viên hiện đang đăng nhập.
      */
     public List<Enrollment> findByCurrentStudent() {
         permissionService.requirePermission(RolePermission.REGISTER_ENROLLMENT);
         Student student = studentDAO.findByUserId(SessionManager.requireCurrentUser().getId())
                 .orElseThrow(() -> new ValidationException("Không thể tìm thấy sinh viên đang đăng nhập."));
         return enrollmentDAO.findByStudentId(student.getId());
+    }
+
+    /**
+     * Lấy danh sách học phần đã đăng ký của sinh viên hiện đang đăng nhập mà chưa có điểm.
+     */
+    public List<Enrollment> findByCurrentStudentWithoutScore() {
+        permissionService.requirePermission(RolePermission.REGISTER_ENROLLMENT);
+        Student student = studentDAO.findByUserId(SessionManager.requireCurrentUser().getId())
+                .orElseThrow(() -> new ValidationException("Không thể tìm thấy sinh viên đang đăng nhập."));
+        return enrollmentDAO.findByStudentIdWithoutScore(student.getId());
     }
 
     /**

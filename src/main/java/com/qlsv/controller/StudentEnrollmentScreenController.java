@@ -30,7 +30,7 @@ public class StudentEnrollmentScreenController {
      */
     public StudentEnrollmentDataDto loadData(String keyword, String semesterFilter) {
         List<CourseSection> allCourseSections = courseSectionController.getAllCourseSectionsForSelection();
-        List<Enrollment> currentEnrollments = enrollmentController.getCurrentStudentEnrollments();
+        List<Enrollment> currentEnrollments = enrollmentController.getCurrentStudentEnrollmentsWithoutScore();
 
         List<String> semesterOptions = buildSemesterOptions(allCourseSections);
         List<CourseSection> displayedCourseSections = filterCourseSections(allCourseSections, keyword, semesterFilter);
@@ -44,7 +44,7 @@ public class StudentEnrollmentScreenController {
                 courseRows,
                 enrollmentRows,
                 displayedCourseSections.size() + " học phần phù hợp",
-                currentEnrollments.size() + " học phần đang theo dõi"
+                currentEnrollments.size() + " học phần chưa có điểm"
         );
     }
 

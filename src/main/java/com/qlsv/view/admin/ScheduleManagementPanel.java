@@ -73,7 +73,7 @@ public class ScheduleManagementPanel extends AbstractCrudPanel<Schedule> {
      */
     @Override
     protected String[] getColumnNames() {
-        return new String[]{"ID", "Học phần", "Môn học", "Giảng viên", "Thứ", "Tiết", "Phòng", "Ghi chú"};
+        return new String[]{"ID", "Học phần", "Môn học", "Học kỳ", "Năm học", "Giảng viên", "Thứ", "Tiết", "Phòng", "Ghi chú"};
     }
 
     /**
@@ -103,6 +103,8 @@ public class ScheduleManagementPanel extends AbstractCrudPanel<Schedule> {
                 isDummy ? "" : item.getId(),
                 courseSection == null ? "" : courseSection.getSectionCode(),
                 courseSection == null || courseSection.getSubject() == null ? "" : courseSection.getSubject().getSubjectName(),
+                courseSection == null ? "" : DisplayTextUtil.defaultText(courseSection.getSemester()),
+                courseSection == null ? "" : DisplayTextUtil.defaultText(courseSection.getSchoolYear()),
                 courseSection == null || courseSection.getLecturer() == null ? "" : courseSection.getLecturer().getFullName(),
                 isDummy ? "Chưa có lịch" : item.getDayOfWeek(),
                 isDummy ? "" : DisplayTextUtil.formatPeriod(item.getStartPeriod(), item.getEndPeriod()),

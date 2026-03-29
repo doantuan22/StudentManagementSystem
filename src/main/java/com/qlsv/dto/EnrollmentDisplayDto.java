@@ -14,6 +14,8 @@ public record EnrollmentDisplayDto(
         String sectionCode,
         String subjectName,
         String lecturerName,
+        String semester,
+        String schoolYear,
         String roomName,
         String scheduleText,
         String statusText,

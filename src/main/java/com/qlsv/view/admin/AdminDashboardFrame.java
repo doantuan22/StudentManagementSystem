@@ -83,7 +83,7 @@ public class AdminDashboardFrame extends BaseFrame {
 
         SidebarMenu sidebarMenu = new SidebarMenu(
                 "Trang quản trị",
-                "Truy cập nhanh các màn hình quản lý dành cho quản trị viên."
+                ""
         );
         registerMenuItem(sidebarMenu, "home", "Tổng quan", cardLayout, contentPanel, "home", homePanel);
         registerMenuItem(sidebarMenu, "students", "Quản lý sinh viên", cardLayout, contentPanel, "students", studentManagementPanel);

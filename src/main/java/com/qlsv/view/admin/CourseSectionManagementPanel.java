@@ -20,11 +20,8 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
 import java.awt.FlowLayout;
-import java.awt.GridLayout;
 import java.util.List;
 
 public class CourseSectionManagementPanel extends AbstractCrudPanel<CourseSection> {
@@ -49,7 +46,7 @@ public class CourseSectionManagementPanel extends AbstractCrudPanel<CourseSectio
     private boolean filterReady;
 
     public CourseSectionManagementPanel() {
-        super("Quản lý học phần");
+        super("Quan ly hoc phan");
         filterTypeComboBox.setSelectedItem(FILTER_ALL);
         setFilterPanel(buildFilterPanel());
         setDetailPanel(detailSectionPanel);
@@ -59,9 +56,12 @@ public class CourseSectionManagementPanel extends AbstractCrudPanel<CourseSectio
 
     @Override
     protected String[] getColumnNames() {
-        return new String[]{"ID", "Mã học phần", "Môn học", "Giảng viên", "Học kỳ", "Năm học", "Lịch học"};
+        return new String[]{"ID", "Mã học phần", "ôn học", "Giảng viên", "ọc kỳ", "ăm học", "ịch học"};
     }
 
+    /**
+     * Tải danh sách học phần dựa trên các điều kiện lọc đang được áp dụng.
+     */
     @Override
     protected List<CourseSection> loadItems() {
         return screenController.loadItems(
@@ -75,6 +75,9 @@ public class CourseSectionManagementPanel extends AbstractCrudPanel<CourseSectio
         );
     }
 
+    /**
+     * Chuyển đổi dữ liệu học phần sang mảng đối tượng để hiển thị trên từng dòng của bảng.
+     */
     @Override
     protected Object[] toRow(CourseSection item) {
         CourseSectionDisplayDto displayDto = screenController.toDisplayDto(item);
@@ -96,6 +99,9 @@ public class CourseSectionManagementPanel extends AbstractCrudPanel<CourseSectio
                 : "Vui lòng chọn điều kiện lọc để hiển thị danh sách học phần.";
     }
 
+    /**
+     * Xử lý hiển thị thông tin chi tiết của học phần khi người dùng chọn một dòng trên bảng.
+     */
     @Override
     protected void onSelectionChanged(CourseSection selectedItem) {
         if (selectedItem == null) {
@@ -114,22 +120,29 @@ public class CourseSectionManagementPanel extends AbstractCrudPanel<CourseSectio
         return new CourseSectionDetailDialog(detailPanel);
     }
 
+    /**
+     * Hiển thị hộp thoại để người dùng nhập thông tin học phần mới hoặc cập nhật học phần hiện có.
+     */
     @Override
     protected CourseSection promptForEntity(CourseSection existingItem) {
+        List<Subject> subjects = screenController.loadSubjects();
+        List<Lecturer> lecturers = screenController.loadLecturers();
+
         CourseSectionFormDialog.CourseSectionFormResult formResult = CourseSectionFormDialog.showDialog(
                 this,
                 new CourseSectionFormDialog.CourseSectionFormModel(
                         existingItem == null ? "Thêm học phần" : "Cập nhật học phần",
                         existingItem == null ? "" : existingItem.getSectionCode(),
-                        screenController.loadSubjects(),
+                        subjects,
                         existingItem == null ? null : existingItem.getSubject(),
-                        screenController.loadLecturers(),
+                        lecturers,
                         existingItem == null ? null : existingItem.getLecturer(),
+                        screenController.loadLecturersBySubject(subjects),
                         AcademicFormatUtil.getFixedSemesters(),
                         existingItem == null ? "HK1" : AcademicFormatUtil.formatSemester(existingItem.getSemester()),
                         existingItem == null ? "2025 - 2026" : AcademicFormatUtil.formatAcademicYear(existingItem.getSchoolYear()),
                         existingItem == null || existingItem.getMaxStudents() == null ? "50" : String.valueOf(existingItem.getMaxStudents()),
-                        "Lịch học và phòng học được quản lý tại màn hình lịch học sau khi tạo học phần."
+                       "Lịch học và phòng học được quản lý tại màn hình lịch học sau khi tạo học phần."
                 )
         );
         if (formResult == null) {
@@ -149,16 +162,25 @@ public class CourseSectionManagementPanel extends AbstractCrudPanel<CourseSectio
         );
     }
 
+    /**
+     * Thực hiện lưu thông tin học phần vào cơ sở dữ liệu.
+     */
     @Override
     protected void saveEntity(CourseSection item) {
         screenController.saveCourseSection(item);
     }
 
+    /**
+     * Thực hiện xóa học phần được chọn khỏi hệ thống.
+     */
     @Override
     protected void deleteEntity(CourseSection item) {
         screenController.deleteCourseSection(item);
     }
 
+    /**
+     * Khởi tạo giao diện cho thanh công cụ lọc học phần phía trên bảng dữ liệu.
+     */
     private JPanel buildFilterPanel() {
         JButton applyButton = new JButton("Áp dụng");
         JButton resetButton = new JButton("Đặt lại");
@@ -184,6 +206,9 @@ public class CourseSectionManagementPanel extends AbstractCrudPanel<CourseSectio
         return filterPanel;
     }
 
+    /**
+     * Cập nhật danh sách các giá trị lọc (phòng học, khoa, mã học phần) dựa trên loại bộ lọc đã chọn.
+     */
     private void reloadFilterValues() {
         String filterType = (String) filterTypeComboBox.getSelectedItem();
         filterReady = FILTER_ALL.equals(filterType);
@@ -218,6 +243,9 @@ public class CourseSectionManagementPanel extends AbstractCrudPanel<CourseSectio
         filterValueComboBox.setEnabled(false);
     }
 
+    /**
+     * Đưa tất cả các điều kiện lọc về trạng thái mặc định.
+     */
     private void resetFilter() {
         filterTypeComboBox.setSelectedItem(FILTER_ALL);
         reloadFilterValues();

@@ -25,17 +25,26 @@ public class LecturerDAO {
             JOIN FETCH l.faculty
             """;
 
+    /**
+     * Lấy danh sách tất cả giảng viên.
+     */
     public List<Lecturer> findAll() {
         return executeRead("Không thể tải danh sách giảng viên.", entityManager ->
                 entityManager.createQuery(FETCH_BASE + " ORDER BY l.id", Lecturer.class)
                         .getResultList());
     }
 
+    /**
+     * Tìm giảng viên theo mã định danh.
+     */
     public Optional<Lecturer> findById(Long id) {
         return executeRead("Không thể tìm giảng viên theo mã định danh.", entityManager ->
                 findById(entityManager, id));
     }
 
+    /**
+     * Tìm giảng viên dựa trên mã tài khoản người dùng liên kết.
+     */
     public Optional<Lecturer> findByUserId(Long userId) {
         return executeRead("Không thể tìm giảng viên theo tài khoản người dùng.", entityManager ->
                 entityManager.createQuery(FETCH_BASE + " WHERE l.user.id = :userId", Lecturer.class)
@@ -44,6 +53,9 @@ public class LecturerDAO {
                         .findFirst());
     }
 
+    /**
+     * Lấy danh sách giảng viên thuộc một khoa cụ thể.
+     */
     public List<Lecturer> findByFacultyId(Long facultyId) {
         return executeRead("Không thể lọc giảng viên theo khoa.", entityManager ->
                 entityManager.createQuery(FETCH_BASE + " WHERE l.faculty.id = :facultyId ORDER BY l.id", Lecturer.class)
@@ -51,6 +63,9 @@ public class LecturerDAO {
                         .getResultList());
     }
 
+    /**
+     * Tìm kiếm giảng viên theo từ khóa (mã giảng viên, họ tên hoặc email).
+     */
     public List<Lecturer> searchByKeyword(String keyword) {
         String normalizedKeyword = "%" + (keyword == null ? "" : keyword.trim().toLowerCase()) + "%";
         return executeRead("Không thể tìm kiếm giảng viên.", entityManager ->
@@ -64,6 +79,9 @@ public class LecturerDAO {
                         .getResultList());
     }
 
+    /**
+     * Thêm mới một giảng viên vào hệ thống.
+     */
     public Lecturer insert(Lecturer lecturer) {
         Long lecturerId = executeWrite(
                 "Không thể thêm giảng viên.",
@@ -74,6 +92,9 @@ public class LecturerDAO {
                 .orElseThrow(() -> new AppException("Không thể tải lại giảng viên sau khi thêm."));
     }
 
+    /**
+     * Cập nhật thông tin giảng viên hiện có.
+     */
     public boolean update(Lecturer lecturer) {
         return executeWrite(
                 "Không thể cập nhật giảng viên.",
@@ -82,6 +103,9 @@ public class LecturerDAO {
         );
     }
 
+    /**
+     * Xóa giảng viên khỏi hệ thống theo mã định danh.
+     */
     public boolean delete(Long id) {
         return executeWrite(
                 "Không thể xóa giảng viên.",

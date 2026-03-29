@@ -70,6 +70,9 @@ public class SidebarMenu extends JPanel {
         add(scrollPane, BorderLayout.CENTER);
     }
 
+    /**
+     * Thêm một mục menu vào sidebar kèm theo hành động tương ứng khi click.
+     */
     public JButton addMenuItem(String key, String text, Runnable action) {
         JButton button = new JButton(text);
         button.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -114,6 +117,9 @@ public class SidebarMenu extends JPanel {
         return button;
     }
 
+    /**
+     * Đặt trạng thái hoạt động (Active) cho mục menu dựa trên khóa định danh.
+     */
     public void setActiveItem(String key) {
         activeKey = key;
         for (Map.Entry<String, JButton> entry : menuButtons.entrySet()) {
@@ -131,6 +137,9 @@ public class SidebarMenu extends JPanel {
         super.paintComponent(graphics);
     }
 
+    /**
+     * Cập nhật màu sắc và kiểu chữ của nút menu dựa trên trạng thái (Active/Hover/Normal).
+     */
     private void updateButtonState(String key, JButton button, boolean hovered) {
         boolean isActive = key != null && key.equals(activeKey);
         if (isActive) {

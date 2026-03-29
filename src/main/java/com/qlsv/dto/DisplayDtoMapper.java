@@ -13,6 +13,9 @@ public final class DisplayDtoMapper {
     private DisplayDtoMapper() {
     }
 
+    /**
+     * Chuyển đổi đối tượng Student sang DTO hiển thị đầy đủ thông tin trên bảng và danh sách.
+     */
     public static StudentDisplayDto toStudentDisplayDto(Student student) {
         return new StudentDisplayDto(
                 student == null ? null : student.getId(),
@@ -31,6 +34,9 @@ public final class DisplayDtoMapper {
         );
     }
 
+    /**
+     * Chuyển đổi đối tượng Student sang DTO phục vụ hiển thị hồ sơ chi tiết.
+     */
     public static StudentProfileDto toStudentProfileDto(Student student) {
         StudentDisplayDto displayDto = toStudentDisplayDto(student);
         return new StudentProfileDto(
@@ -52,6 +58,9 @@ public final class DisplayDtoMapper {
         return toCourseSectionDisplayDto(courseSection, null);
     }
 
+    /**
+     * Chuyển đổi đối tượng CourseSection sang DTO hiển thị thông tin học phần kèm theo số chỗ trống.
+     */
     public static CourseSectionDisplayDto toCourseSectionDisplayDto(CourseSection courseSection, String slotsText) {
         return new CourseSectionDisplayDto(
                 courseSection == null ? null : courseSection.getId(),
@@ -68,6 +77,9 @@ public final class DisplayDtoMapper {
         );
     }
 
+    /**
+     * Chuyển đổi bản ghi đăng ký (Enrollment) sang DTO hiển thị trạng thái và thời gian đăng ký.
+     */
     public static EnrollmentDisplayDto toEnrollmentDisplayDto(Enrollment enrollment) {
         CourseSection courseSection = enrollment == null ? null : enrollment.getCourseSection();
         Student student = enrollment == null ? null : enrollment.getStudent();
@@ -88,6 +100,9 @@ public final class DisplayDtoMapper {
         );
     }
 
+    /**
+     * Chuyển đổi kết quả học tập (Score) sang DTO hiển thị các loại điểm số và kết quả xếp loại.
+     */
     public static ScoreDisplayDto toScoreDisplayDto(Score score) {
         Enrollment enrollment = score == null ? null : score.getEnrollment();
         EnrollmentDisplayDto enrollmentDto = toEnrollmentDisplayDto(enrollment);
@@ -109,6 +124,9 @@ public final class DisplayDtoMapper {
         );
     }
 
+    /**
+     * Chuyển đổi lịch trình (Schedule) sang DTO hiển thị thời gian, phòng học và tiết dạy.
+     */
     public static ScheduleDisplayDto toScheduleDisplayDto(Schedule schedule) {
         CourseSection courseSection = schedule == null ? null : schedule.getCourseSection();
         boolean unscheduled = schedule != null && schedule.getId() == null;

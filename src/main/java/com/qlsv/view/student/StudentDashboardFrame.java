@@ -30,6 +30,9 @@ public class StudentDashboardFrame extends BaseFrame {
         initComponents(user);
     }
 
+    /**
+     * Khởi tạo giao diện chính cho cổng thông tin sinh viên.
+     */
     private void initComponents(User user) {
         JButton logoutButton = new JButton("Đăng xuất");
         styleHeaderActionButton(logoutButton);
@@ -84,6 +87,9 @@ public class StudentDashboardFrame extends BaseFrame {
         add(createFooter("Trạng thái: Sinh viên đang đăng nhập | Cổng thông tin đào tạo."), BorderLayout.SOUTH);
     }
 
+    /**
+     * Đăng ký một mục vào menu điều hướng của sinh viên.
+     */
     private void registerMenuItem(
             SidebarMenu sidebarMenu,
             String itemKey,

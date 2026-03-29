@@ -15,6 +15,9 @@ public class UserService {
     private final UserDAO userDAO = new UserDAO();
     private final PermissionService permissionService = new PermissionService();
 
+    /**
+     * Cho phép người dùng tự đổi mật khẩu sau khi xác thực mật khẩu cũ.
+     */
     public void changeCurrentPassword(String currentPassword, String newPassword, String confirmPassword) {
         permissionService.requireLogin();
 
@@ -34,6 +37,9 @@ public class UserService {
         updatePassword(persistedUser, normalizedNewPassword);
     }
 
+    /**
+     * Cho phép quản trị viên đổi mật khẩu cho một tài khoản bất kỳ.
+     */
     public void adminChangePassword(Long userId, Role expectedRole, String newPassword, String confirmPassword) {
         requireAdminPermission(expectedRole);
 

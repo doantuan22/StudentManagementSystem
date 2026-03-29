@@ -91,6 +91,9 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
         }
     }
 
+    /**
+     * Tòa danh sách sinh viên từ cơ sở dữ liệu dựa trên điều kiện lọc hiện tại.
+     */
     @Override
     protected List<Student> loadItems() {
         return screenController.loadItems(
@@ -104,6 +107,9 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
         );
     }
 
+    /**
+     * Chuyển đổi thông tin sinh viên sang dạng mảng để hiển thị lên các cột của bảng.
+     */
     @Override
     protected Object[] toRow(Student item) {
         StudentDisplayDto displayDto = screenController.toDisplayDto(item);
@@ -119,6 +125,9 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
         };
     }
 
+    /**
+     * Thực hiện tìm kiếm sinh viên theo từ khóa (hỗ trợ tìm kiếm theo tên, mã sinh viên, email).
+     */
     @Override
     protected List<Student> performSearch(String keyword, List<Student> loadedItems) {
         if (keyword == null || keyword.isBlank()) {
@@ -143,6 +152,9 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
                 : "Vui lòng chọn điều kiện lọc để hiển thị danh sách sinh viên.";
     }
 
+    /**
+     * Hiển thị thông tin chi tiết và cập nhật các liên kết dữ liệu khi người dùng chọn một sinh viên.
+     */
     @Override
     protected void onSelectionChanged(Student selectedItem) {
         if (selectedItem == null) {
@@ -178,6 +190,9 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
         return new StudentDetailDialog(detailPanel);
     }
 
+    /**
+     * Mở form nhập liệu để thêm mới sinh viên hoặc chỉnh sửa thông tin sinh viên hiện có.
+     */
     @Override
     protected Student promptForEntity(Student existingItem) {
         List<ClassRoom> allClassRooms = screenController.loadClassRooms();
@@ -307,6 +322,9 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
         }
     }
 
+    /**
+     * Tải lại các giá trị cho ô chọn điều kiện lọc (danh sách khoa, lớp, niên khóa).
+     */
     private void reloadFilterValues() {
         String filterType = (String) filterTypeComboBox.getSelectedItem();
         filterReady = FILTER_ALL.equals(filterType);
@@ -357,6 +375,9 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
         return type.cast(selectedOption.value());
     }
 
+    /**
+     * Mở hộp thoại cho phép quản trị viên đặt lại mật khẩu cho tài khoản của sinh viên.
+     */
     private void openAdminChangePasswordDialog() {
         Student selectedItem = getSelectedItem();
         if (selectedItem == null) {

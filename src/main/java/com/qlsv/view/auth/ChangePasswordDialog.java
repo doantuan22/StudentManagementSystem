@@ -32,18 +32,27 @@ public class ChangePasswordDialog extends JDialog {
         initComponents();
     }
 
+    /**
+     * Hiển thị hộp thoại cho phép người dùng tự đổi mật khẩu của chính mình (yêu cầu mật khẩu cũ).
+     */
     public static PasswordChangeRequest showSelfChangeDialog(Component parent, String title) {
         ChangePasswordDialog dialog = new ChangePasswordDialog(parent, title, true);
         dialog.setVisible(true);
         return dialog.result;
     }
 
+    /**
+     * Hiển thị hộp thoại cho phép quản trị viên đặt lại mật khẩu của người dùng khác (không yêu cầu mật khẩu cũ).
+     */
     public static PasswordChangeRequest showAdminResetDialog(Component parent, String title) {
         ChangePasswordDialog dialog = new ChangePasswordDialog(parent, title, false);
         dialog.setVisible(true);
         return dialog.result;
     }
 
+    /**
+     * Khởi tạo và sắp xếp các thành phần của hộp thoại đổi mật khẩu.
+     */
     private void initComponents() {
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
@@ -126,6 +135,9 @@ public class ChangePasswordDialog extends JDialog {
         button.setBorder(BorderFactory.createEmptyBorder(9, 16, 9, 16));
     }
 
+    /**
+     * Thu thập dữ liệu từ các ô nhập liệu và đóng hộp thoại để trả về kết quả.
+     */
     private void handleConfirm() {
         result = new PasswordChangeRequest(
                 requireCurrentPassword ? new String(currentPasswordField.getPassword()) : "",

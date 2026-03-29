@@ -1,6 +1,7 @@
 package com.qlsv.controller;
 
 import com.qlsv.model.Lecturer;
+import com.qlsv.model.Subject;
 import com.qlsv.service.LecturerService;
 
 import java.util.List;
@@ -27,6 +28,10 @@ public class LecturerController {
 
     public Lecturer saveLecturer(Lecturer lecturer) {
         return lecturerService.save(lecturer);
+    }
+
+    public Lecturer saveLecturerWithSubjects(Lecturer lecturer, List<Subject> subjects) {
+        return lecturerService.saveWithSubjects(lecturer, subjects);
     }
 
     public boolean deleteLecturer(Long id) {

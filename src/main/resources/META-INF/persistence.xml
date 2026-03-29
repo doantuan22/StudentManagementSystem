@@ -12,6 +12,7 @@
         <class>com.qlsv.model.ClassRoom</class>
         <class>com.qlsv.model.Subject</class>
         <class>com.qlsv.model.Lecturer</class>
+        <class>com.qlsv.model.LecturerSubject</class>
         <class>com.qlsv.model.Student</class>
         <class>com.qlsv.model.CourseSection</class>
         <class>com.qlsv.model.Schedule</class>

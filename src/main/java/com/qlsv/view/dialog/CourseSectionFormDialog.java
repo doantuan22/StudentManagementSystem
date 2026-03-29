@@ -28,7 +28,9 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.Window;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class CourseSectionFormDialog extends JDialog {
 
@@ -40,6 +42,10 @@ public class CourseSectionFormDialog extends JDialog {
     private final JTextField maxStudentsField = new JTextField();
     private final JTextArea noteArea = new JTextArea();
 
+    private List<Lecturer> allLecturers = List.of();
+    private Map<Long, List<Lecturer>> lecturersBySubjectId = Map.of();
+    private boolean updatingLecturerOptions;
+
     private CourseSectionFormResult result;
 
     private CourseSectionFormDialog(Component parent, CourseSectionFormModel model) {
@@ -47,14 +53,26 @@ public class CourseSectionFormDialog extends JDialog {
         initComponents(model);
     }
 
+    /**
+     * Hiển thị hộp thoại và trả về kết quả cấu hình học phần sau khi người dùng xác nhận.
+     */
     public static CourseSectionFormResult showDialog(Component parent, CourseSectionFormModel model) {
         CourseSectionFormDialog dialog = new CourseSectionFormDialog(parent, model);
         dialog.setVisible(true);
         return dialog.result;
     }
 
+    /**
+     * Khởi tạo các thành phần giao diện cho form quản lý học phần.
+     */
     private void initComponents(CourseSectionFormModel model) {
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+
+        subjectComboBox.addActionListener(event -> {
+            if (!updatingLecturerOptions) {
+                refreshLecturerOptions((Lecturer) lecturerComboBox.getSelectedItem(), false);
+            }
+        });
 
         JPanel rootPanel = new JPanel(new BorderLayout());
         rootPanel.setBackground(AppColors.CARD_BACKGROUND);
@@ -67,10 +85,7 @@ public class CourseSectionFormDialog extends JDialog {
         titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 22f));
         titleLabel.setForeground(AppColors.CARD_VALUE_TEXT);
 
-;
-
         headerPanel.add(titleLabel, BorderLayout.NORTH);
-
 
         JPanel bodyPanel = new JPanel();
         bodyPanel.setOpaque(false);
@@ -117,11 +132,16 @@ public class CourseSectionFormDialog extends JDialog {
         setLocationRelativeTo(getOwner());
     }
 
+    /**
+     * Đổ dữ liệu từ model vào các trường tương ứng trên giao diện.
+     */
     private void bindModel(CourseSectionFormModel model) {
         sectionCodeField.setText(model.sectionCode());
         schoolYearField.setText(model.schoolYear());
         maxStudentsField.setText(model.maxStudents());
         noteArea.setText(model.infoMessage());
+        allLecturers = model.lecturers() == null ? List.of() : List.copyOf(model.lecturers());
+        lecturersBySubjectId = model.lecturersBySubjectId() == null ? Map.of() : model.lecturersBySubjectId();
 
         subjectComboBox.removeAllItems();
         for (Subject subject : model.subjects()) {
@@ -131,13 +151,7 @@ public class CourseSectionFormDialog extends JDialog {
             subjectComboBox.setSelectedItem(model.selectedSubject());
         }
 
-        lecturerComboBox.removeAllItems();
-        for (Lecturer lecturer : model.lecturers()) {
-            lecturerComboBox.addItem(lecturer);
-        }
-        if (model.selectedLecturer() != null) {
-            lecturerComboBox.setSelectedItem(model.selectedLecturer());
-        }
+        refreshLecturerOptions(model.selectedLecturer(), true);
 
         semesterComboBox.removeAllItems();
         for (String semester : model.semesters()) {
@@ -153,7 +167,7 @@ public class CourseSectionFormDialog extends JDialog {
     private JPanel createOverviewSection() {
         JPanel contentPanel = createFieldGridPanel();
         contentPanel.add(createField("Mã học phần", styleTextField(sectionCodeField)), fieldConstraints(0, 0));
-        contentPanel.add(createField("Môn học", styleComboBox(subjectComboBox)), fieldConstraints(1, 0));
+        contentPanel.add(createField("ôn học", styleComboBox(subjectComboBox)), fieldConstraints(1, 0));
         contentPanel.add(createField("Giảng viên", styleComboBox(lecturerComboBox)), fieldConstraints(0, 1, 2));
         return createSection("Thông tin cơ bản", "Cấu hình học phần và giảng viên phụ trách.", contentPanel);
     }
@@ -182,7 +196,7 @@ public class CourseSectionFormDialog extends JDialog {
 
         return createSection(
                 "Ghi chú",
-                "Lịch học và phòng học tiếp tục được quản lý tại màn hình lịch học.",
+               "Lịch học và phòng học tiếp tục được quản lý tại màn hình lịch học.",
                 scrollPane
         );
     }
@@ -286,6 +300,71 @@ public class CourseSectionFormDialog extends JDialog {
         button.setBorder(BorderFactory.createEmptyBorder(10, 18, 10, 18));
     }
 
+    /**
+     * Cập nhật danh sách giảng viên khả dụng dựa trên môn học đã chọn.
+     */
+    private void refreshLecturerOptions(Lecturer preferredLecturer, boolean allowLegacySelection) {
+        updatingLecturerOptions = true;
+        try {
+            List<Lecturer> availableLecturers = resolveAvailableLecturers(preferredLecturer, allowLegacySelection);
+            Lecturer lecturerToSelect = preferredLecturer == null
+                    ? (Lecturer) lecturerComboBox.getSelectedItem()
+                    : preferredLecturer;
+
+            lecturerComboBox.removeAllItems();
+            for (Lecturer lecturer : availableLecturers) {
+                lecturerComboBox.addItem(lecturer);
+            }
+
+            if (lecturerToSelect != null && containsLecturer(availableLecturers, lecturerToSelect)) {
+                lecturerComboBox.setSelectedItem(lecturerToSelect);
+            } else if (lecturerComboBox.getItemCount() > 0) {
+                lecturerComboBox.setSelectedIndex(0);
+            }
+        } finally {
+            updatingLecturerOptions = false;
+        }
+    }
+
+    /**
+     * Xác định danh sách giảng viên phù hợp cho môn học đang được chọn.
+     */
+    private List<Lecturer> resolveAvailableLecturers(Lecturer preferredLecturer, boolean allowLegacySelection) {
+        Subject selectedSubject = (Subject) subjectComboBox.getSelectedItem();
+        List<Lecturer> filteredLecturers = selectedSubject == null || selectedSubject.getId() == null
+                ? List.of()
+                : lecturersBySubjectId.getOrDefault(selectedSubject.getId(), List.of());
+
+        List<Lecturer> availableLecturers = new ArrayList<>();
+        if (filteredLecturers == null || filteredLecturers.isEmpty()) {
+            availableLecturers.addAll(allLecturers);
+        } else {
+            availableLecturers.addAll(filteredLecturers);
+        }
+
+        if (allowLegacySelection
+                && preferredLecturer != null
+                && !containsLecturer(availableLecturers, preferredLecturer)) {
+            availableLecturers.add(preferredLecturer);
+        }
+        return availableLecturers;
+    }
+
+    private boolean containsLecturer(List<Lecturer> lecturers, Lecturer target) {
+        if (target == null || lecturers == null) {
+            return false;
+        }
+        for (Lecturer lecturer : lecturers) {
+            if (target.equals(lecturer)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Thu thập dữ liệu từ các trường nhập liệu và đóng hộp thoại.
+     */
     private void handleSave() {
         result = new CourseSectionFormResult(
                 sectionCodeField.getText(),
@@ -312,6 +391,7 @@ public class CourseSectionFormDialog extends JDialog {
             Subject selectedSubject,
             List<Lecturer> lecturers,
             Lecturer selectedLecturer,
+            Map<Long, List<Lecturer>> lecturersBySubjectId,
             List<String> semesters,
             String selectedSemester,
             String schoolYear,

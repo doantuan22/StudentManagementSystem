@@ -57,6 +57,9 @@ public class StudentProfilePanel extends BasePanel {
         reloadData();
     }
 
+    /**
+     * Khởi tạo các thành phần giao diện cơ bản cho bảng thông tin cá nhân.
+     */
     private void initComponents() {
         contentPanel.setOpaque(false);
         contentPanel.setLayout(new GridBagLayout());
@@ -85,6 +88,9 @@ public class StudentProfilePanel extends BasePanel {
         }
     }
 
+    /**
+     * Dựng lại toàn bộ cây giao diện hồ sơ sinh viên dựa trên trạng thái hiện tại (xem/sửa).
+     */
     private void renderProfile() {
         contentPanel.removeAll();
 
@@ -113,6 +119,9 @@ public class StudentProfilePanel extends BasePanel {
         contentPanel.repaint();
     }
 
+    /**
+     * Xây dựng thẻ biểu ngữ (Hero Card) chứa các thông tin tóm tắt quan trọng nhất.
+     */
     private JPanel buildHeroCard() {
         JPanel card = createCard(HERO_BACKGROUND);
         card.add(buildHeroHeader(), BorderLayout.NORTH);
@@ -179,6 +188,9 @@ public class StudentProfilePanel extends BasePanel {
         return summaryPanel;
     }
 
+    /**
+     * Xây dựng thanh công cụ chứa các nút chức năng (Đổi MK, Cập nhật, Tải lại).
+     */
     private JPanel buildActionPanel() {
         JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 0));
         actionPanel.setOpaque(false);
@@ -206,6 +218,9 @@ public class StudentProfilePanel extends BasePanel {
         return actionPanel;
     }
 
+    /**
+     * Sắp xếp các thẻ thông tin chi tiết (Nhân thân, Học tập, Liên hệ) vào lưới.
+     */
     private JPanel buildSectionGrid() {
         JPanel sectionsPanel = new JPanel(new GridBagLayout());
         sectionsPanel.setOpaque(false);
@@ -262,6 +277,9 @@ public class StudentProfilePanel extends BasePanel {
         return card;
     }
 
+    /**
+     * Xây dựng thẻ chứa các thông tin định danh cá nhân (Họ tên, Ngày sinh...).
+     */
     private JPanel buildIdentityCard() {
         JPanel card = createSectionCard(
                 "Thông tin nhân thân",
@@ -280,6 +298,9 @@ public class StudentProfilePanel extends BasePanel {
         return card;
     }
 
+    /**
+     * Xây dựng thẻ chứa thông tin liên hệ (Email, SĐT, Địa chỉ) với chế độ chỉnh sửa.
+     */
     private JPanel buildContactCard() {
         JPanel card = createSectionCard(
                 "Thông tin liên hệ",
@@ -469,6 +490,9 @@ public class StudentProfilePanel extends BasePanel {
         return scrollPane;
     }
 
+    /**
+     * Xử lý gửi yêu cầu cập nhật thông tin liên hệ của sinh viên lên hệ thống.
+     */
     private void handleSave() {
         try {
             currentStudent = screenController.updateCurrentStudentContactInfo(
@@ -483,6 +507,9 @@ public class StudentProfilePanel extends BasePanel {
         }
     }
 
+    /**
+     * Hiển thị hộp thoại và thực hiện quy trình đổi mật khẩu cho sinh viên.
+     */
     private void openChangePasswordDialog() {
         ChangePasswordDialog.PasswordChangeRequest request = ChangePasswordDialog.showSelfChangeDialog(
                 this,

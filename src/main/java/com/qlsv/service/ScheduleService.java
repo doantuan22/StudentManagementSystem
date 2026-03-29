@@ -29,11 +29,17 @@ public class ScheduleService {
     private final LecturerDAO lecturerDAO = new LecturerDAO();
     private final PermissionService permissionService = new PermissionService();
 
+    /**
+     * Lấy danh sách tất cả các lịch học trong hệ thống.
+     */
     public List<Schedule> findAll() {
         permissionService.requirePermission(RolePermission.MANAGE_SCHEDULES);
         return scheduleDAO.findAll();
     }
 
+    /**
+     * Tải lịch học cá nhân của sinh viên đang đăng nhập.
+     */
     public List<Schedule> findByCurrentStudent() {
         permissionService.requirePermission(RolePermission.VIEW_OWN_SCHEDULE);
         Student student = studentDAO.findByUserId(SessionManager.requireCurrentUser().getId())
@@ -41,6 +47,9 @@ public class ScheduleService {
         return scheduleDAO.findByStudentId(student.getId());
     }
 
+    /**
+     * Tải lịch giảng dạy của giảng viên đang đăng nhập.
+     */
     public List<Schedule> findByCurrentLecturer() {
         permissionService.requirePermission(RolePermission.VIEW_OWN_SCHEDULE);
         Lecturer lecturer = lecturerDAO.findByUserId(SessionManager.requireCurrentUser().getId())
@@ -48,21 +57,33 @@ public class ScheduleService {
         return scheduleDAO.findByLecturerId(lecturer.getId());
     }
 
+    /**
+     * Lấy danh sách lịch học của một học phần cụ thể.
+     */
     public List<Schedule> findByCourseSectionId(Long courseSectionId) {
         permissionService.requirePermission(RolePermission.MANAGE_SCHEDULES);
         return scheduleDAO.findByCourseSectionId(courseSectionId);
     }
 
+    /**
+     * Lọc lịch học theo phòng học.
+     */
     public List<Schedule> findByRoom(Long roomId) {
         permissionService.requirePermission(RolePermission.MANAGE_SCHEDULES);
         return scheduleDAO.findByRoom(roomId);
     }
 
+    /**
+     * Lọc lịch học theo khoa quản lý.
+     */
     public List<Schedule> findByFacultyId(Long facultyId) {
         permissionService.requirePermission(RolePermission.MANAGE_SCHEDULES);
         return scheduleDAO.findByFacultyId(facultyId);
     }
 
+    /**
+     * Lưu thông tin lịch học sau khi kiểm tra xung đột phòng và giảng viên.
+     */
     public Schedule save(Schedule schedule) {
         permissionService.requirePermission(RolePermission.MANAGE_SCHEDULES);
         return JpaBootstrap.executeInTransaction(
@@ -75,6 +96,9 @@ public class ScheduleService {
         );
     }
 
+    /**
+     * Xóa lịch học theo mã định danh.
+     */
     public boolean delete(Long id) {
         permissionService.requirePermission(RolePermission.MANAGE_SCHEDULES);
         return JpaBootstrap.executeInTransaction(

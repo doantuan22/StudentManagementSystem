@@ -132,6 +132,9 @@ public class ClassRoomManagementPanel extends AbstractCrudPanel<ClassRoom> {
         classRoomController.deleteClassRoom(item.getId());
     }
 
+    /**
+     * Cập nhật số lượng sinh viên hiện có cho từng lớp học trong danh sách hiển thị.
+     */
     private void updateStudentCounts(List<ClassRoom> classRooms) {
         studentCountsByClassRoomId.clear();
         if (classRooms.isEmpty()) {
@@ -156,6 +159,9 @@ public class ClassRoomManagementPanel extends AbstractCrudPanel<ClassRoom> {
         }
     }
 
+    /**
+     * Xây dựng giao diện thanh công cụ lọc danh sách lớp học.
+     */
     private JPanel buildFilterPanel() {
         JButton applyButton = new JButton("Áp dụng");
         JButton resetButton = new JButton("Đặt lại");
@@ -181,6 +187,9 @@ public class ClassRoomManagementPanel extends AbstractCrudPanel<ClassRoom> {
         return filterPanel;
     }
 
+    /**
+     * Tải lại các giá trị lọc (khoa, niên khóa) vào ComboBox dựa trên loại lọc đã chọn.
+     */
     private void reloadFilterValues() {
         String filterType = (String) filterTypeComboBox.getSelectedItem();
         filterReady = FILTER_ALL.equals(filterType);
@@ -213,12 +222,18 @@ public class ClassRoomManagementPanel extends AbstractCrudPanel<ClassRoom> {
         filterValueComboBox.setEnabled(false);
     }
 
+    /**
+     * Đưa bộ lọc về trạng thái mặc định (hiển thị tất cả).
+     */
     private void resetFilter() {
         filterTypeComboBox.setSelectedItem(FILTER_ALL);
         reloadFilterValues();
         refreshData();
     }
 
+    /**
+     * Kiểm tra xem người dùng đã chọn giá trị lọc hợp lệ hay chưa.
+     */
     private boolean hasValidFilterSelection() {
         String filterType = (String) filterTypeComboBox.getSelectedItem();
         if (FILTER_ALL.equals(filterType)) {

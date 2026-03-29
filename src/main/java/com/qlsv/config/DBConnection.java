@@ -86,6 +86,7 @@ public final class DBConnection {
                     "students",
                     "lecturers",
                     "subjects",
+                    "lecturer_subjects",
                     "course_sections",
                     "enrollments",
                     "scores",

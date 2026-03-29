@@ -127,6 +127,7 @@ public final class JpaBootstrap {
                 entityManager.createQuery("select count(s) from Student s", Long.class).getSingleResult();
                 entityManager.createQuery("select count(l) from Lecturer l", Long.class).getSingleResult();
                 entityManager.createQuery("select count(su) from Subject su", Long.class).getSingleResult();
+                entityManager.createQuery("select count(ls) from LecturerSubject ls", Long.class).getSingleResult();
                 entityManager.createQuery("select count(cs) from CourseSection cs", Long.class).getSingleResult();
                 entityManager.createQuery("select count(e) from Enrollment e", Long.class).getSingleResult();
                 entityManager.createQuery("select count(sc) from Score sc", Long.class).getSingleResult();

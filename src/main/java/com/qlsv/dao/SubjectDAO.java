@@ -23,12 +23,18 @@ public class SubjectDAO {
             JOIN FETCH s.faculty
             """;
 
+    /**
+     * Lấy danh sách toàn bộ các môn học trong hệ thống.
+     */
     public List<Subject> findAll() {
         return executeRead("Không thể tải danh sách môn học.", entityManager ->
                 entityManager.createQuery(FETCH_BASE + " ORDER BY s.id", Subject.class)
                         .getResultList());
     }
 
+    /**
+     * Tìm kiếm môn học theo mã định danh duy nhất.
+     */
     public Optional<Subject> findById(Long id) {
         return executeRead("Không thể tìm môn học theo mã định danh.", entityManager ->
                 entityManager.createQuery(FETCH_BASE + " WHERE s.id = :id", Subject.class)
@@ -37,6 +43,9 @@ public class SubjectDAO {
                         .findFirst());
     }
 
+    /**
+     * Lọc danh sách môn học theo khoa quản lý.
+     */
     public List<Subject> findByFacultyId(Long facultyId) {
         return executeRead("Không thể lọc môn học theo khoa.", entityManager ->
                 entityManager.createQuery(FETCH_BASE + " WHERE s.faculty.id = :facultyId ORDER BY s.id", Subject.class)
@@ -44,6 +53,9 @@ public class SubjectDAO {
                         .getResultList());
     }
 
+    /**
+     * Tìm kiếm môn học theo từ khóa dựa trên mã môn hoặc tên môn.
+     */
     public List<Subject> searchByKeyword(String keyword) {
         String normalizedKeyword = "%" + (keyword == null ? "" : keyword.trim().toLowerCase()) + "%";
         return executeRead("Không thể tìm kiếm môn học.", entityManager ->
@@ -56,6 +68,9 @@ public class SubjectDAO {
                         .getResultList());
     }
 
+    /**
+     * Thêm mới một môn học vào cơ sở dữ liệu.
+     */
     public Subject insert(Subject subject) {
         Long subjectId = executeWrite(
                 "Không thể thêm môn học.",
@@ -73,6 +88,9 @@ public class SubjectDAO {
                 .orElseThrow(() -> new AppException("Không thể tải lại môn học sau khi thêm."));
     }
 
+    /**
+     * Cập nhật thông tin môn học hiện có.
+     */
     public boolean update(Subject subject) {
         return executeWrite(
                 "Không thể cập nhật môn học.",
@@ -89,6 +107,9 @@ public class SubjectDAO {
         );
     }
 
+    /**
+     * Xóa môn học khỏi hệ thống theo mã định danh.
+     */
     public boolean delete(Long id) {
         return executeWrite(
                 "Không thể xóa môn học.",

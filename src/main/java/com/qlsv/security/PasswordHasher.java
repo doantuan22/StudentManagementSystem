@@ -11,6 +11,9 @@ public final class PasswordHasher {
     private PasswordHasher() {
     }
 
+    /**
+     * Mã hóa mật khẩu thô sang chuỗi băm (SHA-256) phục vụ lưu trữ bảo mật.
+     */
     public static String hash(String rawPassword) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -25,6 +28,9 @@ public final class PasswordHasher {
         }
     }
 
+    /**
+     * Kiểm tra xem mật khẩu thô người dùng nhập vào có khớp với chuỗi băm đã lưu không.
+     */
     public static boolean matches(String rawPassword, String storedHash) {
         if (rawPassword == null || storedHash == null) {
             return false;

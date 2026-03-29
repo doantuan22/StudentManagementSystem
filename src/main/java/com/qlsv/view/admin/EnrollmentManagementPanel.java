@@ -77,6 +77,9 @@ public class EnrollmentManagementPanel extends AbstractCrudPanel<Enrollment> {
         return new String[]{"ID", "Sinh viên", "Học phần", "Trạng thái", "Thời gian đăng ký"};
     }
 
+    /**
+     * Tải danh sách các bản ghi đăng ký học phần dựa trên bộ lọc đã chọn.
+     */
     @Override
     protected List<Enrollment> loadItems() {
         return screenController.loadItems(
@@ -90,6 +93,9 @@ public class EnrollmentManagementPanel extends AbstractCrudPanel<Enrollment> {
         );
     }
 
+    /**
+     * Chuyển đổi dữ liệu đăng ký sang mảng đối tượng để hiển thị trên bảng.
+     */
     @Override
     protected Object[] toRow(Enrollment item) {
         EnrollmentDisplayDto displayDto = screenController.toDisplayDto(item);
@@ -109,6 +115,9 @@ public class EnrollmentManagementPanel extends AbstractCrudPanel<Enrollment> {
                 : "Vui lòng chọn điều kiện lọc để hiển thị danh sách đăng ký học phần.";
     }
 
+    /**
+     * Hiển thị thông tin chi tiết về sinh viên và học phần khi chọn một dòng đăng ký.
+     */
     @Override
     protected void onSelectionChanged(Enrollment selectedItem) {
         if (selectedItem == null) {
@@ -127,6 +136,9 @@ public class EnrollmentManagementPanel extends AbstractCrudPanel<Enrollment> {
         return new EnrollmentDetailDialog(detailPanel);
     }
 
+    /**
+     * Mở hộp thoại cho phép tạo mới hoặc chỉnh sửa thông tin đăng ký học phần.
+     */
     @Override
     protected Enrollment promptForEntity(Enrollment existingItem) {
         EnrollmentFormDialog.EnrollmentFormResult formResult = EnrollmentFormDialog.showDialog(
@@ -154,16 +166,25 @@ public class EnrollmentManagementPanel extends AbstractCrudPanel<Enrollment> {
         );
     }
 
+    /**
+     * Thực hiện lưu bản ghi đăng ký vào hệ thống.
+     */
     @Override
     protected void saveEntity(Enrollment item) {
         screenController.saveEnrollment(item);
     }
 
+    /**
+     * Thực hiện xóa bản ghi đăng ký được chọn.
+     */
     @Override
     protected void deleteEntity(Enrollment item) {
         screenController.deleteEnrollment(item);
     }
 
+    /**
+     * Xây dựng giao diện cho khu vực lọc danh sách đăng ký.
+     */
     private JPanel buildFilterPanel() {
         JButton applyButton = new JButton("Áp dụng");
         JButton resetButton = new JButton("Đặt lại");
@@ -189,6 +210,9 @@ public class EnrollmentManagementPanel extends AbstractCrudPanel<Enrollment> {
         return filterPanel;
     }
 
+    /**
+     * Tải lại các giá trị gợi ý cho bộ lọc (danh sách học phần, lớp, khoa).
+     */
     private void reloadFilterValues() {
         String filterType = (String) filterTypeComboBox.getSelectedItem();
         filterReady = FILTER_ALL.equals(filterType);
@@ -223,6 +247,9 @@ public class EnrollmentManagementPanel extends AbstractCrudPanel<Enrollment> {
         filterValueComboBox.setEnabled(false);
     }
 
+    /**
+     * Đặt lại các điều kiện lọc về mặc định.
+     */
     private void resetFilter() {
         filterTypeComboBox.setSelectedItem(FILTER_ALL);
         reloadFilterValues();

@@ -24,23 +24,35 @@ public class UserDAO {
             JOIN FETCH u.roleEntity
             """;
 
+    /**
+     * Lấy danh sách tất cả người dùng trong hệ thống.
+     */
     public List<User> findAll() {
         return executeRead("Không thể tải danh sách người dùng.", entityManager ->
                 entityManager.createQuery(FETCH_BASE + " ORDER BY u.id", User.class)
                         .getResultList());
     }
 
+    /**
+     * Tìm kiếm người dùng theo mã định danh.
+     */
     public Optional<User> findById(Long id) {
         return executeRead("Không thể tìm người dùng theo mã định danh.", entityManager ->
                 findById(entityManager, id));
     }
 
+    /**
+     * Tìm kiếm người dùng theo tên đăng nhập (không phân biệt hoa thường).
+     */
     public Optional<User> findByUsername(String username) {
         String normalizedUsername = username == null ? "" : username.trim();
         return executeRead("Không thể tìm người dùng theo tên đăng nhập.", entityManager ->
                 findByUsername(entityManager, normalizedUsername));
     }
 
+    /**
+     * Tìm kiếm người dùng theo từ khóa (tên đăng nhập, họ tên hoặc email).
+     */
     public List<User> searchByKeyword(String keyword) {
         String normalizedKeyword = "%" + (keyword == null ? "" : keyword.trim().toLowerCase()) + "%";
         return executeRead("Không thể tìm kiếm người dùng.", entityManager ->
@@ -54,6 +66,9 @@ public class UserDAO {
                         .getResultList());
     }
 
+    /**
+     * Thêm mới một tài khoản người dùng vào hệ thống.
+     */
     public User insert(User user) {
         Long userId = executeWrite(
                 "Không thể thêm người dùng.",
@@ -64,6 +79,9 @@ public class UserDAO {
                 .orElseThrow(() -> new AppException("Không thể tải lại người dùng sau khi thêm."));
     }
 
+    /**
+     * Cập nhật thông tin tài khoản người dùng hiện có.
+     */
     public boolean update(User user) {
         return executeWrite(
                 "Không thể cập nhật người dùng.",
@@ -72,6 +90,9 @@ public class UserDAO {
         );
     }
 
+    /**
+     * Xóa tài khoản người dùng khỏi hệ thống theo mã định danh.
+     */
     public boolean delete(Long id) {
         return executeWrite(
                 "Không thể xóa người dùng.",
@@ -88,6 +109,9 @@ public class UserDAO {
         );
     }
 
+    /**
+     * Cập nhật họ tên hiển thị cho người dùng.
+     */
     public boolean updateFullName(Long userId, String fullName) {
         return executeWrite(
                 "Không thể cập nhật họ tên người dùng.",
@@ -96,6 +120,9 @@ public class UserDAO {
         );
     }
 
+    /**
+     * Cập nhật địa chỉ email cho người dùng.
+     */
     public boolean updateEmail(Long userId, String email) {
         return executeWrite(
                 "Không thể cập nhật email người dùng.",
@@ -104,6 +131,9 @@ public class UserDAO {
         );
     }
 
+    /**
+     * Cập nhật mã băm mật khẩu mới cho người dùng.
+     */
     public boolean updatePasswordHash(Long userId, String passwordHash) {
         return executeWrite(
                 "Không thể cập nhật mật khẩu người dùng.",

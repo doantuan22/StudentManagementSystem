@@ -31,6 +31,9 @@ public class LecturerDashboardFrame extends BaseFrame {
         initComponents(user);
     }
 
+    /**
+     * Khởi tạo giao diện Dashboard dành cho giảng viên với các chức năng tương ứng.
+     */
     private void initComponents(User user) {
         JButton logoutButton = new JButton("Đăng xuất");
         configureHeaderButton(logoutButton);
@@ -80,6 +83,9 @@ public class LecturerDashboardFrame extends BaseFrame {
         add(createFooter("Trạng thái: Giảng viên đang đăng nhập | Hệ thống quản lý đào tạo."), BorderLayout.SOUTH);
     }
 
+    /**
+     * Liên kết một mục menu với Panel nội dung và cài đặt tự động làm mới dữ liệu.
+     */
     private void registerMenuItem(
             SidebarMenu sidebarMenu,
             String itemKey,
@@ -95,6 +101,9 @@ public class LecturerDashboardFrame extends BaseFrame {
         });
     }
 
+    /**
+     * Thiết lập kiểu dáng cho các nút chức năng trên thanh tiêu đề.
+     */
     private void configureHeaderButton(JButton button) {
         button.setFocusPainted(false);
         button.setBorderPainted(false);

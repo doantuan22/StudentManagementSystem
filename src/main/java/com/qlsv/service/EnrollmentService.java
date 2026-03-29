@@ -23,11 +23,17 @@ public class EnrollmentService {
     private final ScheduleDAO scheduleDAO = new ScheduleDAO();
     private final PermissionService permissionService = new PermissionService();
 
+    /**
+     * Lấy danh sách tất cả các bản ghi đăng ký học phần (quyền quản lý).
+     */
     public List<Enrollment> findAll() {
         permissionService.requirePermission(RolePermission.MANAGE_ENROLLMENTS);
         return enrollmentDAO.findAll();
     }
 
+    /**
+     * Lấy danh sách học phần đã đăng ký của sinh viên hiện đang đăng nhập.
+     */
     public List<Enrollment> findByCurrentStudent() {
         permissionService.requirePermission(RolePermission.REGISTER_ENROLLMENT);
         Student student = studentDAO.findByUserId(SessionManager.requireCurrentUser().getId())
@@ -35,31 +41,49 @@ public class EnrollmentService {
         return enrollmentDAO.findByStudentId(student.getId());
     }
 
+    /**
+     * Tìm kiếm danh sách sinh viên đăng ký các học phần do giảng viên phụ trách.
+     */
     public List<Enrollment> findByLecturer(Long lecturerId) {
         permissionService.requirePermission(RolePermission.VIEW_ASSIGNED_STUDENTS);
         return enrollmentDAO.findByLecturerId(lecturerId);
     }
 
+    /**
+     * Lấy danh sách sinh viên đã đăng ký vào một học phần cụ thể.
+     */
     public List<Enrollment> findByCourseSectionId(Long courseSectionId) {
         permissionService.requireLogin();
         return enrollmentDAO.findByCourseSectionId(courseSectionId);
     }
 
+    /**
+     * Đếm số lượng sinh viên hiện có trong một học phần.
+     */
     public int countByCourseSectionId(Long courseSectionId) {
         permissionService.requireLogin();
         return enrollmentDAO.countByCourseSectionId(courseSectionId);
     }
 
+    /**
+     * Lấy danh sách đăng ký học phần thuộc về một lớp sinh hoạt cụ thể.
+     */
     public List<Enrollment> findByClassRoomId(Long classRoomId) {
         permissionService.requirePermission(RolePermission.MANAGE_ENROLLMENTS);
         return enrollmentDAO.findByClassRoomId(classRoomId);
     }
 
+    /**
+     * Lọc danh sách đăng ký học phần theo khoa.
+     */
     public List<Enrollment> findByFacultyId(Long facultyId) {
         permissionService.requirePermission(RolePermission.MANAGE_ENROLLMENTS);
         return enrollmentDAO.findByFacultyId(facultyId);
     }
 
+    /**
+     * Lưu thông tin đăng ký (thêm mới/cập nhật) và thực hiện kiểm tra ràng buộc sĩ số, trùng lịch.
+     */
     public Enrollment save(Enrollment enrollment) {
         permissionService.requirePermission(RolePermission.MANAGE_ENROLLMENTS);
         return JpaBootstrap.executeInTransaction(
@@ -71,6 +95,9 @@ public class EnrollmentService {
         );
     }
 
+    /**
+     * Thực hiện quy trình đăng ký học phần cho sinh viên hiện tại kèm theo validate nghiệp vụ.
+     */
     public Enrollment registerCurrentStudent(Long courseSectionId) {
         permissionService.requirePermission(RolePermission.REGISTER_ENROLLMENT);
         return JpaBootstrap.executeInTransaction(
@@ -93,6 +120,9 @@ public class EnrollmentService {
         );
     }
 
+    /**
+     * Xóa một bản ghi đăng ký học phần theo mã định danh.
+     */
     public boolean delete(Long id) {
         permissionService.requirePermission(RolePermission.MANAGE_ENROLLMENTS);
         return JpaBootstrap.executeInTransaction(
@@ -101,6 +131,9 @@ public class EnrollmentService {
         );
     }
 
+    /**
+     * Hủy đăng ký học phần cho sinh viên hiện tại (chỉ được hủy phần của chính mình).
+     */
     public boolean cancelCurrentStudentEnrollment(Long enrollmentId) {
         permissionService.requirePermission(RolePermission.REGISTER_ENROLLMENT);
         return JpaBootstrap.executeInTransaction(
@@ -123,6 +156,9 @@ public class EnrollmentService {
         return enrollment;
     }
 
+    /**
+     * Kiểm tra tính hợp lệ của việc đăng ký (trùng môn, trùng học phần, sĩ số, xung đột lịch).
+     */
     private void validate(Enrollment enrollment, boolean checkDuplicate) {
         if (enrollment.getStudent() == null || enrollment.getStudent().getId() == null) {
             throw new ValidationException("Đăng ký học phần phải có sinh viên.");

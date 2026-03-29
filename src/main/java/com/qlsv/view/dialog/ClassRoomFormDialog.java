@@ -37,12 +37,18 @@ public class ClassRoomFormDialog extends JDialog {
         initComponents(model);
     }
 
+    /**
+     * Hiển thị hộp thoại nhập liệu lớp học và trả về kết quả sau khi người dùng xác nhận.
+     */
     public static ClassRoomFormResult showDialog(Component parent, ClassRoomFormModel model) {
         ClassRoomFormDialog dialog = new ClassRoomFormDialog(parent, model);
         dialog.setVisible(true);
         return dialog.result;
     }
 
+    /**
+     * Khởi tạo các thành phần giao diện của form nhập liệu lớp học.
+     */
     private void initComponents(ClassRoomFormModel model) {
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
@@ -159,6 +165,9 @@ public class ClassRoomFormDialog extends JDialog {
         button.setBorder(BorderFactory.createEmptyBorder(10, 18, 10, 18));
     }
 
+    /**
+     * Thu thập dữ liệu từ các ô nhập liệu vào đối tượng kết quả và đóng hộp thoại.
+     */
     private void handleSave() {
         result = new ClassRoomFormResult(
                 classCodeField.getText(),

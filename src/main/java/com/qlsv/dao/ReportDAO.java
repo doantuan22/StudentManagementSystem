@@ -14,6 +14,9 @@ import java.util.function.Function;
  */
 public class ReportDAO {
 
+    /**
+     * Truy xuất danh sách thông tin cơ bản của sinh viên theo lớp học để lập báo cáo.
+     */
     public List<Object[]> findStudentsByClassRoom(Long classRoomId) {
         return executeRead("Không thể tải danh sách sinh viên theo lớp.", entityManager ->
                 entityManager.createQuery("""
@@ -26,6 +29,9 @@ public class ReportDAO {
                         .getResultList());
     }
 
+    /**
+     * Truy xuất danh sách thông tin cơ bản của giảng viên theo khoa để lập báo cáo.
+     */
     public List<Object[]> findLecturersByFaculty(Long facultyId) {
         return executeRead("Không thể tải danh sách giảng viên theo khoa.", entityManager ->
                 entityManager.createQuery("""
@@ -38,6 +44,9 @@ public class ReportDAO {
                         .getResultList());
     }
 
+    /**
+     * Truy xuất danh sách sinh viên đã đăng ký vào một học phần cụ thể.
+     */
     public List<Object[]> findStudentsByCourseSection(Long courseSectionId) {
         return executeRead("Không thể tải danh sách sinh viên trong học phần.", entityManager ->
                 entityManager.createQuery("""
@@ -51,6 +60,9 @@ public class ReportDAO {
                         .getResultList());
     }
 
+    /**
+     * Truy xuất bảng điểm chi tiết của tất cả sinh viên trong một học phần.
+     */
     public List<Object[]> findScoresByCourseSection(Long courseSectionId) {
         return executeRead("Không thể tải bảng điểm theo học phần.", entityManager ->
                 entityManager.createQuery("""
@@ -71,6 +83,9 @@ public class ReportDAO {
                         .getResultList());
     }
 
+    /**
+     * Tổng hợp các số liệu thống kê cơ bản của toàn bộ hệ thống (số lượng SV, GV, môn học...).
+     */
     public SystemStatistics getSystemStatistics() {
         return executeRead("Không thể tải thống kê hệ thống.", entityManager -> new SystemStatistics(
                 count(entityManager, "SELECT COUNT(s) FROM Student s"),

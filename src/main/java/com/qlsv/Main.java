@@ -13,6 +13,9 @@ import java.util.function.Consumer;
 
 public class Main {
 
+    /**
+     * Điểm bắt đầu của ứng dụng (Entry point), thiết lập giao diện và khởi động luồng chính.
+     */
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             try {
@@ -30,6 +33,9 @@ public class Main {
         });
     }
 
+    /**
+     * Khởi động logic ứng dụng: kiểm tra tính sẵn sàng của database và chuyển đến màn hình đăng nhập.
+     */
     static void startApplication(AppNavigator navigator,
                                  BooleanSupplier canBootstrapCheck,
                                  BooleanSupplier schemaCheck,
@@ -40,6 +46,9 @@ public class Main {
         navigator.showLogin();
     }
 
+    /**
+     * Kiểm tra trạng thái kết nối cơ sở dữ liệu và cấu trúc bảng (schema) trước khi chạy.
+     */
     static boolean isStartupReady(BooleanSupplier canBootstrapCheck,
                                   BooleanSupplier schemaCheck,
                                   Consumer<String> errorHandler) {

@@ -174,6 +174,9 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
 
     protected abstract void deleteEntity(T item);
 
+    /**
+     * Kiểm tra xem một đối tượng dữ liệu có khớp với từ khóa tìm kiếm hay không.
+     */
     protected boolean matchesSearch(T item, String keyword) {
         String normalizedKeyword = keyword.toLowerCase(Locale.ROOT);
         for (Object cell : toRow(item)) {
@@ -184,10 +187,16 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
         return false;
     }
 
+    /**
+     * Trả về thông báo mặc định khi danh sách dữ liệu trống.
+     */
     protected String getEmptyStateMessage() {
         return "Không có dữ liệu để hiển thị.";
     }
 
+    /**
+     * Thực hiện lọc danh sách các đối tượng dựa trên từ khóa tìm kiếm.
+     */
     protected List<T> performSearch(String keyword, List<T> loadedItems) {
         if (keyword == null || keyword.isBlank()) {
             return new ArrayList<>(loadedItems);
@@ -201,6 +210,9 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
         return filteredItems;
     }
 
+    /**
+     * Phương thức callback được gọi khi dòng được chọn trên bảng thay đổi.
+     */
     protected void onSelectionChanged(T selectedItem) {
     }
 
@@ -211,6 +223,9 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
         return true;
     }
 
+    /**
+     * Gắn một panel chứa các bộ lọc bổ sung vào thanh tiêu đề.
+     */
     protected final void setFilterPanel(JComponent filterPanel) {
         extraTopPanel.removeAll();
         if (filterPanel != null) {
@@ -251,6 +266,9 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
         return detailDialog != null && detailDialog.isVisible();
     }
 
+    /**
+     * Hiển thị hộp thoại chi tiết cho bản ghi hiện đang được chọn.
+     */
     protected final void showDetailDialog() {
         if (detailPanel == null) {
             return;
@@ -278,6 +296,9 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
         super.removeNotify();
     }
 
+    /**
+     * Làm mới dữ liệu bảng bằng cách tải lại từ nguồn dữ liệu (service/dao).
+     */
     protected final void refreshData() {
         try {
             allItems = new ArrayList<>(loadItems());
@@ -287,6 +308,9 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
         }
     }
 
+    /**
+     * Lấy đối tượng dữ liệu tương ứng với dòng đang được chọn trên bảng.
+     */
     protected final T getSelectedItem() {
         int selectedRow = table.getSelectedRow();
         if (selectedRow < 0 || selectedRow >= currentItems.size()) {
@@ -295,6 +319,9 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
         return currentItems.get(selectedRow);
     }
 
+    /**
+     * Áp dụng từ khóa từ ô tìm kiếm vào danh sách dữ liệu hiện tại.
+     */
     private void applySearch() {
         String keyword = searchField.getText() == null ? "" : searchField.getText().trim();
         bindRows(performSearch(keyword, allItems));
@@ -308,6 +335,9 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
         }
     }
 
+    /**
+     * Cập nhật dữ liệu vào bảng và xử lý trạng thái hiển thị (danh sách trống/có dữ liệu).
+     */
     private void bindRows(List<T> items) {
         currentItems = new ArrayList<>(items);
         tableModel.setRowCount(0);
@@ -329,6 +359,9 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
         tableCardLayout.show(tableCardPanel, "table");
     }
 
+    /**
+     * Xử lý sự kiện khi nhấn nút Thêm mới bản ghi.
+     */
     private void handleAdd() {
         try {
             T item = promptForEntity(null);
@@ -342,6 +375,9 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
         }
     }
 
+    /**
+     * Xử lý sự kiện khi nhấn nút Chỉnh sửa bản ghi đang chọn.
+     */
     private void handleEdit() {
         T selectedItem = getSelectedItem();
         if (selectedItem == null) {
@@ -360,6 +396,9 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
         }
     }
 
+    /**
+     * Xử lý sự kiện khi nhấn nút Xóa bản ghi đang chọn kèm xác nhận.
+     */
     private void handleDelete() {
         T selectedItem = getSelectedItem();
         if (selectedItem == null) {
@@ -424,6 +463,9 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
         return panel;
     }
 
+    /**
+     * Thiết lập kiểu dáng (màu sắc, viền, con trỏ) cho các nút bấm hành động.
+     */
     private void styleFilledButton(JButton button, Color background) {
         button.setFocusPainted(false);
         button.setBorderPainted(false);

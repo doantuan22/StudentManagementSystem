@@ -13,6 +13,9 @@ public final class DateUtil {
     private DateUtil() {
     }
 
+    /**
+     * Chuyển đổi chuỗi văn bản sang LocalDate, ném lỗi nếu chuỗi trống hoặc sai định dạng.
+     */
     public static LocalDate parseRequiredDate(String value, String fieldName) {
         String normalizedValue = ValidationUtil.requireNotBlank(
                 value,
@@ -21,6 +24,9 @@ public final class DateUtil {
         return parseDate(normalizedValue, fieldName);
     }
 
+    /**
+     * Chuyển đổi chuỗi sang LocalDate, trả về null nếu chuỗi trống hoặc không hợp lệ.
+     */
     public static LocalDate parseOptionalDate(String value, String fieldName) {
         String normalizedValue = value == null ? "" : value.trim();
         if (normalizedValue.isBlank()) {
@@ -29,6 +35,9 @@ public final class DateUtil {
         return parseDate(normalizedValue, fieldName);
     }
 
+    /**
+     * Định dạng đối tượng LocalDate thành chuỗi yyyy-MM-dd để hiển thị trên form.
+     */
     public static String formatForInput(LocalDate date) {
         return date == null ? "" : date.format(INPUT_DATE_FORMATTER);
     }

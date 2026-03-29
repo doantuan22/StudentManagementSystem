@@ -49,7 +49,7 @@ Mục tiêu thực tế có thể xác minh từ project hiện tại:
 
 ### 3.2. Phạm vi chưa thấy triển khai đầy đủ trong working tree hiện tại
 - Chưa thấy màn hình quản lý trực tiếp bảng `users` và `roles`.
-- Bảng `lecturer_subjects` có trong database nhưng chưa thấy entity/DAO/service/UI sử dụng trực tiếp, cũng chưa thấy dữ liệu seed cho bảng này.
+- Bảng `lecturer_subjects` đã được nối vào source bằng entity/DAO/service/controller và UI phía Admin; tuy nhiên vẫn chưa thấy dữ liệu seed riêng cho bảng này trong `02_seed_full_data.sql`.
 - `LecturerAssignedSubjectsPanel.java` hiện chỉ là khung rỗng và chưa được gắn vào dashboard.
 - Thư mục `docs/` hiện có file tiêu đề nhưng nội dung tài liệu thiết kế gần như chưa được viết đầy đủ.
 - Không thấy `src/test`, tức là chưa có bộ test tự động trong project hiện tại.
@@ -59,12 +59,12 @@ Mục tiêu thực tế có thể xác minh từ project hiện tại:
 - Đăng nhập và vào dashboard quản trị.
 - Xem tổng quan thống kê hệ thống.
 - Quản lý sinh viên: thêm, sửa, xóa, tìm kiếm, lọc theo khoa, lớp, niên khóa, xem chi tiết, đổi mật khẩu tài khoản sinh viên.
-- Quản lý giảng viên: thêm, sửa, xóa, lọc theo khoa, xem chi tiết, đổi mật khẩu tài khoản giảng viên.
+- Quản lý giảng viên: thêm, sửa, xóa, lọc theo khoa, xem chi tiết, đổi mật khẩu tài khoản giảng viên, gán nhiều môn giảng dạy theo whitelist `lecturer_subjects`.
 - Quản lý khoa: thêm, sửa, xóa, lọc theo mã khoa.
 - Quản lý lớp hành chính: thêm, sửa, xóa, lọc theo khoa hoặc niên khóa.
 - Quản lý phòng học: thêm, sửa, xóa, tìm theo từ khóa.
 - Quản lý môn học: thêm, sửa, xóa, lọc theo khoa.
-- Quản lý học phần: thêm, sửa, xóa, lọc theo mã học phần, phòng học hoặc khoa.
+- Quản lý học phần: thêm, sửa, xóa, lọc theo mã học phần, phòng học hoặc khoa; lọc giảng viên theo môn học từ whitelist `lecturer_subjects` với fallback dữ liệu cũ khi chưa cấu hình.
 - Quản lý đăng ký học phần: thêm, sửa, xóa, lọc theo học phần, lớp hoặc khoa.
 - Quản lý điểm: thêm, sửa, xóa điểm; xem danh sách điểm theo sinh viên; lọc theo học phần/lớp; xem chi tiết từng môn.
 - Quản lý lịch học: thêm, sửa, xóa lịch; lọc theo học phần, phòng học hoặc khoa.
@@ -193,6 +193,11 @@ Các thành phần hỗ trợ:
 | `src/main/java/com/qlsv/config/SessionManager.java` | Lưu người dùng đang đăng nhập |
 | `src/main/java/com/qlsv/config/DBConnection.java` | Utility JDBC legacy để kiểm tra kết nối/schema |
 | `src/main/java/com/qlsv/config/StudentJpaMigrationVerifier.java` | Chương trình kiểm tra smoke test cho luồng JPA của Student |
+| `src/main/java/com/qlsv/model/LecturerSubject.java` | Entity JPA mapping bảng whitelist giảng viên - môn học |
+| `src/main/java/com/qlsv/model/LecturerSubjectId.java` | Khóa ghép cho entity `LecturerSubject` |
+| `src/main/java/com/qlsv/dao/LecturerSubjectDAO.java` | Truy vấn, lưu whitelist và backfill từ `course_sections` |
+| `src/main/java/com/qlsv/service/LecturerSubjectService.java` | Nghiệp vụ đọc whitelist, kiểm tra tồn tại và backfill dữ liệu |
+| `src/main/java/com/qlsv/controller/LecturerSubjectController.java` | Cầu nối giữa UI và service cho whitelist giảng viên - môn học |
 | `src/main/java/com/qlsv/security/PasswordHasher.java` | Băm và đối chiếu mật khẩu SHA-256 |
 | `src/main/java/com/qlsv/security/RolePermission.java` | Bản đồ quyền cho từng vai trò |
 | `src/main/java/com/qlsv/service/GroqService.java` | Tích hợp Groq API |
@@ -213,12 +218,12 @@ Các thành phần hỗ trợ:
 - `AdminHomePanel`: màn hình chào và thống kê nhanh.
 - `SystemStatisticsPanel`: 5 thẻ thống kê chính.
 - `StudentManagementPanel`: CRUD sinh viên, lọc nhiều tiêu chí, đổi mật khẩu sinh viên.
-- `LecturerManagementPanel`: CRUD giảng viên, lọc theo khoa, đổi mật khẩu giảng viên.
+- `LecturerManagementPanel`: CRUD giảng viên, lọc theo khoa, đổi mật khẩu giảng viên, quản lý whitelist môn giảng dạy.
 - `FacultyManagementPanel`: CRUD khoa.
 - `ClassRoomManagementPanel`: CRUD lớp hành chính.
 - `RoomManagementPanel`: CRUD phòng học.
 - `SubjectManagementPanel`: CRUD môn học.
-- `CourseSectionManagementPanel`: CRUD học phần.
+- `CourseSectionManagementPanel`: CRUD học phần, lọc danh sách giảng viên theo môn học từ whitelist.
 - `EnrollmentManagementPanel`: CRUD đăng ký học phần.
 - `ScoreManagementPanel`: quản lý điểm theo sinh viên và môn.
 - `ScheduleManagementPanel`: quản lý lịch học.
@@ -278,7 +283,7 @@ Các thành phần hỗ trợ:
 | `schedules` | `Schedule` | Lịch học/lịch dạy |
 | `enrollments` | `Enrollment` | Đăng ký học phần |
 | `scores` | `Score` | Điểm |
-| `lecturer_subjects` | Không có entity riêng | Có trong schema nhưng chưa thấy luồng sử dụng trực tiếp |
+| `lecturer_subjects` | `LecturerSubject`, `LecturerSubjectId` | Whitelist giảng viên - môn học; dùng trong form giảng viên, filter form học phần và validate mềm ở service |
 
 ### 8.4. View và trigger
 #### View
@@ -488,9 +493,11 @@ Các thành phần hỗ trợ:
   - `subject_id -> subjects.id`
 - Liên kết: mô tả giảng viên có thể dạy môn nào.
 - Ghi chú logic:
-  - Trong source code hiện tại chưa thấy entity riêng, DAO riêng, service riêng hay màn hình đang sử dụng trực tiếp bảng này.
-  - Cũng chưa thấy dữ liệu seed chèn vào bảng này.
-  - Suy ra đây là nền tảng mở rộng, chưa trở thành luồng nghiệp vụ chính ở working tree hiện tại.
+  - Đã có entity `LecturerSubject`, khóa ghép `LecturerSubjectId`, DAO, service và controller riêng trong source code.
+  - `LecturerManagementPanel` và `LecturerFormDialog` cho phép chọn nhiều môn giảng dạy, lưu trực tiếp vào bảng này khi thêm/sửa giảng viên.
+  - `CourseSectionManagementPanel` và `CourseSectionFormDialog` dùng bảng này để lọc giảng viên theo môn học; nếu môn chưa có whitelist thì fallback hiển thị toàn bộ giảng viên để giữ tương thích dữ liệu cũ.
+  - `CourseSectionService` đang validate mềm: khi tạo mới hoặc khi sửa có đổi môn/giảng viên, nếu môn đã có whitelist thì giảng viên phải nằm trong danh sách; nếu môn chưa có whitelist thì giữ behavior cũ.
+  - Chưa thấy dữ liệu seed chèn trực tiếp vào bảng này trong `02_seed_full_data.sql`; service có hỗ trợ backfill một lần từ các cặp `lecturer_id` - `subject_id` đã có trong `course_sections`.
 
 ### 9.10. Bảng `course_sections`
 - Chức năng: lưu các lớp học phần mở cho từng môn theo học kỳ/năm học.
@@ -706,18 +713,20 @@ Các thành phần hỗ trợ:
 ### 11.3. Luồng quản lý giảng viên
 1. Admin vào `LecturerManagementPanel`.
 2. Lọc theo khoa hoặc xem tất cả.
-3. Thêm/sửa hồ sơ giảng viên qua `LecturerFormDialog`.
-4. `LecturerService` kiểm tra mã GV, ngày sinh, email, số điện thoại, khoa.
+3. Thêm/sửa hồ sơ giảng viên qua `LecturerFormDialog`, có thể chọn nhiều môn giảng dạy bằng danh sách checkbox và bỏ từng môn đã chọn bằng nút `Xóa`.
+4. `LecturerService` kiểm tra mã GV, ngày sinh, email, số điện thoại, khoa và lưu whitelist `lecturer_subjects` cùng transaction khi đi qua `saveLecturerWithSubjects(...)`.
 5. Nếu chưa có user, service tạo tài khoản hoặc liên kết tài khoản sẵn có đúng vai trò giảng viên.
 6. Admin có thể đổi mật khẩu tài khoản giảng viên.
 7. Giảng viên tự đăng nhập để chỉnh sửa thông tin liên hệ của chính mình trong `LecturerProfilePanel`.
 
 ### 11.4. Luồng quản lý môn học, học phần, lịch học
 1. Admin quản lý môn học trong `SubjectManagementPanel`.
-2. Admin tạo học phần trong `CourseSectionManagementPanel` bằng cách chọn môn học, giảng viên, học kỳ, năm học, sĩ số.
+2. Admin tạo học phần trong `CourseSectionManagementPanel` bằng cách chọn môn học, giảng viên, học kỳ, năm học, sĩ số; khi đổi môn, form sẽ ưu tiên lọc giảng viên theo whitelist `lecturer_subjects`.
 3. `CourseSectionService` kiểm tra:
    - Môn học có tồn tại.
    - Giảng viên có tồn tại.
+   - Nếu môn đã có whitelist và đang tạo mới hoặc đổi môn/giảng viên, giảng viên phải thuộc whitelist của môn đó.
+   - Nếu môn chưa có whitelist thì giữ behavior cũ, vẫn cho chọn toàn bộ giảng viên.
    - Học kỳ và năm học hợp lệ.
    - Sĩ số tối đa lớn hơn 0.
 4. Sau đó admin gán lịch học trong `ScheduleManagementPanel`.
@@ -872,7 +881,7 @@ Khi thêm sinh viên hoặc giảng viên mới từ ứng dụng:
 ### 14.2. Hạn chế
 - Chưa có test tự động.
 - Một số file tài liệu trong `docs/` mới ở mức tiêu đề.
-- Có vài thành phần mở rộng chưa nối vào luồng chính như `lecturer_subjects`, `LecturerAssignedSubjectsPanel`.
+- `lecturer_subjects` đã được nối vào luồng chính phía Admin nhưng vẫn chưa có dữ liệu seed riêng; `LecturerAssignedSubjectsPanel` vẫn chưa nối vào dashboard giảng viên.
 - `application.properties` đang chứa thông tin kết nối DB và Groq API key trực tiếp.
 - Chưa thấy màn hình quản lý trực tiếp `users` và `roles`.
 - Có dependency `jcalendar` nhưng chưa thấy sử dụng trực tiếp trong source hiện tại.
@@ -890,7 +899,7 @@ Tuy nhiên, để đạt mức hoàn thiện cao hơn theo tiêu chuẩn sản p
 
 ### 14.4. Khả năng mở rộng
 - Bổ sung màn hình quản lý người dùng và vai trò.
-- Kích hoạt đầy đủ bảng `lecturer_subjects` để quản lý phân công dạy theo môn.
+- Mở rộng `lecturer_subjects` sang màn hình riêng cho giảng viên hoặc màn quản lý môn học nếu muốn hiển thị whitelist theo từng góc nhìn.
 - Bổ sung import/export Excel.
 - Thêm cảnh báo, thông báo lịch học, nhắc học vụ.
 - Tách cấu hình bí mật sang biến môi trường.
@@ -913,4 +922,4 @@ Tuy nhiên, để đạt mức hoàn thiện cao hơn theo tiêu chuẩn sản p
 - Đã xác minh có tích hợp Groq AI ở cả luồng sinh viên và giảng viên.
 - Đã xác minh có xuất PDF ở màn hình báo cáo của Admin và danh sách sinh viên của Giảng viên.
 - Không thấy `src/test`, nên không thể khẳng định project đã có kiểm thử tự động.
-- Không thấy dữ liệu seed hoặc luồng nghiệp vụ trực tiếp cho `lecturer_subjects`; nhận định đây là phần nền tảng mở rộng là suy ra từ hiện trạng source và SQL.
+- Đã xác minh `lecturer_subjects` đã có luồng nghiệp vụ trực tiếp trong source cho quản lý whitelist môn giảng dạy của giảng viên, filter giảng viên ở form học phần và validate mềm ở `CourseSectionService`; tuy nhiên vẫn chưa có dữ liệu seed riêng trong SQL.

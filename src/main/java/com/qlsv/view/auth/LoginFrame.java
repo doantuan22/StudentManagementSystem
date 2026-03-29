@@ -63,6 +63,9 @@ public class LoginFrame extends BaseFrame {
         initComponents();
     }
 
+    /**
+     * Khởi tạo giao diện đăng nhập với các thành phần: tiêu đề, form nhập liệu và nút bấm.
+     */
     private void initComponents() {
         JPanel wrapperPanel = new JPanel(new GridBagLayout());
         wrapperPanel.setOpaque(true);
@@ -137,6 +140,9 @@ public class LoginFrame extends BaseFrame {
         });
     }
 
+    /**
+     * Tạo phần tiêu đề của trang đăng nhập (Logo và tên hệ thống).
+     */
     private JPanel createHeaderSection() {
         JPanel headerPanel = new JPanel();
         headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
@@ -166,6 +172,9 @@ public class LoginFrame extends BaseFrame {
         return headerPanel;
     }
 
+    /**
+     * Tạo phần form chứa các ô nhập tên đăng nhập và mật khẩu.
+     */
     private JPanel createFormSection(RoundedTextField usernameField, RoundedPasswordField passwordField) {
         JPanel formPanel = new JPanel();
         formPanel.setLayout(new BoxLayout(formPanel, BoxLayout.Y_AXIS));
@@ -181,6 +190,9 @@ public class LoginFrame extends BaseFrame {
         return formPanel;
     }
 
+    /**
+     * Tạo phần chứa nút bấm thực hiện hành động đăng nhập.
+     */
     private JPanel createActionSection(RoundedButton loginButton) {
         JPanel actionPanel = new JPanel(new BorderLayout());
         actionPanel.setOpaque(false);
@@ -225,6 +237,9 @@ public class LoginFrame extends BaseFrame {
         return loginButton;
     }
 
+    /**
+     * Tạo một nhóm thành phần bao gồm nhãn (label) và ô nhập liệu tương ứng.
+     */
     private JPanel createFieldGroup(String labelText, JComponent inputComponent) {
         JPanel fieldGroup = new JPanel();
         fieldGroup.setLayout(new BoxLayout(fieldGroup, BoxLayout.Y_AXIS));

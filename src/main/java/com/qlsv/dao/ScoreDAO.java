@@ -36,6 +36,9 @@ public class ScoreDAO {
             JOIN FETCH courseSection.lecturer lecturer
             """;
 
+    /**
+     * Lấy danh sách điểm của tất cả sinh viên trong hệ thống.
+     */
     public List<Score> findAll() {
         return executeRead("Không thể tải danh sách điểm.", entityManager -> {
             List<Score> scores = entityManager.createQuery(
@@ -48,6 +51,9 @@ public class ScoreDAO {
         });
     }
 
+    /**
+     * Tìm kiếm thông tin điểm theo mã định danh.
+     */
     public Optional<Score> findById(Long id) {
         return executeRead("Không thể tìm điểm theo mã định danh.", entityManager -> {
             List<Score> scores = entityManager.createQuery(
@@ -61,6 +67,9 @@ public class ScoreDAO {
         });
     }
 
+    /**
+     * Tìm điểm của một lượt đăng ký học phần cụ thể.
+     */
     public Optional<Score> findByEnrollmentId(Long enrollmentId) {
         return executeRead("Không thể tìm điểm theo đăng ký học phần.", entityManager -> {
             List<Score> scores = entityManager.createQuery(
@@ -74,6 +83,9 @@ public class ScoreDAO {
         });
     }
 
+    /**
+     * Lấy danh sách bảng điểm của một sinh viên.
+     */
     public List<Score> findByStudentId(Long studentId) {
         return executeRead("Không thể tải điểm của sinh viên.", entityManager -> {
             List<Score> scores = entityManager.createQuery(
@@ -87,6 +99,9 @@ public class ScoreDAO {
         });
     }
 
+    /**
+     * Lấy danh sách điểm của các học phần do một giảng viên phụ trách.
+     */
     public List<Score> findByLecturerId(Long lecturerId) {
         return executeRead("Không thể tải điểm của giảng viên phụ trách.", entityManager -> {
             List<Score> scores = entityManager.createQuery(
@@ -100,6 +115,9 @@ public class ScoreDAO {
         });
     }
 
+    /**
+     * Lấy bảng điểm của tất cả sinh viên trong một học phần.
+     */
     public List<Score> findByCourseSectionId(Long courseSectionId) {
         return executeRead("Không thể tải bảng điểm theo học phần.", entityManager -> {
             List<Score> scores = entityManager.createQuery(
@@ -113,6 +131,9 @@ public class ScoreDAO {
         });
     }
 
+    /**
+     * Lấy danh sách điểm của sinh viên thuộc một lớp hành chính.
+     */
     public List<Score> findByClassRoomId(Long classRoomId) {
         return executeRead("Không thể tải bảng điểm theo lớp học.", entityManager -> {
             List<Score> scores = entityManager.createQuery(
@@ -126,6 +147,9 @@ public class ScoreDAO {
         });
     }
 
+    /**
+     * Tìm kiếm điểm theo từ khóa (sinh viên, học phần, môn học, giảng viên, kết quả).
+     */
     public List<Score> searchByKeyword(String keyword) {
         String normalizedKeyword = "%" + (keyword == null ? "" : keyword.trim().toLowerCase()) + "%";
         return executeRead("Không thể tìm kiếm điểm.", entityManager -> {
@@ -159,6 +183,9 @@ public class ScoreDAO {
         });
     }
 
+    /**
+     * Ghi nhận điểm mới cho một lượt đăng ký học phần.
+     */
     public Score insert(Score score) {
         Long scoreId = executeWrite(
                 "Không thể thêm điểm.",
@@ -175,6 +202,9 @@ public class ScoreDAO {
                 .orElseThrow(() -> new AppException("Không thể tải lại điểm sau khi thêm."));
     }
 
+    /**
+     * Cập nhật thông tin điểm số hiện có.
+     */
     public boolean update(Score score) {
         return executeWrite(
                 "Không thể cập nhật điểm.",
@@ -191,6 +221,9 @@ public class ScoreDAO {
         );
     }
 
+    /**
+     * Xóa bản ghi điểm theo mã định danh.
+     */
     public boolean delete(Long id) {
         return executeWrite(
                 "Không thể xóa điểm.",

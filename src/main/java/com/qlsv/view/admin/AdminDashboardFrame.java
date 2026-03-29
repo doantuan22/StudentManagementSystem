@@ -36,6 +36,9 @@ public class AdminDashboardFrame extends BaseFrame {
         initComponents(user);
     }
 
+    /**
+     * Khởi tạo các thành phần giao diện cho khung quản trị viên chính.
+     */
     private void initComponents(User user) {
         JButton changePasswordButton = new JButton("Đổi MK");
         configureHeaderButton(changePasswordButton);
@@ -112,6 +115,9 @@ public class AdminDashboardFrame extends BaseFrame {
         add(createFooter("Trạng thái: Quản trị viên đang đăng nhập | Hệ thống sẵn sàng."), BorderLayout.SOUTH);
     }
 
+    /**
+     * Đăng ký một mục vào menu sidebar và liên kết với panel tương ứng trong CardLayout.
+     */
     private void registerMenuItem(
             SidebarMenu sidebarMenu,
             String itemKey,
@@ -127,6 +133,9 @@ public class AdminDashboardFrame extends BaseFrame {
         });
     }
 
+    /**
+     * Cấu hình kiểu dáng (style) cho các nút bấm trên thanh tiêu đề.
+     */
     private void configureHeaderButton(JButton button) {
         button.setFocusPainted(false);
         button.setBorderPainted(false);
@@ -137,6 +146,9 @@ public class AdminDashboardFrame extends BaseFrame {
         button.setBorder(BorderFactory.createEmptyBorder(8, 14, 8, 14));
     }
 
+    /**
+     * Gắn một nút chức năng vào vị trí cụ thể trên thanh tiêu đề của khung.
+     */
     private void attachHeaderAction(JPanel headerPanel, JButton actionButton, boolean insertBeforeLast) {
         if (headerPanel == null || actionButton == null) {
             return;
@@ -151,6 +163,9 @@ public class AdminDashboardFrame extends BaseFrame {
         rightPanel.repaint();
     }
 
+    /**
+     * Hiển thị hộp thoại và xử lý yêu cầu đổi mật khẩu của quản trị viên.
+     */
     private void openAdminChangePasswordDialog() {
         ChangePasswordDialog.PasswordChangeRequest request = ChangePasswordDialog.showSelfChangeDialog(
                 this,

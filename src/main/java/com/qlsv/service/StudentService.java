@@ -21,53 +21,83 @@ public class StudentService {
     private final UserDAO userDAO = new UserDAO();
     private final PermissionService permissionService = new PermissionService();
 
+    /**
+     * Lấy danh sách tất cả sinh viên (yêu cầu quyền quản lý).
+     */
     public List<Student> findAll() {
         permissionService.requirePermission(RolePermission.MANAGE_STUDENTS);
         return studentDAO.findAll();
     }
 
+    /**
+     * Lấy danh sách sinh viên để chọn trong các chức năng khác.
+     */
     public List<Student> findAllForSelection() {
         permissionService.requireLogin();
         return studentDAO.findAll();
     }
 
+    /**
+     * Lọc danh sách sinh viên theo khoa.
+     */
     public List<Student> findByFacultyId(Long facultyId) {
         permissionService.requirePermission(RolePermission.MANAGE_STUDENTS);
         return studentDAO.findByFacultyId(facultyId);
     }
 
+    /**
+     * Lọc danh sách sinh viên theo lớp học.
+     */
     public List<Student> findByClassRoomId(Long classRoomId) {
         permissionService.requirePermission(RolePermission.MANAGE_STUDENTS);
         return studentDAO.findByClassRoomId(classRoomId);
     }
 
+    /**
+     * Lọc danh sách sinh viên theo niên khóa.
+     */
     public List<Student> findByAcademicYear(String academicYear) {
         permissionService.requirePermission(RolePermission.MANAGE_STUDENTS);
         return studentDAO.findByAcademicYear(academicYear);
     }
 
+    /**
+     * Lấy danh sách tất cả niên khóa của sinh viên trong hệ thống.
+     */
     public List<String> findAcademicYears() {
         permissionService.requireLogin();
         return studentDAO.findAcademicYears();
     }
 
+    /**
+     * Tìm kiếm sinh viên theo nhiều tiêu chí kết hợp.
+     */
     public List<Student> searchStudents(String keyword, Long facultyId, Long classRoomId, String academicYear) {
         permissionService.requirePermission(RolePermission.MANAGE_STUDENTS);
         return studentDAO.searchByCriteria(keyword, facultyId, classRoomId, academicYear);
     }
 
+    /**
+     * Lấy thông tin hồ sơ của sinh viên đang đăng nhập.
+     */
     public Student findCurrentStudent() {
         permissionService.requirePermission(RolePermission.VIEW_OWN_PROFILE);
         return studentDAO.findByUserId(SessionManager.requireCurrentUser().getId())
                 .orElseThrow(() -> new ValidationException("Không tìm thấy hồ sơ sinh viên của tài khoản đang đăng nhập."));
     }
 
+    /**
+     * Tìm kiếm sinh viên theo mã định danh hệ thống.
+     */
     public Student findById(Long id) {
         permissionService.requirePermission(RolePermission.MANAGE_STUDENTS);
         return studentDAO.findById(id)
                 .orElseThrow(() -> new ValidationException("Không tìm thấy sinh viên theo mã định danh."));
     }
 
+    /**
+     * Lưu hồ sơ sinh viên và tự động đồng bộ tài khoản người dùng tương ứng.
+     */
     public Student save(Student student) {
         permissionService.requirePermission(RolePermission.MANAGE_STUDENTS);
         validate(student);
@@ -95,6 +125,9 @@ public class StudentService {
                 .orElseThrow(() -> new ValidationException("Không thể tải lại sinh viên sau khi lưu."));
     }
 
+    /**
+     * Cho phép sinh viên tự cập nhật thông tin liên hệ của chính mình.
+     */
     public Student updateCurrentStudentContactInfo(String email, String phone, String address) {
         permissionService.requirePermission(RolePermission.EDIT_OWN_PROFILE);
 
@@ -124,6 +157,9 @@ public class StudentService {
                 .orElseThrow(() -> new ValidationException("Không thể tải lại thông tin sinh viên sau khi cập nhật."));
     }
 
+    /**
+     * Xóa sinh viên khỏi hệ thống (yêu cầu quyền quản lý).
+     */
     public boolean delete(Long id) {
         permissionService.requirePermission(RolePermission.MANAGE_STUDENTS);
         return JpaBootstrap.executeInTransaction(

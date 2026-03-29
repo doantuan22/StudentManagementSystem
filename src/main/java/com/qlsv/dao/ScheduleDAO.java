@@ -28,6 +28,9 @@ public class ScheduleDAO {
             JOIN FETCH s.room room
             """;
 
+    /**
+     * Lấy danh sách tất cả các lịch học trong hệ thống, sắp xếp theo thứ và tiết học.
+     */
     public List<Schedule> findAll() {
         return executeRead("Không thể tải danh sách lịch học.", entityManager -> entityManager.createQuery(
                         FETCH_BASE + " ORDER BY s.dayOfWeek, s.startPeriod, cs.id, s.id",
@@ -36,6 +39,9 @@ public class ScheduleDAO {
                 .getResultList());
     }
 
+    /**
+     * Tìm kiếm một bản ghi lịch học dựa trên mã định danh duy nhất.
+     */
     public Optional<Schedule> findById(Long id) {
         return executeRead("Không thể tìm lịch học theo mã định danh.", entityManager -> entityManager.createQuery(
                         FETCH_BASE + " WHERE s.id = :id",
@@ -47,6 +53,9 @@ public class ScheduleDAO {
                 .findFirst());
     }
 
+    /**
+     * Truy xuất thời khóa biểu của một sinh viên cụ thể dựa trên danh sách học phần đã đăng ký.
+     */
     public List<Schedule> findByStudentId(Long studentId) {
         return executeRead("Không thể tải lịch học của sinh viên.", entityManager ->
                 entityManager.createQuery("""
@@ -65,6 +74,9 @@ public class ScheduleDAO {
                     .getResultList());
     }
 
+    /**
+     * Truy xuất lịch giảng dạy của một giảng viên cụ thể.
+     */
     public List<Schedule> findByLecturerId(Long lecturerId) {
         return executeRead("Không thể tải lịch dạy của giảng viên.", entityManager -> entityManager.createQuery(
                         FETCH_BASE + " WHERE cs.lecturer.id = :lecturerId ORDER BY s.dayOfWeek, s.startPeriod, s.id",
@@ -74,6 +86,9 @@ public class ScheduleDAO {
                 .getResultList());
     }
 
+    /**
+     * Lấy danh sách các buổi học/lịch học của một học phần xác định.
+     */
     public List<Schedule> findByCourseSectionId(Long courseSectionId) {
         return executeRead("Không thể tải lịch học của học phần.", entityManager -> entityManager.createQuery(
                         FETCH_BASE + " WHERE cs.id = :courseSectionId ORDER BY s.dayOfWeek, s.startPeriod, s.id",
@@ -83,6 +98,9 @@ public class ScheduleDAO {
                 .getResultList());
     }
 
+    /**
+     * Lọc danh sách lịch học theo phòng học cụ thể.
+     */
     public List<Schedule> findByRoom(Long roomId) {
         return executeRead("Không thể tải lịch học theo phòng học.", entityManager -> entityManager.createQuery(
                         FETCH_BASE + " WHERE room.id = :roomId ORDER BY s.dayOfWeek, s.startPeriod, s.id",
@@ -92,6 +110,9 @@ public class ScheduleDAO {
                 .getResultList());
     }
 
+    /**
+     * Lọc danh sách lịch học theo khoa quản lý.
+     */
     public List<Schedule> findByFacultyId(Long facultyId) {
         return executeRead("Không thể tải lịch học theo khoa.", entityManager -> entityManager.createQuery(
                         FETCH_BASE + " WHERE subject.faculty.id = :facultyId ORDER BY s.dayOfWeek, s.startPeriod, s.id",
@@ -101,6 +122,9 @@ public class ScheduleDAO {
                 .getResultList());
     }
 
+    /**
+     * Tìm kiếm lịch học theo từ khóa trên nhiều trường thông tin (mã học phần, môn học, giảng viên, phòng...).
+     */
     public List<Schedule> searchByKeyword(String keyword) {
         String normalizedKeyword = "%" + (keyword == null ? "" : keyword.trim().toLowerCase()) + "%";
         return executeRead("Không thể tìm kiếm lịch học.", entityManager -> entityManager.createQuery("""
@@ -128,6 +152,9 @@ public class ScheduleDAO {
                 .getResultList());
     }
 
+    /**
+     * Thêm mới một bản ghi lịch học vào cơ sở dữ liệu.
+     */
     public Schedule insert(Schedule schedule) {
         Long scheduleId = executeWrite(
                 "Không thể thêm lịch học.",
@@ -144,6 +171,9 @@ public class ScheduleDAO {
                 .orElseThrow(() -> new AppException("Không thể tải lại lịch học sau khi thêm."));
     }
 
+    /**
+     * Cập nhật thông tin của một bản ghi lịch học hiện có.
+     */
     public boolean update(Schedule schedule) {
         return executeWrite(
                 "Không thể cập nhật lịch học.",
@@ -160,6 +190,9 @@ public class ScheduleDAO {
         );
     }
 
+    /**
+     * Xóa một bản ghi lịch học khỏi hệ thống theo mã định danh.
+     */
     public boolean delete(Long id) {
         return executeWrite(
                 "Không thể xóa lịch học.",
@@ -176,6 +209,9 @@ public class ScheduleDAO {
         );
     }
 
+    /**
+     * Kiểm tra xem giảng viên có bị trùng lịch dạy vào thời gian đã chọn hay không.
+     */
     public boolean hasLecturerScheduleConflict(Long lecturerId, String dayOfWeek, Integer startPeriod,
                                                Integer endPeriod, Long excludeScheduleId) {
         return executeRead("Không thể kiểm tra trùng lịch của giảng viên.", entityManager -> {
@@ -198,6 +234,9 @@ public class ScheduleDAO {
         });
     }
 
+    /**
+     * Kiểm tra xem phòng học có bị trùng lịch sử dụng vào thời gian đã chọn hay không.
+     */
     public boolean hasRoomScheduleConflict(Long roomId, String dayOfWeek, Integer startPeriod,
                                            Integer endPeriod, Long excludeScheduleId) {
         return executeRead("Không thể kiểm tra trùng lịch của phòng học.", entityManager -> {
@@ -219,6 +258,9 @@ public class ScheduleDAO {
         });
     }
 
+    /**
+     * Kiểm tra xem sinh viên có bị trùng thời khóa biểu khi đăng ký thêm học phần mới hay không.
+     */
     public boolean hasStudentScheduleConflict(Long studentId, Long courseSectionId, Long excludeEnrollmentId) {
         return executeRead("Không thể kiểm tra trùng lịch của sinh viên.", entityManager -> {
             Long count = entityManager.createQuery("""

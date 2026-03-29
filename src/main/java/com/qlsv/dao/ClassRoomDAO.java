@@ -23,12 +23,18 @@ public class ClassRoomDAO {
             JOIN FETCH c.faculty
             """;
 
+    /**
+     * Lấy danh sách tất cả các lớp học.
+     */
     public List<ClassRoom> findAll() {
         return executeRead("Không thể tải danh sách lớp.", entityManager ->
                 entityManager.createQuery(FETCH_BASE + " ORDER BY c.id", ClassRoom.class)
                         .getResultList());
     }
 
+    /**
+     * Tìm kiếm lớp học theo mã định danh.
+     */
     public Optional<ClassRoom> findById(Long id) {
         return executeRead("Không thể tìm lớp theo mã định danh.", entityManager ->
                 entityManager.createQuery(FETCH_BASE + " WHERE c.id = :id", ClassRoom.class)
@@ -37,6 +43,9 @@ public class ClassRoomDAO {
                         .findFirst());
     }
 
+    /**
+     * Lấy danh sách lớp học thuộc một khoa cụ thể.
+     */
     public List<ClassRoom> findByFacultyId(Long facultyId) {
         return executeRead("Không thể lọc lớp theo khoa.", entityManager ->
                 entityManager.createQuery(FETCH_BASE + " WHERE c.faculty.id = :facultyId ORDER BY c.id", ClassRoom.class)
@@ -44,6 +53,9 @@ public class ClassRoomDAO {
                         .getResultList());
     }
 
+    /**
+     * Lọc danh sách lớp học theo niên khóa.
+     */
     public List<ClassRoom> findByAcademicYear(String academicYear) {
         String normalizedAcademicYear = AcademicFormatUtil.normalizeAcademicYear(academicYear, "Niên khóa");
         return executeRead("Không thể lọc lớp theo niên khóa.", entityManager ->
@@ -54,6 +66,9 @@ public class ClassRoomDAO {
                         .toList());
     }
 
+    /**
+     * Tìm kiếm lớp học theo từ khóa (mã lớp, tên lớp hoặc niên khóa).
+     */
     public List<ClassRoom> searchByKeyword(String keyword) {
         String normalizedKeyword = "%" + (keyword == null ? "" : keyword.trim().toLowerCase()) + "%";
         return executeRead("Không thể tìm kiếm lớp.", entityManager ->
@@ -67,6 +82,9 @@ public class ClassRoomDAO {
                         .getResultList());
     }
 
+    /**
+     * Thêm mới một lớp học vào hệ thống.
+     */
     public ClassRoom insert(ClassRoom classRoom) {
         Long classRoomId = executeWrite(
                 "Không thể thêm lớp.",
@@ -84,6 +102,9 @@ public class ClassRoomDAO {
                 .orElseThrow(() -> new AppException("Không thể tải lại lớp sau khi thêm."));
     }
 
+    /**
+     * Cập nhật thông tin lớp học hiện có.
+     */
     public boolean update(ClassRoom classRoom) {
         return executeWrite(
                 "Không thể cập nhật lớp.",
@@ -100,6 +121,9 @@ public class ClassRoomDAO {
         );
     }
 
+    /**
+     * Xóa lớp học khỏi hệ thống theo mã định danh.
+     */
     public boolean delete(Long id) {
         return executeWrite(
                 "Không thể xóa lớp.",
@@ -138,6 +162,9 @@ public class ClassRoomDAO {
         }
     }
 
+    /**
+     * Thực thi tác vụ ghi dữ liệu trong một transaction.
+     */
     private <T> T executeWrite(String errorMessage, String constraintMessage, Function<EntityManager, T> action) {
         try {
             return JpaBootstrap.executeInCurrentTransaction(action);

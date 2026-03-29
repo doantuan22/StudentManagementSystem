@@ -35,6 +35,9 @@ public class EnrollmentDAO {
             JOIN FETCH courseSection.lecturer lecturer
             """;
 
+    /**
+     * Lấy danh sách tất cả các đăng ký học phần trong hệ thống.
+     */
     public List<Enrollment> findAll() {
         return executeRead("Không thể tải danh sách đăng ký học phần.", entityManager -> {
             List<Enrollment> enrollments = entityManager.createQuery(
@@ -47,6 +50,9 @@ public class EnrollmentDAO {
         });
     }
 
+    /**
+     * Tìm kiếm đăng ký học phần theo mã định danh.
+     */
     public Optional<Enrollment> findById(Long id) {
         return executeRead("Không thể tìm đăng ký học phần theo mã định danh.", entityManager -> {
             List<Enrollment> enrollments = entityManager.createQuery(
@@ -60,6 +66,9 @@ public class EnrollmentDAO {
         });
     }
 
+    /**
+     * Lấy danh sách học phần đã đăng ký của một sinh viên.
+     */
     public List<Enrollment> findByStudentId(Long studentId) {
         return executeRead("Không thể tải học phần đã đăng ký của sinh viên.", entityManager -> {
             List<Enrollment> enrollments = entityManager.createQuery(
@@ -73,6 +82,9 @@ public class EnrollmentDAO {
         });
     }
 
+    /**
+     * Lấy danh sách đăng ký học phần của các lớp do giảng viên phụ trách.
+     */
     public List<Enrollment> findByLecturerId(Long lecturerId) {
         return executeRead("Không thể tải danh sách đăng ký của giảng viên.", entityManager -> {
             List<Enrollment> enrollments = entityManager.createQuery(
@@ -86,6 +98,9 @@ public class EnrollmentDAO {
         });
     }
 
+    /**
+     * Lấy danh sách đăng ký học phần của sinh viên thuộc một lớp hành chính.
+     */
     public List<Enrollment> findByClassRoomId(Long classRoomId) {
         return executeRead("Không thể tải danh sách đăng ký theo lớp học.", entityManager -> {
             List<Enrollment> enrollments = entityManager.createQuery(
@@ -99,6 +114,9 @@ public class EnrollmentDAO {
         });
     }
 
+    /**
+     * Lấy danh sách đăng ký học phần theo khoa của sinh viên.
+     */
     public List<Enrollment> findByFacultyId(Long facultyId) {
         return executeRead("Không thể tải danh sách đăng ký theo khoa.", entityManager -> {
             List<Enrollment> enrollments = entityManager.createQuery(
@@ -112,6 +130,9 @@ public class EnrollmentDAO {
         });
     }
 
+    /**
+     * Lấy danh sách sinh viên đã đăng ký vào một học phần cụ thể.
+     */
     public List<Enrollment> findByCourseSectionId(Long courseSectionId) {
         return executeRead("Không thể tải danh sách sinh viên của học phần.", entityManager -> {
             List<Enrollment> enrollments = entityManager.createQuery(
@@ -125,6 +146,9 @@ public class EnrollmentDAO {
         });
     }
 
+    /**
+     * Tìm kiếm thông tin đăng ký dựa trên mã sinh viên và mã học phần.
+     */
     public Optional<Enrollment> findByStudentAndCourseSection(Long studentId, Long courseSectionId) {
         return executeRead("Không thể tìm đăng ký theo sinh viên và học phần.", entityManager -> {
             List<Enrollment> enrollments = entityManager.createQuery(
@@ -142,6 +166,9 @@ public class EnrollmentDAO {
         });
     }
 
+    /**
+     * Tìm kiếm đăng ký học phần theo từ khóa (sinh viên, học phần, môn học, giảng viên).
+     */
     public List<Enrollment> searchByKeyword(String keyword) {
         String normalizedKeyword = "%" + (keyword == null ? "" : keyword.trim().toLowerCase()) + "%";
         return executeRead("Không thể tìm kiếm đăng ký học phần.", entityManager -> {
@@ -173,6 +200,9 @@ public class EnrollmentDAO {
         });
     }
 
+    /**
+     * Kiểm tra sinh viên đã đăng ký môn học này ở bất kỳ học phần nào chưa.
+     */
     public boolean existsByStudentAndSubject(Long studentId, Long subjectId) {
         return executeRead("Không thể kiểm tra đăng ký trùng môn học.", entityManager -> {
             Long total = entityManager.createQuery("""
@@ -189,6 +219,9 @@ public class EnrollmentDAO {
         });
     }
 
+    /**
+     * Kiểm tra sinh viên đã đăng ký vào học phần cụ thể này chưa.
+     */
     public boolean existsByStudentAndCourseSection(Long studentId, Long courseSectionId) {
         return executeRead("Không thể kiểm tra đăng ký trùng học phần.", entityManager -> {
             Long total = entityManager.createQuery("""
@@ -204,6 +237,9 @@ public class EnrollmentDAO {
         });
     }
 
+    /**
+     * Đếm tổng số lượng sinh viên đã đăng ký vào một học phần.
+     */
     public int countByCourseSectionId(Long courseSectionId) {
         return executeRead("Không thể đếm số lượng đăng ký của học phần.", entityManager -> {
             Long total = entityManager.createQuery("""
@@ -217,6 +253,9 @@ public class EnrollmentDAO {
         });
     }
 
+    /**
+     * Thêm mới một bản ghi đăng ký học phần.
+     */
     public Enrollment insert(Enrollment enrollment) {
         Long enrollmentId = executeWrite(
                 "Không thể thêm đăng ký học phần.",
@@ -233,6 +272,9 @@ public class EnrollmentDAO {
                 .orElseThrow(() -> new AppException("Không thể tải lại đăng ký học phần sau khi thêm."));
     }
 
+    /**
+     * Cập nhật trạng thái hoặc thông tin đăng ký học phần.
+     */
     public boolean update(Enrollment enrollment) {
         return executeWrite(
                 "Không thể cập nhật đăng ký học phần.",
@@ -249,6 +291,9 @@ public class EnrollmentDAO {
         );
     }
 
+    /**
+     * Xóa bản ghi đăng ký học phần theo mã định danh.
+     */
     public boolean delete(Long id) {
         return executeWrite(
                 "Không thể xóa đăng ký học phần.",
@@ -286,6 +331,9 @@ public class EnrollmentDAO {
         return entityManager.getReference(CourseSection.class, courseSection.getId());
     }
 
+    /**
+     * Đồng bộ thông tin phòng học và lịch học cho học phần để hiển thị trên giao diện cũ.
+     */
     private void hydrateCourseSectionCompatibility(EntityManager entityManager, List<Enrollment> enrollments) {
         if (enrollments == null || enrollments.isEmpty()) {
             return;

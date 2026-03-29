@@ -49,6 +49,9 @@ public class StudentHomePanel extends BasePanel {
         reloadData();
     }
 
+    /**
+     * Khởi tạo và sắp xếp các thành phần giao diện của trang chủ sinh viên.
+     */
     private void initComponents() {
         JPanel headerPanel = new JPanel(new BorderLayout(0, 8));
         headerPanel.setOpaque(false);
@@ -122,6 +125,9 @@ public class StudentHomePanel extends BasePanel {
         add(scrollPane, BorderLayout.CENTER);
     }
 
+    /**
+     * Tải lại toàn bộ dữ liệu thống kê và thông tin cá nhân của sinh viên từ service.
+     */
     public void reloadData() {
         try {
             StudentHomeDto homeData = screenController.loadHomeData();
@@ -138,6 +144,9 @@ public class StudentHomePanel extends BasePanel {
         }
     }
 
+    /**
+     * Cập nhật các trường thông tin học tập lên bảng hiển thị.
+     */
     private void updateInfoPanel(List<DisplayField> infoFields) {
         infoFieldsPanel.removeAll();
         for (DisplayField field : infoFields) {
@@ -154,6 +163,9 @@ public class StudentHomePanel extends BasePanel {
         panel.add(new JLabel(value));
     }
 
+    /**
+     * Cập nhật bảng dữ liệu lịch học sắp tới của sinh viên.
+     */
     private void updateScheduleTable(List<ScheduleDisplayDto> scheduleRows) {
         scheduleTableModel.setRowCount(0);
         for (ScheduleDisplayDto scheduleRow : scheduleRows) {
@@ -166,6 +178,9 @@ public class StudentHomePanel extends BasePanel {
         }
     }
 
+    /**
+     * Bọc một thành phần nội dung trong một Panel có tiêu đề và viền kiểu Card.
+     */
     private JPanel wrapWithTitle(String title, JPanel content) {
         JPanel wrapper = new JPanel(new BorderLayout(0, 10));
         wrapper.setOpaque(true);

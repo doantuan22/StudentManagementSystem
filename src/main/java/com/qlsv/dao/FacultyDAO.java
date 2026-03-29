@@ -16,6 +16,9 @@ import java.util.function.Function;
  */
 public class FacultyDAO {
 
+    /**
+     * Lấy danh sách tất cả các khoa.
+     */
     public List<Faculty> findAll() {
         return executeRead("Không thể tải danh sách khoa.", entityManager ->
                 entityManager.createQuery("""
@@ -26,6 +29,9 @@ public class FacultyDAO {
                         .getResultList());
     }
 
+    /**
+     * Tìm khoa theo mã định danh.
+     */
     public Optional<Faculty> findById(Long id) {
         return executeRead("Không thể tìm khoa theo mã định danh.", entityManager ->
                 entityManager.createQuery("""
@@ -38,6 +44,9 @@ public class FacultyDAO {
                         .findFirst());
     }
 
+    /**
+     * Tìm khoa theo mã khoa (ví dụ: CNTT).
+     */
     public Optional<Faculty> findByCode(String facultyCode) {
         String normalizedCode = facultyCode == null ? "" : facultyCode.trim();
         return executeRead("Không thể tìm khoa theo mã khoa.", entityManager ->
@@ -51,6 +60,9 @@ public class FacultyDAO {
                         .findFirst());
     }
 
+    /**
+     * Tìm kiếm khoa theo từ khóa (mã khoa hoặc tên khoa).
+     */
     public List<Faculty> searchByKeyword(String keyword) {
         String normalizedKeyword = "%" + (keyword == null ? "" : keyword.trim().toLowerCase()) + "%";
         return executeRead("Không thể tìm kiếm khoa.", entityManager ->
@@ -65,6 +77,9 @@ public class FacultyDAO {
                         .getResultList());
     }
 
+    /**
+     * Thêm mới một khoa vào hệ thống.
+     */
     public Faculty insert(Faculty faculty) {
         Long facultyId = executeWrite(
                 "Không thể thêm khoa.",
@@ -82,6 +97,9 @@ public class FacultyDAO {
                 .orElseThrow(() -> new AppException("Không thể tải lại khoa sau khi thêm."));
     }
 
+    /**
+     * Cập nhật thông tin khoa hiện có.
+     */
     public boolean update(Faculty faculty) {
         return executeWrite(
                 "Không thể cập nhật khoa.",
@@ -98,6 +116,9 @@ public class FacultyDAO {
         );
     }
 
+    /**
+     * Xóa khoa khỏi hệ thống theo mã định danh.
+     */
     public boolean delete(Long id) {
         return executeWrite(
                 "Không thể xóa khoa.",

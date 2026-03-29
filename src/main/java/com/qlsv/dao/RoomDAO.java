@@ -13,6 +13,9 @@ import java.util.function.Function;
 
 public class RoomDAO {
 
+    /**
+     * Lấy danh sách tất cả các phòng học trong cơ sở dữ liệu.
+     */
     public List<Room> findAll() {
         return executeRead("Không thể tải danh sách phòng học.", entityManager ->
                 entityManager.createQuery("""
@@ -23,6 +26,9 @@ public class RoomDAO {
                         .getResultList());
     }
 
+    /**
+     * Tìm kiếm phòng học dựa trên mã định danh duy nhất.
+     */
     public Optional<Room> findById(Long id) {
         return executeRead("Không thể tìm phòng học theo mã định danh.", entityManager ->
                 entityManager.createQuery("""
@@ -35,6 +41,9 @@ public class RoomDAO {
                         .findFirst());
     }
 
+    /**
+     * Tìm kiếm phòng học theo từ khóa dựa trên mã phòng hoặc tên phòng.
+     */
     public List<Room> searchByKeyword(String keyword) {
         String normalizedKeyword = "%" + (keyword == null ? "" : keyword.trim().toLowerCase()) + "%";
         return executeRead("Không thể tìm kiếm phòng học.", entityManager ->
@@ -49,6 +58,9 @@ public class RoomDAO {
                         .getResultList());
     }
 
+    /**
+     * Thêm mới một phòng học vào hệ thống.
+     */
     public Room insert(Room room) {
         Long roomId = executeWrite(
                 "Không thể thêm phòng học.",
@@ -66,6 +78,9 @@ public class RoomDAO {
                 .orElseThrow(() -> new AppException("Không thể tải lại phòng học sau khi thêm."));
     }
 
+    /**
+     * Cập nhật thông tin phòng học hiện có.
+     */
     public boolean update(Room room) {
         return executeWrite(
                 "Không thể cập nhật phòng học.",
@@ -82,6 +97,9 @@ public class RoomDAO {
         );
     }
 
+    /**
+     * Xóa phòng học khỏi cơ sở dữ liệu theo mã định danh.
+     */
     public boolean delete(Long id) {
         return executeWrite(
                 "Không thể xóa phòng học.",

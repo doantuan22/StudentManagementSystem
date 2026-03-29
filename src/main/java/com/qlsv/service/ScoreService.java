@@ -30,11 +30,17 @@ public class ScoreService {
     private final LecturerDAO lecturerDAO = new LecturerDAO();
     private final PermissionService permissionService = new PermissionService();
 
+    /**
+     * Lấy danh sách toàn bộ điểm trong hệ thống dành cho người quản trị.
+     */
     public List<Score> findAll() {
         permissionService.requirePermission(RolePermission.MANAGE_SCORES);
         return scoreDAO.findAll();
     }
 
+    /**
+     * Lấy danh sách điểm của sinh viên đang đăng nhập.
+     */
     public List<Score> findByCurrentStudent() {
         permissionService.requirePermission(RolePermission.VIEW_OWN_SCORES);
         Student student = studentDAO.findByUserId(SessionManager.requireCurrentUser().getId())
@@ -42,6 +48,9 @@ public class ScoreService {
         return scoreDAO.findByStudentId(student.getId());
     }
 
+    /**
+     * Lấy danh sách điểm của các học phần do giảng viên đang đăng nhập phụ trách.
+     */
     public List<Score> findByCurrentLecturer() {
         permissionService.requirePermission(RolePermission.MANAGE_SCORES);
         Lecturer lecturer = lecturerDAO.findByUserId(SessionManager.requireCurrentUser().getId())
@@ -66,16 +75,25 @@ public class ScoreService {
         return scores;
     }
 
+    /**
+     * Lấy bảng điểm chi tiết cho một học phần cụ thể.
+     */
     public List<Score> findByCourseSectionId(Long courseSectionId) {
         permissionService.requirePermission(RolePermission.MANAGE_SCORES);
         return scoreDAO.findByCourseSectionId(courseSectionId);
     }
 
+    /**
+     * Lấy bảng điểm của tất cả sinh viên thuộc một lớp hành chính.
+     */
     public List<Score> findByClassRoomId(Long classRoomId) {
         permissionService.requirePermission(RolePermission.MANAGE_SCORES);
         return scoreDAO.findByClassRoomId(classRoomId);
     }
 
+    /**
+     * Tính toán tổng kết và lưu thông tin điểm số (có kiểm tra quyền hạn).
+     */
     public Score save(Score score) {
         permissionService.requirePermission(RolePermission.MANAGE_SCORES);
         return JpaBootstrap.executeInTransaction(
@@ -108,6 +126,9 @@ public class ScoreService {
         );
     }
 
+    /**
+     * Xóa bản ghi điểm hệ thống (chỉ dành cho quản trị viên).
+     */
     public boolean delete(Long id) {
         permissionService.requireAnyRole(Role.ADMIN);
         return JpaBootstrap.executeInTransaction(

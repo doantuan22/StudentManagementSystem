@@ -1,6 +1,7 @@
 package com.qlsv.view.dialog;
 
 import com.qlsv.model.Faculty;
+import com.qlsv.model.Subject;
 import com.qlsv.view.common.AppColors;
 import com.qlsv.view.common.FilterOption;
 
@@ -8,6 +9,7 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -28,7 +30,10 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.Window;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class LecturerFormDialog extends JDialog {
 
@@ -49,6 +54,11 @@ public class LecturerFormDialog extends JDialog {
     private final JTextArea addressArea = new JTextArea();
     private final JComboBox<Faculty> facultyComboBox = new JComboBox<>();
     private final JComboBox<FilterOption<String>> statusComboBox = new JComboBox<>(STATUS_OPTIONS);
+    private final JPanel selectedSubjectsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 8));
+    private final JPanel subjectCardsPanel = new JPanel();
+
+    private final List<Subject> availableSubjects = new ArrayList<>();
+    private final Map<Long, JCheckBox> subjectCheckboxes = new LinkedHashMap<>();
 
     private LecturerFormResult result;
 
@@ -87,6 +97,8 @@ public class LecturerFormDialog extends JDialog {
         bodyPanel.add(Box.createVerticalStrut(24));
         bodyPanel.add(createWorkInfoSection());
         bodyPanel.add(Box.createVerticalStrut(24));
+        bodyPanel.add(createTeachingInfoSection());
+        bodyPanel.add(Box.createVerticalStrut(24));
         bodyPanel.add(createContactInfoSection());
 
         JScrollPane scrollPane = new JScrollPane(bodyPanel);
@@ -120,15 +132,15 @@ public class LecturerFormDialog extends JDialog {
         bindModel(model);
 
         getRootPane().setDefaultButton(saveButton);
-        setMinimumSize(new Dimension(720, 620));
-        setSize(new Dimension(760, 660));
+        setMinimumSize(new Dimension(820, 760));
+        setSize(new Dimension(860, 800));
         setLocationRelativeTo(getOwner());
     }
 
     private void bindModel(LecturerFormModel model) {
         lecturerCodeField.setText(model.lecturerCode());
         fullNameField.setText(model.fullName());
-        genderComboBox.setSelectedItem(model.gender());
+        selectGender(model.gender());
         dateOfBirthField.setText(model.dateOfBirth());
         emailField.setText(model.email());
         phoneField.setText(model.phone());
@@ -142,6 +154,7 @@ public class LecturerFormDialog extends JDialog {
             facultyComboBox.setSelectedItem(model.selectedFaculty());
         }
 
+        rebuildSubjectSelection(model.subjects(), model.selectedSubjects());
         selectStatus(model.status());
         SwingUtilities.invokeLater(() -> lecturerCodeField.requestFocusInWindow());
     }
@@ -160,6 +173,44 @@ public class LecturerFormDialog extends JDialog {
         contentPanel.add(createField("Khoa", styleComboBox(facultyComboBox)), fieldConstraints(0, 0));
         contentPanel.add(createField("Trạng thái", styleComboBox(statusComboBox)), fieldConstraints(1, 0));
         return createSection("Thông tin công tác", "Thông tin khoa phụ trách và trạng thái sử dụng tài khoản.", contentPanel);
+    }
+
+    private JPanel createTeachingInfoSection() {
+        JPanel contentPanel = new JPanel(new BorderLayout(0, 14));
+        contentPanel.setOpaque(false);
+
+        JPanel selectedWrapper = new JPanel(new BorderLayout(0, 8));
+        selectedWrapper.setOpaque(false);
+        JLabel selectedLabel = new JLabel("Môn đã chọn");
+        selectedLabel.setFont(selectedLabel.getFont().deriveFont(Font.BOLD, 12.5f));
+        selectedLabel.setForeground(AppColors.CARD_TITLE_TEXT);
+
+        selectedSubjectsPanel.setOpaque(true);
+        selectedSubjectsPanel.setBackground(AppColors.CONTENT_BACKGROUND);
+        selectedSubjectsPanel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(AppColors.CARD_BORDER),
+                BorderFactory.createEmptyBorder(8, 8, 8, 8)
+        ));
+
+        selectedWrapper.add(selectedLabel, BorderLayout.NORTH);
+        selectedWrapper.add(selectedSubjectsPanel, BorderLayout.CENTER);
+
+        JPanel cardsWrapper = new JPanel(new BorderLayout(0, 8));
+        cardsWrapper.setOpaque(false);
+        JLabel cardsLabel = new JLabel("Chọn môn giảng dạy");
+        cardsLabel.setFont(cardsLabel.getFont().deriveFont(Font.BOLD, 12.5f));
+        cardsLabel.setForeground(AppColors.CARD_TITLE_TEXT);
+        cardsWrapper.add(cardsLabel, BorderLayout.NORTH);
+        cardsWrapper.add(createSubjectCardsScrollPane(), BorderLayout.CENTER);
+
+        contentPanel.add(selectedWrapper, BorderLayout.NORTH);
+        contentPanel.add(cardsWrapper, BorderLayout.CENTER);
+
+        return createSection(
+                "Môn giảng dạy",
+                "Tích chọn nhiều môn học. Ở danh sách đã chọn, bạn có thể bấm Xóa để bỏ từng môn.",
+                contentPanel
+        );
     }
 
     private JPanel createContactInfoSection() {
@@ -246,6 +297,18 @@ public class LecturerFormDialog extends JDialog {
         return scrollPane;
     }
 
+    private JScrollPane createSubjectCardsScrollPane() {
+        subjectCardsPanel.setOpaque(false);
+        subjectCardsPanel.setLayout(new BoxLayout(subjectCardsPanel, BoxLayout.Y_AXIS));
+
+        JScrollPane scrollPane = new JScrollPane(subjectCardsPanel);
+        scrollPane.setBorder(BorderFactory.createLineBorder(AppColors.INPUT_BORDER));
+        scrollPane.getViewport().setBackground(AppColors.CARD_BACKGROUND);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        scrollPane.setPreferredSize(new Dimension(0, 260));
+        return scrollPane;
+    }
+
     private JTextField styleTextField(JTextField textField) {
         textField.setFont(textField.getFont().deriveFont(Font.PLAIN, 13.5f));
         textField.setBorder(BorderFactory.createCompoundBorder(
@@ -285,6 +348,16 @@ public class LecturerFormDialog extends JDialog {
         button.setBorder(BorderFactory.createEmptyBorder(10, 18, 10, 18));
     }
 
+    private void styleChipButton(JButton button) {
+        button.setFocusPainted(false);
+        button.setBorderPainted(false);
+        button.setOpaque(true);
+        button.setBackground(AppColors.BUTTON_DANGER);
+        button.setForeground(AppColors.BUTTON_TEXT);
+        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        button.setBorder(BorderFactory.createEmptyBorder(6, 10, 6, 10));
+    }
+
     private void selectStatus(String statusCode) {
         for (int index = 0; index < statusComboBox.getItemCount(); index++) {
             FilterOption<String> option = statusComboBox.getItemAt(index);
@@ -294,6 +367,135 @@ public class LecturerFormDialog extends JDialog {
             }
         }
         statusComboBox.setSelectedIndex(0);
+    }
+
+    private void selectGender(String gender) {
+        String normalizedGender = gender == null ? "" : gender.trim();
+        for (int index = 0; index < genderComboBox.getItemCount(); index++) {
+            String option = genderComboBox.getItemAt(index);
+            if (option != null && option.equalsIgnoreCase(normalizedGender)) {
+                genderComboBox.setSelectedIndex(index);
+                return;
+            }
+        }
+        if ("Nu".equalsIgnoreCase(normalizedGender)) {
+            genderComboBox.setSelectedItem("Nữ");
+            return;
+        }
+        if ("Khac".equalsIgnoreCase(normalizedGender)) {
+            genderComboBox.setSelectedItem("Khác");
+            return;
+        }
+        genderComboBox.setSelectedIndex(0);
+    }
+
+    private void rebuildSubjectSelection(List<Subject> subjects, List<Subject> selectedSubjects) {
+        availableSubjects.clear();
+        subjectCheckboxes.clear();
+        subjectCardsPanel.removeAll();
+
+        if (subjects != null) {
+            availableSubjects.addAll(subjects);
+        }
+
+        for (Subject subject : availableSubjects) {
+            JCheckBox checkBox = new JCheckBox(buildSubjectText(subject));
+            checkBox.setOpaque(false);
+            checkBox.setSelected(selectedSubjects != null && selectedSubjects.contains(subject));
+            checkBox.addActionListener(event -> refreshSelectedSubjectsPanel());
+            subjectCheckboxes.put(subject.getId(), checkBox);
+            subjectCardsPanel.add(createSubjectCard(checkBox));
+            subjectCardsPanel.add(Box.createVerticalStrut(8));
+        }
+
+        refreshSelectedSubjectsPanel();
+        subjectCardsPanel.revalidate();
+        subjectCardsPanel.repaint();
+    }
+
+    private JPanel createSubjectCard(JCheckBox checkBox) {
+        JPanel card = new JPanel(new BorderLayout());
+        card.setOpaque(true);
+        card.setBackground(AppColors.CARD_BACKGROUND);
+        card.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(AppColors.CARD_BORDER),
+                BorderFactory.createEmptyBorder(10, 12, 10, 12)
+        ));
+        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 54));
+        card.add(checkBox, BorderLayout.CENTER);
+        return card;
+    }
+
+    private void refreshSelectedSubjectsPanel() {
+        selectedSubjectsPanel.removeAll();
+        List<Subject> selectedSubjects = getSelectedSubjects();
+        if (selectedSubjects.isEmpty()) {
+            JLabel emptyLabel = new JLabel("Chưa chọn môn giảng dạy nào.");
+            emptyLabel.setForeground(AppColors.CARD_MUTED_TEXT);
+            selectedSubjectsPanel.add(emptyLabel);
+        } else {
+            for (Subject subject : selectedSubjects) {
+                selectedSubjectsPanel.add(createSelectedSubjectChip(subject));
+            }
+        }
+        selectedSubjectsPanel.revalidate();
+        selectedSubjectsPanel.repaint();
+    }
+
+    private JPanel createSelectedSubjectChip(Subject subject) {
+        JPanel chip = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        chip.setOpaque(true);
+        chip.setBackground(AppColors.CARD_BACKGROUND);
+        chip.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(AppColors.CARD_BORDER),
+                BorderFactory.createEmptyBorder(6, 8, 6, 8)
+        ));
+
+        JLabel label = new JLabel(buildSubjectText(subject));
+        label.setForeground(AppColors.CARD_VALUE_TEXT);
+        label.setFont(label.getFont().deriveFont(Font.PLAIN, 12.5f));
+
+        JButton removeButton = new JButton("Xóa");
+        styleChipButton(removeButton);
+        removeButton.addActionListener(event -> removeSubjectSelection(subject));
+
+        chip.add(label);
+        chip.add(removeButton);
+        return chip;
+    }
+
+    private void removeSubjectSelection(Subject subject) {
+        if (subject == null || subject.getId() == null) {
+            return;
+        }
+        JCheckBox checkBox = subjectCheckboxes.get(subject.getId());
+        if (checkBox != null) {
+            checkBox.setSelected(false);
+        }
+        refreshSelectedSubjectsPanel();
+    }
+
+    private String buildSubjectText(Subject subject) {
+        if (subject == null) {
+            return "";
+        }
+        String subjectCode = subject.getSubjectCode() == null ? "" : subject.getSubjectCode().trim();
+        String subjectName = subject.getSubjectName() == null ? "" : subject.getSubjectName().trim();
+        return subjectCode.isBlank() ? subjectName : subjectCode + " - " + subjectName;
+    }
+
+    private List<Subject> getSelectedSubjects() {
+        List<Subject> selectedSubjects = new ArrayList<>();
+        for (Subject subject : availableSubjects) {
+            if (subject == null || subject.getId() == null) {
+                continue;
+            }
+            JCheckBox checkBox = subjectCheckboxes.get(subject.getId());
+            if (checkBox != null && checkBox.isSelected()) {
+                selectedSubjects.add(subject);
+            }
+        }
+        return selectedSubjects;
     }
 
     private void handleSave() {
@@ -307,7 +509,8 @@ public class LecturerFormDialog extends JDialog {
                 phoneField.getText(),
                 addressArea.getText(),
                 (Faculty) facultyComboBox.getSelectedItem(),
-                selectedStatus == null ? "ACTIVE" : selectedStatus.value()
+                selectedStatus == null ? "ACTIVE" : selectedStatus.value(),
+                getSelectedSubjects()
         );
         dispose();
     }
@@ -330,7 +533,9 @@ public class LecturerFormDialog extends JDialog {
             String address,
             List<Faculty> faculties,
             Faculty selectedFaculty,
-            String status
+            String status,
+            List<Subject> subjects,
+            List<Subject> selectedSubjects
     ) {
     }
 
@@ -343,7 +548,8 @@ public class LecturerFormDialog extends JDialog {
             String phone,
             String address,
             Faculty faculty,
-            String status
+            String status,
+            List<Subject> subjects
     ) {
     }
 }

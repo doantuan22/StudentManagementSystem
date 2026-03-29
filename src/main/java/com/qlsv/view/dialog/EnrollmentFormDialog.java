@@ -71,12 +71,18 @@ public class EnrollmentFormDialog extends JDialog {
         initComponents(model);
     }
 
+    /**
+     * Hiển thị hộp thoại và trả về kết quả đăng ký học phần sau khi người dùng xác nhận.
+     */
     public static EnrollmentFormResult showDialog(Component parent, EnrollmentFormModel model) {
         EnrollmentFormDialog dialog = new EnrollmentFormDialog(parent, model);
         dialog.setVisible(true);
         return dialog.result;
     }
 
+    /**
+     * Khởi tạo các thành phần giao diện cho form đăng ký học phần của sinh viên.
+     */
     private void initComponents(EnrollmentFormModel model) {
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
@@ -140,6 +146,9 @@ public class EnrollmentFormDialog extends JDialog {
         setLocationRelativeTo(getOwner());
     }
 
+    /**
+     * Điền dữ liệu ban đầu từ model vào các trường thông tin trên form.
+     */
     private void bindModel(EnrollmentFormModel model) {
         courseSectionComboBox.removeAllItems();
         for (CourseSection courseSection : model.courseSections()) {
@@ -199,6 +208,9 @@ public class EnrollmentFormDialog extends JDialog {
         return createSection("Thông tin đăng ký","", contentPanel);
     }
 
+    /**
+     * Cài đặt các lắng nghe sự kiện trên ô tìm kiếm và danh sách gợi ý sinh viên.
+     */
     private void registerStudentPickerBehavior() {
         studentSearchField.getDocument().addDocumentListener(new DocumentListener() {
             @Override
@@ -246,6 +258,9 @@ public class EnrollmentFormDialog extends JDialog {
         });
     }
 
+    /**
+     * Làm mới danh sách gợi ý sinh viên dựa trên từ khóa tìm kiếm hiện tại.
+     */
     private void refreshSuggestions() {
         suggestionModel.clear();
         List<Student> matchedStudents = filterStudentsByKeyword(studentSearchField.getText());
@@ -259,6 +274,9 @@ public class EnrollmentFormDialog extends JDialog {
         }
     }
 
+    /**
+     * Xác nhận sinh viên được chọn từ danh sách gợi ý và cập nhật lên form.
+     */
     private void commitSelectedStudent() {
         Student student = suggestionList.getSelectedValue();
         if (student == null) {
@@ -279,6 +297,9 @@ public class EnrollmentFormDialog extends JDialog {
                 : "Đã chọn: " + formatStudentDisplay(selectedStudent));
     }
 
+    /**
+     * Kiểm tra tính hợp lệ và thu thập dữ liệu đăng ký để đóng hộp thoại.
+     */
     private void handleSave() {
         if (selectedStudent == null) {
             validationLabel.setText("Hãy chọn một sinh viên từ danh sách gợi ý.");
@@ -405,6 +426,9 @@ public class EnrollmentFormDialog extends JDialog {
         statusComboBox.setSelectedIndex(0);
     }
 
+    /**
+     * Lọc danh sách sinh viên theo mã hoặc họ tên (không phân biệt dấu).
+     */
     private List<Student> filterStudentsByKeyword(String keyword) {
         String normalizedKeyword = normalizeSearchText(keyword);
         if (normalizedKeyword.isBlank()) {

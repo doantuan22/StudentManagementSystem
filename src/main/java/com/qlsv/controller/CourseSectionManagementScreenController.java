@@ -9,16 +9,22 @@ import com.qlsv.model.Room;
 import com.qlsv.model.Subject;
 import com.qlsv.utils.AcademicFormatUtil;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class CourseSectionManagementScreenController {
 
     private final CourseSectionController courseSectionController = new CourseSectionController();
     private final SubjectController subjectController = new SubjectController();
     private final LecturerController lecturerController = new LecturerController();
+    private final LecturerSubjectController lecturerSubjectController = new LecturerSubjectController();
     private final FacultyController facultyController = new FacultyController();
     private final RoomController roomController = new RoomController();
 
+    /**
+     * Tải danh sách các học phần dựa trên các tiêu chí lọc (tất cả, mã, phòng, khoa).
+     */
     public List<CourseSection> loadItems(boolean filterReady, String filterType, Object filterValue,
                                          String filterAll, String filterSectionCode, String filterRoom, String filterFaculty) {
         if (!filterReady) {
@@ -40,6 +46,9 @@ public class CourseSectionManagementScreenController {
         return List.of();
     }
 
+    /**
+     * Xây dựng danh sách các trường thông tin chi tiết của học phần để hiển thị.
+     */
     public List<DisplayField> buildDetailFields(CourseSection courseSection) {
         if (courseSection == null) {
             return List.of();
@@ -56,6 +65,9 @@ public class CourseSectionManagementScreenController {
         );
     }
 
+    /**
+     * Chuyển đổi đối tượng CourseSection sang DTO để phục vụ hiển thị trên bảng.
+     */
     public CourseSectionDisplayDto toDisplayDto(CourseSection courseSection) {
         return DisplayDtoMapper.toCourseSectionDisplayDto(courseSection);
     }
@@ -72,6 +84,24 @@ public class CourseSectionManagementScreenController {
         return lecturerController.getLecturersForSelection();
     }
 
+    /**
+     * Lấy danh sách giảng viên có khả năng giảng dạy các môn học tương ứng.
+     */
+    public Map<Long, List<Lecturer>> loadLecturersBySubject(List<Subject> subjects) {
+        lecturerSubjectController.backfillFromCourseSectionsIfNeeded();
+        Map<Long, List<Lecturer>> lecturersBySubjectId = new LinkedHashMap<>();
+        if (subjects == null) {
+            return lecturersBySubjectId;
+        }
+        for (Subject subject : subjects) {
+            if (subject == null || subject.getId() == null) {
+                continue;
+            }
+            lecturersBySubjectId.put(subject.getId(), lecturerSubjectController.getLecturersBySubject(subject.getId()));
+        }
+        return lecturersBySubjectId;
+    }
+
     public List<Faculty> loadFaculties() {
         return facultyController.getFacultiesForSelection();
     }
@@ -80,21 +110,30 @@ public class CourseSectionManagementScreenController {
         return roomController.getRoomsForSelection();
     }
 
+    /**
+     * Cập nhật thông tin đối tượng CourseSection từ dữ liệu form nhập liệu.
+     */
     public CourseSection applyFormData(CourseSection existingItem, CourseSectionFormData formData) {
         CourseSection courseSection = existingItem == null ? new CourseSection() : existingItem;
         courseSection.setSectionCode(formData.sectionCode().trim());
         courseSection.setSubject(formData.subject());
         courseSection.setLecturer(formData.lecturer());
-        courseSection.setSemester(AcademicFormatUtil.normalizeSemester(formData.semester(), "Học kỳ"));
-        courseSection.setSchoolYear(AcademicFormatUtil.normalizeAcademicYear(formData.schoolYear(), "Năm học"));
+        courseSection.setSemester(AcademicFormatUtil.normalizeSemester(formData.semester(), "Hoc ky"));
+        courseSection.setSchoolYear(AcademicFormatUtil.normalizeAcademicYear(formData.schoolYear(), "Nam hoc"));
         courseSection.setMaxStudents(Integer.parseInt(formData.maxStudents().trim()));
         return courseSection;
     }
 
+    /**
+     * Gửi yêu cầu lưu học phần xuống tầng controller quản lý.
+     */
     public void saveCourseSection(CourseSection courseSection) {
         courseSectionController.saveCourseSection(courseSection);
     }
 
+    /**
+     * Gửi yêu cầu xóa học phần xuống tầng controller quản lý.
+     */
     public void deleteCourseSection(CourseSection courseSection) {
         courseSectionController.deleteCourseSection(courseSection.getId());
     }

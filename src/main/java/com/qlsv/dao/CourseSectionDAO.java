@@ -29,6 +29,9 @@ public class CourseSectionDAO {
             JOIN FETCH cs.lecturer l
             """;
 
+    /**
+     * Lấy danh sách tất cả các học phần trong hệ thống.
+     */
     public List<CourseSection> findAll() {
         return executeRead("Không thể tải danh sách học phần.", entityManager -> {
             List<CourseSection> courseSections = entityManager.createQuery(
@@ -41,6 +44,9 @@ public class CourseSectionDAO {
         });
     }
 
+    /**
+     * Tìm kiếm học phần theo mã định danh.
+     */
     public Optional<CourseSection> findById(Long id) {
         return executeRead("Không thể tìm học phần theo mã định danh.", entityManager -> {
             List<CourseSection> courseSections = entityManager.createQuery(
@@ -54,6 +60,9 @@ public class CourseSectionDAO {
         });
     }
 
+    /**
+     * Lấy danh sách học phần do một giảng viên phụ trách.
+     */
     public List<CourseSection> findByLecturerId(Long lecturerId) {
         return executeRead("Không thể tải học phần của giảng viên.", entityManager -> {
             List<CourseSection> courseSections = entityManager.createQuery(
@@ -67,6 +76,9 @@ public class CourseSectionDAO {
         });
     }
 
+    /**
+     * Lấy danh sách học phần thuộc một khoa cụ thể.
+     */
     public List<CourseSection> findByFacultyId(Long facultyId) {
         return executeRead("Không thể tải học phần theo khoa.", entityManager -> {
             List<CourseSection> courseSections = entityManager.createQuery(
@@ -80,6 +92,9 @@ public class CourseSectionDAO {
         });
     }
 
+    /**
+     * Tìm kiếm học phần theo mã học phần.
+     */
     public List<CourseSection> findBySectionCode(String sectionCode) {
         String normalizedSectionCode = sectionCode == null ? "" : sectionCode.trim();
         return executeRead("Không thể tải học phần theo mã học phần.", entityManager -> {
@@ -94,6 +109,9 @@ public class CourseSectionDAO {
         });
     }
 
+    /**
+     * Lấy danh sách học phần được xếp lịch tại một phòng học.
+     */
     public List<CourseSection> findByRoomId(Long roomId) {
         return executeRead("Không thể tải học phần theo phòng học.", entityManager -> {
             List<CourseSection> courseSections = entityManager.createQuery("""
@@ -117,6 +135,9 @@ public class CourseSectionDAO {
         });
     }
 
+    /**
+     * Tìm kiếm học phần theo từ khóa (mã, học kỳ, năm học, tên môn, giảng viên, phòng).
+     */
     public List<CourseSection> searchByKeyword(String keyword) {
         String normalizedKeyword = "%" + (keyword == null ? "" : keyword.trim().toLowerCase()) + "%";
         return executeRead("Không thể tìm kiếm học phần.", entityManager -> {
@@ -152,6 +173,9 @@ public class CourseSectionDAO {
         });
     }
 
+    /**
+     * Thêm mới một học phần vào hệ thống.
+     */
     public CourseSection insert(CourseSection courseSection) {
         Long courseSectionId = executeWrite(
                 "Không thể thêm học phần.",
@@ -169,6 +193,9 @@ public class CourseSectionDAO {
                 .orElseThrow(() -> new AppException("Không thể tải lại học phần sau khi thêm."));
     }
 
+    /**
+     * Cập nhật thông tin học phần hiện có.
+     */
     public boolean update(CourseSection courseSection) {
         return executeWrite(
                 "Không thể cập nhật học phần.",
@@ -185,6 +212,9 @@ public class CourseSectionDAO {
         );
     }
 
+    /**
+     * Xóa học phần khỏi hệ thống theo mã định danh.
+     */
     public boolean delete(Long id) {
         return executeWrite(
                 "Không thể xóa học phần.",
@@ -201,6 +231,9 @@ public class CourseSectionDAO {
         );
     }
 
+    /**
+     * Đếm số lượng sinh viên đã đăng ký vào học phần.
+     */
     public int countEnrollments(Long courseSectionId) {
         return executeRead("Không thể đếm số lượng đăng ký của học phần.", entityManager -> {
             Long count = entityManager.createQuery("""
@@ -237,6 +270,9 @@ public class CourseSectionDAO {
         return entityManager.getReference(Lecturer.class, lecturer.getId());
     }
 
+    /**
+     * Đồng bộ dữ liệu lịch học để đảm bảo tương thích với giao diện cũ.
+     */
     private void hydrateScheduleCompatibility(EntityManager entityManager, List<CourseSection> courseSections) {
         if (courseSections == null || courseSections.isEmpty()) {
             return;

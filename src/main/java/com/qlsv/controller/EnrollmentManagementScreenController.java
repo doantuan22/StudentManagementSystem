@@ -19,6 +19,9 @@ public class EnrollmentManagementScreenController {
     private final ClassRoomController classRoomController = new ClassRoomController();
     private final FacultyController facultyController = new FacultyController();
 
+    /**
+     * Tải danh sách đăng ký học phần dựa trên các tiêu chí lọc đa dạng.
+     */
     public List<Enrollment> loadItems(boolean filterReady, String filterType, Object filterValue,
                                       String filterAll, String filterSectionCode, String filterClassRoom, String filterFaculty) {
         if (!filterReady) {
@@ -40,6 +43,9 @@ public class EnrollmentManagementScreenController {
         return List.of();
     }
 
+    /**
+     * Xây dựng danh sách thông tin chi tiết của bản ghi đăng ký để hiển thị.
+     */
     public List<DisplayField> buildDetailFields(Enrollment enrollment) {
         if (enrollment == null) {
             return List.of();
@@ -57,6 +63,9 @@ public class EnrollmentManagementScreenController {
         );
     }
 
+    /**
+     * Chuyển đổi Enrollment sang EnrollmentDisplayDto để hiển thị trên UI.
+     */
     public EnrollmentDisplayDto toDisplayDto(Enrollment enrollment) {
         return DisplayDtoMapper.toEnrollmentDisplayDto(enrollment);
     }
@@ -77,6 +86,9 @@ public class EnrollmentManagementScreenController {
         return facultyController.getFacultiesForSelection();
     }
 
+    /**
+     * Đồng bộ dữ liệu từ form nhập liệu vào đối tượng Enrollment.
+     */
     public Enrollment applyFormData(Enrollment existingItem, EnrollmentFormData formData) {
         Enrollment enrollment = existingItem == null ? new Enrollment() : existingItem;
         enrollment.setStudent(formData.student());
@@ -88,10 +100,16 @@ public class EnrollmentManagementScreenController {
         return enrollment;
     }
 
+    /**
+     * Gửi yêu cầu lưu bản ghi đăng ký xuống tầng nghiệp vụ.
+     */
     public void saveEnrollment(Enrollment enrollment) {
         enrollmentController.saveEnrollment(enrollment);
     }
 
+    /**
+     * Gửi yêu cầu xóa bản ghi đăng ký khỏi hệ thống.
+     */
     public void deleteEnrollment(Enrollment enrollment) {
         enrollmentController.deleteEnrollment(enrollment.getId());
     }

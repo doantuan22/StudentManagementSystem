@@ -17,6 +17,9 @@ public class StudentManagementScreenController {
     private final FacultyController facultyController = new FacultyController();
     private final ClassRoomController classRoomController = new ClassRoomController();
 
+    /**
+     * Tải danh sách sinh viên dựa trên bộ lọc (tất cả, khoa, lớp, niên khóa).
+     */
     public List<Student> loadItems(boolean filterReady, String filterType, Object filterValue,
                                    String filterAll, String filterFaculty, String filterClassRoom, String filterAcademicYear) {
         if (!filterReady) {
@@ -38,6 +41,9 @@ public class StudentManagementScreenController {
         return List.of();
     }
 
+    /**
+     * Tìm kiếm sinh viên theo từ khóa kết hợp với các bộ lọc hiện tại.
+     */
     public List<Student> searchItems(boolean filterReady, String filterType, Object filterValue,
                                      String filterAll, String filterFaculty, String filterClassRoom,
                                      String filterAcademicYear, String keyword) {
@@ -63,6 +69,9 @@ public class StudentManagementScreenController {
         return studentController.searchStudents(keyword, facultyId, classRoomId, academicYear);
     }
 
+    /**
+     * Tải lại thông tin chi tiết của sinh viên được chọn từ danh sách.
+     */
     public Student resolveSelection(Student selectedItem) {
         if (selectedItem == null || selectedItem.getId() == null) {
             return selectedItem;
@@ -70,6 +79,9 @@ public class StudentManagementScreenController {
         return studentController.getStudentById(selectedItem.getId());
     }
 
+    /**
+     * Chuyển đổi đối tượng Student sang DTO để hiển thị trên giao diện.
+     */
     public StudentDisplayDto toDisplayDto(Student student) {
         return DisplayDtoMapper.toStudentDisplayDto(student);
     }
@@ -103,10 +115,16 @@ public class StudentManagementScreenController {
         return classRoomController.getClassRoomsForSelection();
     }
 
+    /**
+     * Lấy danh sách các niên khóa hiện có để hiển thị lên bộ lọc.
+     */
     public List<String> loadAcademicYears() {
         return studentController.getAcademicYearsForSelection();
     }
 
+    /**
+     * Lọc danh sách lớp học dựa trên khoa đã chọn để đồng bộ dữ liệu trên form.
+     */
     public List<ClassRoom> filterClassRooms(List<ClassRoom> allClassRooms, Faculty selectedFaculty) {
         if (selectedFaculty == null || selectedFaculty.getId() == null) {
             return allClassRooms;
@@ -118,6 +136,9 @@ public class StudentManagementScreenController {
                 .toList();
     }
 
+    /**
+     * Chuyển đổi dữ liệu từ form nhập liệu sang đối tượng Student.
+     */
     public Student applyFormData(Student existingItem, StudentFormData formData) {
         Student student = existingItem == null ? new Student() : existingItem;
         student.setStudentCode(ValidationUtil.normalizeCodePrefix(formData.studentCode(), "SV", "MÃ£ sinh viÃªn"));
@@ -134,10 +155,16 @@ public class StudentManagementScreenController {
         return student;
     }
 
+    /**
+     * Gửi yêu cầu lưu thông tin sinh viên xuống tầng nghiệp vụ.
+     */
     public void saveStudent(Student student) {
         studentController.saveStudent(student);
     }
 
+    /**
+     * Gửi yêu cầu xóa sinh viên xuống tầng nghiệp vụ.
+     */
     public void deleteStudent(Student student) {
         studentController.deleteStudent(student.getId());
     }

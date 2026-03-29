@@ -16,6 +16,9 @@ public final class AcademicFormatUtil {
     private AcademicFormatUtil() {
     }
 
+    /**
+     * Chuẩn hóa niên khóa về định dạng "yyyy - yyyy" và ném lỗi nếu không hợp lệ.
+     */
     public static String normalizeAcademicYear(String value, String fieldName) {
         String normalizedValue = tryNormalizeAcademicYear(value);
         if (normalizedValue == null) {
@@ -24,6 +27,9 @@ public final class AcademicFormatUtil {
         return normalizedValue;
     }
 
+    /**
+     * Thử chuẩn hóa chuỗi niên khóa, trả về null nếu định dạng không đúng hoặc năm kết thúc không lớn hơn năm bắt đầu.
+     */
     public static String tryNormalizeAcademicYear(String value) {
         if (value == null) {
             return null;
@@ -51,6 +57,9 @@ public final class AcademicFormatUtil {
         return String.format("%04d - %04d", startYear, endYear);
     }
 
+    /**
+     * Định dạng lại chuỗi niên khóa để hiển thị, giữ nguyên nếu không chuẩn hóa được.
+     */
     public static String formatAcademicYear(String value) {
         String normalizedValue = tryNormalizeAcademicYear(value);
         if (normalizedValue != null) {
@@ -59,12 +68,18 @@ public final class AcademicFormatUtil {
         return value == null ? "" : value.trim();
     }
 
+    /**
+     * So sánh hai chuỗi niên khóa dựa trên giá trị đã được chuẩn hóa.
+     */
     public static boolean academicYearsEqual(String left, String right) {
         String normalizedLeft = normalizeAcademicYearForCompare(left);
         String normalizedRight = normalizeAcademicYearForCompare(right);
         return !normalizedLeft.isBlank() && normalizedLeft.equalsIgnoreCase(normalizedRight);
     }
 
+    /**
+     * Chuẩn hóa tên học kỳ (HK1, HK2, HK3) và ném lỗi nếu giá trị không nằm trong danh sách cho phép.
+     */
     public static String normalizeSemester(String value, String fieldName) {
         String normalizedValue = tryNormalizeSemester(value);
         if (normalizedValue == null) {
@@ -73,6 +88,9 @@ public final class AcademicFormatUtil {
         return normalizedValue;
     }
 
+    /**
+     * Thử chuẩn hóa tên học kỳ về dạng viết hoa không khoảng trắng.
+     */
     public static String tryNormalizeSemester(String value) {
         if (value == null) {
             return null;
@@ -87,6 +105,9 @@ public final class AcademicFormatUtil {
         return null;
     }
 
+    /**
+     * Định dạng tên học kỳ để hiển thị đồng nhất trên giao diện.
+     */
     public static String formatSemester(String value) {
         String normalizedValue = tryNormalizeSemester(value);
         if (normalizedValue != null) {

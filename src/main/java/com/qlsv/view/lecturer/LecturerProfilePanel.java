@@ -55,6 +55,9 @@ public class LecturerProfilePanel extends BasePanel {
         reloadData();
     }
 
+    /**
+     * Khởi tạo các thành phần giao diện cơ bản cho bảng thông tin giảng viên.
+     */
     private void initComponents() {
         contentPanel.setOpaque(false);
         contentPanel.setLayout(new GridBagLayout());
@@ -82,6 +85,9 @@ public class LecturerProfilePanel extends BasePanel {
         }
     }
 
+    /**
+     * Dựng lại giao diện hồ sơ giảng viên dựa trên dữ liệu và trạng thái hiện tại.
+     */
     private void renderProfile() {
         contentPanel.removeAll();
 
@@ -110,6 +116,9 @@ public class LecturerProfilePanel extends BasePanel {
         contentPanel.repaint();
     }
 
+    /**
+     * Xây dựng thẻ biểu ngữ (Hero Card) chứa thông tin tóm tắt và nút chức năng.
+     */
     private JPanel buildHeroCard() {
         JPanel card = createCard(HERO_BACKGROUND);
         card.add(buildHeroHeader(), BorderLayout.NORTH);
@@ -176,6 +185,9 @@ public class LecturerProfilePanel extends BasePanel {
         return summaryPanel;
     }
 
+    /**
+     * Xây dựng thanh công cụ chứa các nút chức năng (Đổi MK, Cập nhật, Lưu, Hủy).
+     */
     private JPanel buildActionPanel() {
         JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 0));
         actionPanel.setOpaque(false);
@@ -217,6 +229,9 @@ public class LecturerProfilePanel extends BasePanel {
         return actionPanel;
     }
 
+    /**
+     * Sắp xếp các thẻ thông tin chi tiết (Định danh, Công tác, Liên hệ) vào lưới.
+     */
     private JPanel buildSectionGrid() {
         JPanel sectionsPanel = new JPanel(new GridBagLayout());
         sectionsPanel.setOpaque(false);
@@ -282,6 +297,9 @@ public class LecturerProfilePanel extends BasePanel {
         return card;
     }
 
+    /**
+     * Xây dựng thẻ chứa thông tin liên hệ (Email, SĐT, Địa chỉ) với chế độ chỉnh sửa.
+     */
     private JPanel buildContactCard() {
         JPanel card = createSectionCard(
                 "Thông tin liên hệ",
@@ -442,6 +460,9 @@ public class LecturerProfilePanel extends BasePanel {
         button.setFont(button.getFont().deriveFont(Font.BOLD));
     }
 
+    /**
+     * Xử lý gửi yêu cầu lưu thông tin liên hệ của giảng viên sau khi chỉnh sửa.
+     */
     private void handleSave() {
         try {
             String email = emailField.getText().trim();
@@ -465,6 +486,9 @@ public class LecturerProfilePanel extends BasePanel {
         }
     }
 
+    /**
+     * Hiển thị hộp thoại và thực hiện đổi mật khẩu cho tài khoản giảng viên.
+     */
     private void openChangePasswordDialog() {
         ChangePasswordDialog.PasswordChangeRequest request = ChangePasswordDialog.showSelfChangeDialog(
                 this,

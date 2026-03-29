@@ -5,6 +5,9 @@ import com.qlsv.model.User;
 
 public class DashboardController {
 
+    /**
+     * Xác định màn hình bảng điều khiển (Dashboard) phù hợp dựa trên vai trò của người dùng.
+     */
     public DashboardDestination resolveDashboard(User user) {
         if (user.getRole() == Role.ADMIN) {
             return DashboardDestination.ADMIN;

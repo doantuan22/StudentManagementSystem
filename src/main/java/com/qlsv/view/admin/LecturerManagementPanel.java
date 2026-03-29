@@ -3,11 +3,14 @@ package com.qlsv.view.admin;
 import com.qlsv.controller.CourseSectionController;
 import com.qlsv.controller.FacultyController;
 import com.qlsv.controller.LecturerController;
+import com.qlsv.controller.LecturerSubjectController;
+import com.qlsv.controller.SubjectController;
 import com.qlsv.controller.UserController;
 import com.qlsv.model.CourseSection;
 import com.qlsv.model.Faculty;
 import com.qlsv.model.Lecturer;
 import com.qlsv.model.Role;
+import com.qlsv.model.Subject;
 import com.qlsv.utils.DateUtil;
 import com.qlsv.utils.DialogUtil;
 import com.qlsv.utils.DisplayTextUtil;
@@ -28,6 +31,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -38,7 +42,9 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
     private static final String FILTER_FACULTY = "Theo khoa";
 
     private final LecturerController lecturerController = new LecturerController();
+    private final LecturerSubjectController lecturerSubjectController = new LecturerSubjectController();
     private final FacultyController facultyController = new FacultyController();
+    private final SubjectController subjectController = new SubjectController();
     private final CourseSectionController courseSectionController = new CourseSectionController();
     private final UserController userController = new UserController();
 
@@ -50,9 +56,10 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
     );
 
     private boolean filterReady;
+    private List<Subject> pendingSelectedSubjects = List.of();
 
     public LecturerManagementPanel() {
-        super("Quản lý giảng viên");
+        super("Quan ly giang vien");
         filterTypeComboBox.setSelectedItem(FILTER_ALL);
         setFilterPanel(buildFilterPanel());
         setDetailPanel(detailSectionPanel);
@@ -73,6 +80,9 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
         changePasswordButton.addActionListener(event -> openAdminChangePasswordDialog());
     }
 
+    /**
+     * Tòa danh sách giảng viên từ dịch vụ dựa trên các điều kiện lọc đang áp dụng.
+     */
     @Override
     protected List<Lecturer> loadItems() {
         if (!filterReady) {
@@ -90,6 +100,9 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
         };
     }
 
+    /**
+     * Chuyển đổi thông tin giảng viên thành các giá trị cột để hiển thị trên bảng dữ liệu.
+     */
     @Override
     protected Object[] toRow(Lecturer item) {
         return new Object[]{
@@ -107,10 +120,13 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
     @Override
     protected String getEmptyStateMessage() {
         return filterReady
-                ? "Không tìm thấy giảng viên phù hợp với điều kiện lọc hiện tại."
+                ? "Không có giảng viên nào phù hợp với điều kiện lọc hiện tại."
                 : "Vui lòng chọn điều kiện lọc để hiển thị danh sách giảng viên.";
     }
 
+    /**
+     * Hiển thị thông tin chi tiết và danh sách môn học giảng dạy khi chọn một giảng viên.
+     */
     @Override
     protected void onSelectionChanged(Lecturer selectedItem) {
         if (selectedItem == null) {
@@ -118,10 +134,18 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
             return;
         }
 
-        List<CourseSection> assignedCourseSections = courseSectionController.getCourseSectionsByLecturer(selectedItem.getId());
-        String subjects = DisplayTextUtil.joinUniqueTexts(assignedCourseSections.stream()
-                .map(courseSection -> courseSection.getSubject() == null ? null : courseSection.getSubject().getSubjectName())
-                .collect(Collectors.toList()));
+        List<Subject> whitelistSubjects = lecturerSubjectController.getSubjectsByLecturer(selectedItem.getId());
+        List<String> subjectNames;
+        if (whitelistSubjects.isEmpty()) {
+            List<CourseSection> assignedCourseSections = courseSectionController.getCourseSectionsByLecturer(selectedItem.getId());
+            subjectNames = assignedCourseSections.stream()
+                    .map(courseSection -> courseSection.getSubject() == null ? null : courseSection.getSubject().getSubjectName())
+                    .collect(Collectors.toList());
+        } else {
+            subjectNames = whitelistSubjects.stream()
+                    .map(Subject::getSubjectName)
+                    .collect(Collectors.toList());
+        }
 
         detailSectionPanel.showFields(new String[][]{
                 {"Mã giảng viên", DisplayTextUtil.defaultText(selectedItem.getLecturerCode())},
@@ -132,7 +156,7 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
                 {"Email", DisplayTextUtil.defaultText(selectedItem.getEmail())},
                 {"Địa chỉ", DisplayTextUtil.defaultText(selectedItem.getAddress())},
                 {"Khoa", selectedItem.getFaculty() == null ? "Chưa cập nhật" : DisplayTextUtil.defaultText(selectedItem.getFaculty().getFacultyName())},
-                {"Môn giảng dạy", subjects},
+                {"Môn giảng dạy", DisplayTextUtil.joinUniqueTexts(subjectNames)},
                 {"Trạng thái", DisplayTextUtil.formatStatus(selectedItem.getStatus())}
         });
     }
@@ -142,8 +166,18 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
         return new LecturerDetailDialog(detailPanel);
     }
 
+    /**
+     * Mở hộp thoại để người dùng nhập thông tin hồ sơ và chọn môn học giảng dạy cho giảng viên.
+     */
     @Override
     protected Lecturer promptForEntity(Lecturer existingItem) {
+        lecturerSubjectController.backfillFromCourseSectionsIfNeeded();
+
+        List<Subject> availableSubjects = subjectController.getSubjectsForSelection();
+        List<Subject> selectedSubjects = existingItem == null
+                ? List.of()
+                : new ArrayList<>(lecturerSubjectController.getSubjectsByLecturer(existingItem.getId()));
+
         LecturerFormDialog.LecturerFormResult formResult = LecturerFormDialog.showDialog(
                 this,
                 new LecturerFormDialog.LecturerFormModel(
@@ -157,15 +191,20 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
                         existingItem == null ? "" : existingItem.getAddress(),
                         facultyController.getFacultiesForSelection(),
                         existingItem == null ? null : existingItem.getFaculty(),
-                        existingItem == null ? "ACTIVE" : existingItem.getStatus()
+                        existingItem == null ? "ACTIVE" : existingItem.getStatus(),
+                        availableSubjects,
+                        selectedSubjects
                 )
         );
         if (formResult == null) {
+            pendingSelectedSubjects = List.of();
             return null;
         }
 
+        pendingSelectedSubjects = new ArrayList<>(formResult.subjects());
+
         Lecturer lecturer = existingItem == null ? new Lecturer() : existingItem;
-        lecturer.setLecturerCode(ValidationUtil.normalizeCodePrefix(formResult.lecturerCode(), "GV", "MÃ£ giáº£ng viÃªn"));
+        lecturer.setLecturerCode(ValidationUtil.normalizeCodePrefix(formResult.lecturerCode(), "GV", "Mã giảng viên"));
         lecturer.setFullName(formResult.fullName().trim());
         lecturer.setGender(formResult.gender());
         lecturer.setDateOfBirth(DateUtil.parseRequiredDate(formResult.dateOfBirth(), "Ngày sinh"));
@@ -177,16 +216,26 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
         return lecturer;
     }
 
+    /**
+     * Lưu thông tin giảng viên kèm theo danh sách các môn học được phân công giảng dạy.
+     */
     @Override
     protected void saveEntity(Lecturer item) {
-        lecturerController.saveLecturer(item);
+        lecturerController.saveLecturerWithSubjects(item, pendingSelectedSubjects);
+        pendingSelectedSubjects = List.of();
     }
 
+    /**
+     * Thực hiện xóa giảng viên khỏi hệ thống dựa trên ID.
+     */
     @Override
     protected void deleteEntity(Lecturer item) {
         lecturerController.deleteLecturer(item.getId());
     }
 
+    /**
+     * Khởi tạo giao diện thanh công cụ chứa các bộ lọc tìm kiếm giảng viên.
+     */
     private JPanel buildFilterPanel() {
         JButton applyButton = new JButton("Áp dụng");
         JButton resetButton = new JButton("Đặt lại");
@@ -215,6 +264,9 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
         return filterPanel;
     }
 
+    /**
+     * Cập nhật danh sách các giá trị khả dụng cho bộ lọc theo khoa.
+     */
     private void reloadFilterValues() {
         String filterType = (String) filterTypeComboBox.getSelectedItem();
         filterReady = FILTER_ALL.equals(filterType);
@@ -255,10 +307,13 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
         return type.cast(selectedOption.value());
     }
 
+    /**
+     * Cho phép quản trị viên đặt lại mật khẩu đăng nhập cho giảng viên đã chọn.
+     */
     private void openAdminChangePasswordDialog() {
         Lecturer selectedItem = getSelectedItem();
         if (selectedItem == null) {
-            DialogUtil.showError(this, "Hãy chọn đúng 1 giảng viên để đổi mật khẩu.");
+            DialogUtil.showError(this, "Vui lòng chọn đúng 1 giảng viên để đổi mật khẩu.");
             return;
         }
         if (selectedItem.getUserId() == null) {
@@ -268,7 +323,7 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
 
         ChangePasswordDialog.PasswordChangeRequest request = ChangePasswordDialog.showAdminResetDialog(
                 this,
-                "Đổi mật khẩu giảng viên"
+                "Đổi mật khẩu giảng viên: " + selectedItem.getFullName()
         );
         if (request == null) {
             return;

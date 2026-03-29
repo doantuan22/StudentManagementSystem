@@ -11,6 +11,9 @@ public class AuthService {
 
     private final UserDAO userDAO = new UserDAO();
 
+    /**
+     * Thực hiện kiểm tra thông tin đăng nhập và thiết lập phiên làm việc.
+     */
     public User login(String username, String password) {
         // Xu ly dang nhap tap trung tai service de UI chi lo hien thi.
         String normalizedUsername = ValidationUtil.requireNotBlank(username, "Tên đăng nhập không được để trống.");
@@ -31,6 +34,9 @@ public class AuthService {
         return user;
     }
 
+    /**
+     * Đăng xuất người dùng hiện tại và xóa phiên làm việc.
+     */
     public void logout() {
         AuthManager.logout();
     }

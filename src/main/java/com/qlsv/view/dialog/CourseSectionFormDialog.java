@@ -176,7 +176,7 @@ public class CourseSectionFormDialog extends JDialog {
     private JPanel createOverviewSection() {
         JPanel contentPanel = createFieldGridPanel();
         contentPanel.add(createField("Mã học phần", styleTextField(sectionCodeField)), fieldConstraints(0, 0));
-        contentPanel.add(createField("ôn học", styleComboBox(subjectComboBox)), fieldConstraints(1, 0));
+        contentPanel.add(createField("Môn học", styleComboBox(subjectComboBox)), fieldConstraints(1, 0));
         contentPanel.add(createField("Giảng viên", styleComboBox(lecturerComboBox)), fieldConstraints(0, 1, 2));
         return createSection("Thông tin cơ bản", "Cấu hình học phần và giảng viên phụ trách.", contentPanel);
     }

@@ -95,20 +95,19 @@ public class AdminDashboardFrame extends BaseFrame {
 
         SidebarMenu sidebarMenu = new SidebarMenu(
                 "Trang quản trị",
-                ""
-        );
-        registerMenuItem(sidebarMenu, "home", "Tổng quan", cardLayout, contentPanel, "home", homePanel);
-        registerMenuItem(sidebarMenu, "students", "Quản lý sinh viên", cardLayout, contentPanel, "students", studentManagementPanel);
-        registerMenuItem(sidebarMenu, "lecturers", "Quản lý giảng viên", cardLayout, contentPanel, "lecturers", lecturerManagementPanel);
-        registerMenuItem(sidebarMenu, "faculties", "Quản lý khoa", cardLayout, contentPanel, "faculties", facultyManagementPanel);
-        registerMenuItem(sidebarMenu, "classes", "Quản lý lớp", cardLayout, contentPanel, "classes", classRoomManagementPanel);
-        registerMenuItem(sidebarMenu, "rooms", "Quản lý phòng", cardLayout, contentPanel, "rooms", roomManagementPanel);
-        registerMenuItem(sidebarMenu, "subjects", "Quản lý môn học", cardLayout, contentPanel, "subjects", subjectManagementPanel);
-        registerMenuItem(sidebarMenu, "sections", "Quản lý học phần", cardLayout, contentPanel, "sections", courseSectionManagementPanel);
-        registerMenuItem(sidebarMenu, "enrollments", "Quản lý đăng ký", cardLayout, contentPanel, "enrollments", enrollmentManagementPanel);
-        registerMenuItem(sidebarMenu, "scores", "Quản lý điểm", cardLayout, contentPanel, "scores", scoreManagementPanel);
-        registerMenuItem(sidebarMenu, "schedules", "Quản lý lịch học", cardLayout, contentPanel, "schedules", scheduleManagementPanel);
-        registerMenuItem(sidebarMenu, "reports", "Báo cáo", cardLayout, contentPanel, "reports", reportManagementPanel);
+                "");
+        registerMenuItem(sidebarMenu, com.qlsv.utils.IconUtil.IconType.DASHBOARD, "home", "Tổng quan", cardLayout, contentPanel, "home", homePanel);
+        registerMenuItem(sidebarMenu, com.qlsv.utils.IconUtil.IconType.USER_GROUP, "students", "Quản lý sinh viên", cardLayout, contentPanel, "students", studentManagementPanel);
+        registerMenuItem(sidebarMenu, com.qlsv.utils.IconUtil.IconType.LECTURERS, "lecturers", "Quản lý giảng viên", cardLayout, contentPanel, "lecturers", lecturerManagementPanel);
+        registerMenuItem(sidebarMenu, com.qlsv.utils.IconUtil.IconType.BUILDING, "faculties", "Quản lý khoa", cardLayout, contentPanel, "faculties", facultyManagementPanel);
+        registerMenuItem(sidebarMenu, com.qlsv.utils.IconUtil.IconType.CLASSES, "classes", "Quản lý lớp", cardLayout, contentPanel, "classes", classRoomManagementPanel);
+        registerMenuItem(sidebarMenu, com.qlsv.utils.IconUtil.IconType.ROOMS, "rooms", "Quản lý phòng", cardLayout, contentPanel, "rooms", roomManagementPanel);
+        registerMenuItem(sidebarMenu, com.qlsv.utils.IconUtil.IconType.BOOK, "subjects", "Quản lý môn học", cardLayout, contentPanel, "subjects", subjectManagementPanel);
+        registerMenuItem(sidebarMenu, com.qlsv.utils.IconUtil.IconType.SECTIONS, "sections", "Quản lý học phần", cardLayout, contentPanel, "sections", courseSectionManagementPanel);
+        registerMenuItem(sidebarMenu, com.qlsv.utils.IconUtil.IconType.ENROLLMENT, "enrollments", "Quản lý đăng ký", cardLayout, contentPanel, "enrollments", enrollmentManagementPanel);
+        registerMenuItem(sidebarMenu, com.qlsv.utils.IconUtil.IconType.SCORES, "scores", "Quản lý điểm", cardLayout, contentPanel, "scores", scoreManagementPanel);
+        registerMenuItem(sidebarMenu, com.qlsv.utils.IconUtil.IconType.SCHEDULE, "schedules", "Quản lý lịch học", cardLayout, contentPanel, "schedules", scheduleManagementPanel);
+        registerMenuItem(sidebarMenu, com.qlsv.utils.IconUtil.IconType.REPORTS, "reports", "Báo cáo", cardLayout, contentPanel, "reports", reportManagementPanel);
         sidebarMenu.setActiveItem("home");
         cardLayout.show(contentPanel, "home");
 
@@ -125,18 +124,19 @@ public class AdminDashboardFrame extends BaseFrame {
     }
 
     /**
-     * Đăng ký một mục vào menu sidebar và liên kết với panel tương ứng trong CardLayout.
+     * Đăng ký một mục vào menu sidebar và liên kết với panel tương ứng trong
+     * CardLayout.
      */
     private void registerMenuItem(
             SidebarMenu sidebarMenu,
+            com.qlsv.utils.IconUtil.IconType iconType,
             String itemKey,
             String text,
             CardLayout cardLayout,
             JPanel contentPanel,
             String cardName,
-            BasePanel panel
-    ) {
-        sidebarMenu.addMenuItem(itemKey, text, () -> {
+            BasePanel panel) {
+        sidebarMenu.addMenuItem(iconType, itemKey, text, () -> {
             panel.reloadData();
             cardLayout.show(contentPanel, cardName);
         });
@@ -178,8 +178,7 @@ public class AdminDashboardFrame extends BaseFrame {
     private void openAdminChangePasswordDialog() {
         ChangePasswordDialog.PasswordChangeRequest request = ChangePasswordDialog.showSelfChangeDialog(
                 this,
-                "Đổi mật khẩu quản trị viên"
-        );
+                "Đổi mật khẩu quản trị viên");
         if (request == null) {
             return;
         }
@@ -188,8 +187,7 @@ public class AdminDashboardFrame extends BaseFrame {
             userController.changeCurrentPassword(
                     request.currentPassword(),
                     request.newPassword(),
-                    request.confirmPassword()
-            );
+                    request.confirmPassword());
             DialogUtil.showInfo(this, "Đổi mật khẩu quản trị viên thành công.");
         } catch (Exception exception) {
             DialogUtil.showError(this, exception.getMessage());

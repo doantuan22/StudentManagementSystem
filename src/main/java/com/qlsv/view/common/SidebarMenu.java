@@ -14,6 +14,7 @@ import javax.swing.SwingConstants;
 import javax.swing.border.LineBorder;
 import javax.swing.border.EmptyBorder;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -77,14 +78,26 @@ public class SidebarMenu extends JPanel {
     }
 
     /**
+     * Thêm một mục menu vào sidebar kèm theo biểu tượng và hành động tương ứng khi click.
+     */
+    public JButton addMenuItem(com.qlsv.utils.IconUtil.IconType iconType, String key, String text, Runnable action) {
+        JButton button = addMenuItem(key, text, action);
+        if (iconType != null) {
+            button.setIcon(com.qlsv.utils.IconUtil.getIcon(iconType, 18));
+            button.setIconTextGap(14);
+        }
+        return button;
+    }
+
+    /**
      * Thêm một mục menu vào sidebar kèm theo hành động tương ứng khi click.
      */
     public JButton addMenuItem(String key, String text, Runnable action) {
         JButton button = new JButton(text);
         button.setAlignmentX(Component.LEFT_ALIGNMENT);
-        button.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
-        button.setMinimumSize(new Dimension(210, 42));
-        button.setPreferredSize(new Dimension(210, 42));
+        button.setMaximumSize(new Dimension(Integer.MAX_VALUE, 46));
+        button.setMinimumSize(new Dimension(210, 46));
+        button.setPreferredSize(new Dimension(210, 46));
         button.setBorder(new EmptyBorder(10, 14, 10, 14));
         button.setFocusPainted(false);
         button.setBorderPainted(false);
@@ -95,24 +108,16 @@ public class SidebarMenu extends JPanel {
         button.setForeground(AppColors.SIDEBAR_TEXT);
         button.setFont(button.getFont().deriveFont(Font.PLAIN, 13.5f));
 
-        // Sidebar gom toan bo nut chuc nang vao mot khoi rieng, co hover va active
-        // nhung van giu nguyen action dieu huong cu cua tung man hinh.
         button.addActionListener(event -> {
             setActiveItem(key);
             action.run();
         });
         button.addMouseListener(new MouseAdapter() {
-            /**
-             * Xử lý mouse entered.
-             */
             @Override
             public void mouseEntered(MouseEvent event) {
                 updateButtonState(key, button, true);
             }
 
-            /**
-             * Xử lý mouse exited.
-             */
             @Override
             public void mouseExited(MouseEvent event) {
                 updateButtonState(key, button, false);
@@ -123,7 +128,7 @@ public class SidebarMenu extends JPanel {
 
         menuButtons.put(key, button);
         if (menuItemsPanel.getComponentCount() > 0) {
-            menuItemsPanel.add(Box.createVerticalStrut(6));
+            menuItemsPanel.add(Box.createVerticalStrut(4));
         }
         menuItemsPanel.add(button);
         return button;
@@ -159,12 +164,15 @@ public class SidebarMenu extends JPanel {
         boolean isActive = key != null && key.equals(activeKey);
         if (isActive) {
             button.setBackground(AppColors.SIDEBAR_BUTTON_ACTIVE);
+            button.setForeground(Color.WHITE);
             button.setFont(button.getFont().deriveFont(Font.BOLD, 13.5f));
         } else if (hovered) {
             button.setBackground(AppColors.SIDEBAR_BUTTON_HOVER);
+            button.setForeground(AppColors.SIDEBAR_TEXT);
             button.setFont(button.getFont().deriveFont(Font.PLAIN, 13.5f));
         } else {
             button.setBackground(AppColors.SIDEBAR_BUTTON);
+            button.setForeground(AppColors.SIDEBAR_MUTED_TEXT);
             button.setFont(button.getFont().deriveFont(Font.PLAIN, 13.5f));
         }
         button.setOpaque(true);

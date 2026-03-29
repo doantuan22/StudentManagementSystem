@@ -72,11 +72,11 @@ public class LecturerDashboardFrame extends BaseFrame {
                 "Giảng viên",
                 ""
         );
-        registerMenuItem(sidebarMenu, "profile", "Thông tin cá nhân", cardLayout, contentPanel, "profile", profilePanel);
-        registerMenuItem(sidebarMenu, "sections", "Học phần phụ trách", cardLayout, contentPanel, "sections", sectionPanel);
-        registerMenuItem(sidebarMenu, "students", "Danh sách sinh viên", cardLayout, contentPanel, "students", studentListPanel);
-        registerMenuItem(sidebarMenu, "scores", "Nhập/Xem điểm ", cardLayout, contentPanel, "scores", scorePanel);
-        registerMenuItem(sidebarMenu, "schedule", "Lịch dạy", cardLayout, contentPanel, "schedule", schedulePanel);
+        registerMenuItem(sidebarMenu, com.qlsv.utils.IconUtil.IconType.PROFILE, "profile", "Thông tin cá nhân", cardLayout, contentPanel, "profile", profilePanel);
+        registerMenuItem(sidebarMenu, com.qlsv.utils.IconUtil.IconType.SECTIONS, "sections", "Học phần phụ trách", cardLayout, contentPanel, "sections", sectionPanel);
+        registerMenuItem(sidebarMenu, com.qlsv.utils.IconUtil.IconType.USER_GROUP, "students", "Danh sách sinh viên", cardLayout, contentPanel, "students", studentListPanel);
+        registerMenuItem(sidebarMenu, com.qlsv.utils.IconUtil.IconType.SCORES, "scores", "Nhập/Xem điểm ", cardLayout, contentPanel, "scores", scorePanel);
+        registerMenuItem(sidebarMenu, com.qlsv.utils.IconUtil.IconType.SCHEDULE, "schedule", "Lịch dạy", cardLayout, contentPanel, "schedule", schedulePanel);
         sidebarMenu.setActiveItem("profile");
         cardLayout.show(contentPanel, "profile");
 
@@ -97,6 +97,7 @@ public class LecturerDashboardFrame extends BaseFrame {
      */
     private void registerMenuItem(
             SidebarMenu sidebarMenu,
+            com.qlsv.utils.IconUtil.IconType iconType,
             String itemKey,
             String text,
             CardLayout cardLayout,
@@ -104,7 +105,7 @@ public class LecturerDashboardFrame extends BaseFrame {
             String cardName,
             BasePanel panel
     ) {
-        sidebarMenu.addMenuItem(itemKey, text, () -> {
+        sidebarMenu.addMenuItem(iconType, itemKey, text, () -> {
             panel.reloadData();
             cardLayout.show(contentPanel, cardName);
         });

@@ -74,12 +74,12 @@ public class StudentDashboardFrame extends BaseFrame {
                 "Sinh viên",
                 ""
         );
-        registerMenuItem(sidebarMenu, "home", "Tổng quan", cardLayout, contentPanel, "home", homePanel);
-        registerMenuItem(sidebarMenu, "profile", "Thông tin cá nhân", cardLayout, contentPanel, "profile", profilePanel);
-        registerMenuItem(sidebarMenu, "enrollment", "Đăng ký học phần", cardLayout, contentPanel, "enrollment", enrollmentPanel);
-        registerMenuItem(sidebarMenu, "registered", "Học phần đã đăng ký", cardLayout, contentPanel, "registered", registeredPanel);
-        registerMenuItem(sidebarMenu, "scores", "Xem điểm", cardLayout, contentPanel, "scores", scorePanel);
-        registerMenuItem(sidebarMenu, "schedule", "Lịch học", cardLayout, contentPanel, "schedule", schedulePanel);
+        registerMenuItem(sidebarMenu, com.qlsv.utils.IconUtil.IconType.DASHBOARD, "home", "Tổng quan", cardLayout, contentPanel, "home", homePanel);
+        registerMenuItem(sidebarMenu, com.qlsv.utils.IconUtil.IconType.PROFILE, "profile", "Thông tin cá nhân", cardLayout, contentPanel, "profile", profilePanel);
+        registerMenuItem(sidebarMenu, com.qlsv.utils.IconUtil.IconType.ENROLLMENT, "enrollment", "Đăng ký học phần", cardLayout, contentPanel, "enrollment", enrollmentPanel);
+        registerMenuItem(sidebarMenu, com.qlsv.utils.IconUtil.IconType.SECTIONS, "registered", "Học phần đã đăng ký", cardLayout, contentPanel, "registered", registeredPanel);
+        registerMenuItem(sidebarMenu, com.qlsv.utils.IconUtil.IconType.SCORES, "scores", "Xem điểm", cardLayout, contentPanel, "scores", scorePanel);
+        registerMenuItem(sidebarMenu, com.qlsv.utils.IconUtil.IconType.SCHEDULE, "schedule", "Lịch học", cardLayout, contentPanel, "schedule", schedulePanel);
 
         sidebarMenu.setActiveItem("home");
         cardLayout.show(contentPanel, "home");
@@ -101,6 +101,7 @@ public class StudentDashboardFrame extends BaseFrame {
      */
     private void registerMenuItem(
             SidebarMenu sidebarMenu,
+            com.qlsv.utils.IconUtil.IconType iconType,
             String itemKey,
             String text,
             CardLayout cardLayout,
@@ -108,7 +109,7 @@ public class StudentDashboardFrame extends BaseFrame {
             String cardName,
             BasePanel panel
     ) {
-        sidebarMenu.addMenuItem(itemKey, text, () -> {
+        sidebarMenu.addMenuItem(iconType, itemKey, text, () -> {
             panel.reloadData();
             cardLayout.show(contentPanel, cardName);
         });

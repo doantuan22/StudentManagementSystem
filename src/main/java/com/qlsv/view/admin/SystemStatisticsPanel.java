@@ -13,7 +13,6 @@
     import javax.swing.BorderFactory;
     import javax.swing.JPanel;
     import java.awt.BorderLayout;
-    import java.awt.GridLayout;
     import java.awt.FlowLayout;
 
     public class SystemStatisticsPanel extends BasePanel {
@@ -24,6 +23,7 @@
         private final DashboardCard subjectsCard = new DashboardCard("Tổng môn học", AppColors.STAT_CARD_SUBJECTS);
         private final DashboardCard sectionsCard = new DashboardCard("Tổng học phần", AppColors.STAT_CARD_SECTIONS);
         private final DashboardCard enrollmentsCard = new DashboardCard("Tổng đăng ký học phần", AppColors.STAT_CARD_ENROLLMENTS);
+        private final com.qlsv.view.common.PieChartPanel pieChartPanel = new com.qlsv.view.common.PieChartPanel();
 
         /**
          * Khởi tạo thống kê hệ thống.
@@ -31,6 +31,7 @@
         public SystemStatisticsPanel() {
             setOpaque(false);
             setBorder(BorderFactory.createEmptyBorder(4, 0, 0, 0));
+            setLayout(new BorderLayout(0, 24));
 
             JPanel gridPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 16, 16));
             gridPanel.setOpaque(false);
@@ -42,7 +43,32 @@
 
             normalizeCardSize(gridPanel);
 
-            add(gridPanel, BorderLayout.CENTER);
+            pieChartPanel.setTitle("Tỷ lệ thành phần dữ liệu hệ thống");
+            pieChartPanel.setPreferredSize(new java.awt.Dimension(580, 480));
+            pieChartPanel.setBackground(java.awt.Color.WHITE);
+            pieChartPanel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(AppColors.CARD_BORDER),
+                BorderFactory.createEmptyBorder(20, 20, 20, 20)
+            ));
+
+            JPanel chartWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER));
+            chartWrapper.setOpaque(false);
+            chartWrapper.add(pieChartPanel);
+
+            JPanel contentWrapper = new JPanel();
+            contentWrapper.setOpaque(false);
+            contentWrapper.setLayout(new javax.swing.BoxLayout(contentWrapper, javax.swing.BoxLayout.Y_AXIS));
+            contentWrapper.add(gridPanel);
+            contentWrapper.add(javax.swing.Box.createVerticalStrut(20));
+            contentWrapper.add(chartWrapper);
+
+            javax.swing.JScrollPane scrollPane = new javax.swing.JScrollPane(contentWrapper);
+            scrollPane.setBorder(null);
+            scrollPane.setOpaque(false);
+            scrollPane.getViewport().setOpaque(false);
+            scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+
+            add(scrollPane, BorderLayout.CENTER);
             reloadStatistics();
         }
         /**
@@ -76,6 +102,14 @@
                 subjectsCard.setValue(String.valueOf(systemStatistics.getTotalSubjects()));
                 sectionsCard.setValue(String.valueOf(systemStatistics.getTotalCourseSections()));
                 enrollmentsCard.setValue(String.valueOf(systemStatistics.getTotalEnrollments()));
+
+                pieChartPanel.clearSlices();
+                pieChartPanel.addSlice("Sinh viên", systemStatistics.getTotalStudents(), AppColors.STAT_CARD_STUDENTS);
+                pieChartPanel.addSlice("Giảng viên", systemStatistics.getTotalLecturers(), AppColors.STAT_CARD_LECTURERS);
+                pieChartPanel.addSlice("Môn học", systemStatistics.getTotalSubjects(), AppColors.STAT_CARD_SUBJECTS);
+                pieChartPanel.addSlice("Học phần", systemStatistics.getTotalCourseSections(), AppColors.STAT_CARD_SECTIONS);
+                pieChartPanel.addSlice("Đăng ký", systemStatistics.getTotalEnrollments(), AppColors.STAT_CARD_ENROLLMENTS);
+                
             } catch (Exception exception) {
                 DialogUtil.showError(this, exception.getMessage());
             }

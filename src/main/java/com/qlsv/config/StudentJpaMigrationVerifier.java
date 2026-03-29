@@ -1,3 +1,6 @@
+/**
+ * Smoke test luồng Student khi chạy trên JPA.
+ */
 package com.qlsv.config;
 
 import com.qlsv.controller.StudentController;
@@ -27,11 +30,17 @@ public final class StudentJpaMigrationVerifier {
     private final StudentController studentController = new StudentController();
     private final UserDAO userDAO = new UserDAO();
 
+    /**
+     * Khởi động điểm vào của ứng dụng.
+     */
     public static void main(String[] args) {
         StudentJpaMigrationVerifier verifier = new StudentJpaMigrationVerifier();
         verifier.run();
     }
 
+    /**
+     * Xử lý run.
+     */
     public void run() {
         verifyStudentDaoReadPaths();
         verifyControllerAndServiceFlow();
@@ -39,6 +48,9 @@ public final class StudentJpaMigrationVerifier {
         System.out.println("STUDENT_JPA_MIGRATION_OK");
     }
 
+    /**
+     * Xử lý verify sinh viên truy vấn read paths.
+     */
     private void verifyStudentDaoReadPaths() {
         List<Student> students = studentDAO.findAll();
 
@@ -103,6 +115,9 @@ public final class StudentJpaMigrationVerifier {
         System.out.println("COMPARE_OK studentCount=" + students.size() + ", keyword=" + searchKeyword);
     }
 
+    /**
+     * Xử lý verify điều phối and nghiệp vụ flow.
+     */
     private void verifyControllerAndServiceFlow() {
         User originalUser = SessionManager.getCurrentUser();
 
@@ -192,6 +207,9 @@ public final class StudentJpaMigrationVerifier {
         }
     }
 
+    /**
+     * Xử lý verify JPA crud with rollback.
+     */
     private void verifyJpaCrudWithRollback() {
         Student template = studentDAO.findAll().stream()
                 .filter(student -> student.getFaculty() != null && student.getClassRoom() != null)
@@ -259,12 +277,18 @@ public final class StudentJpaMigrationVerifier {
         System.out.println("CRUD_ROLLBACK_OK tempStudentCode=" + temporaryStudentCode);
     }
 
+    /**
+     * Tách ids.
+     */
     private List<Long> extractIds(List<Student> students) {
         return students.stream()
                 .map(Student::getId)
                 .toList();
     }
 
+    /**
+     * Lọc theo khoa.
+     */
     private List<Student> filterByFaculty(List<Student> students, Long facultyId) {
         return students.stream()
                 .filter(student -> student.getFaculty() != null
@@ -272,6 +296,9 @@ public final class StudentJpaMigrationVerifier {
                 .toList();
     }
 
+    /**
+     * Lọc theo lớp.
+     */
     private List<Student> filterByClassRoom(List<Student> students, Long classRoomId) {
         return students.stream()
                 .filter(student -> student.getClassRoom() != null
@@ -279,6 +306,9 @@ public final class StudentJpaMigrationVerifier {
                 .toList();
     }
 
+    /**
+     * Lọc theo niên khóa.
+     */
     private List<Student> filterByAcademicYear(List<Student> students, String academicYear) {
         String normalizedAcademicYear = normalize(academicYear);
         return students.stream()
@@ -286,6 +316,9 @@ public final class StudentJpaMigrationVerifier {
                 .toList();
     }
 
+    /**
+     * Chuẩn hóa học vụ years.
+     */
     private List<String> normalizeAcademicYears(List<Student> students) {
         return students.stream()
                 .map(Student::getAcademicYear)
@@ -296,6 +329,9 @@ public final class StudentJpaMigrationVerifier {
                 .toList();
     }
 
+    /**
+     * Tìm người dùng theo vai trò đang hoạt động.
+     */
     private Optional<User> findActiveUserByRole(Role role) {
         return userDAO.findAll().stream()
                 .filter(User::isActive)
@@ -303,6 +339,9 @@ public final class StudentJpaMigrationVerifier {
                 .findFirst();
     }
 
+    /**
+     * Sao chép sinh viên.
+     */
     private Student copyStudent(Student source) {
         return new Student(
                 source.getId(),
@@ -321,6 +360,9 @@ public final class StudentJpaMigrationVerifier {
         );
     }
 
+    /**
+     * Đối chiếu sinh viên.
+     */
     private void compareStudent(Student expected, Student actual, String context) {
         assertEquals(expected.getId(), actual.getId(), context + " sai id.");
         assertEquals(normalize(expected.getUserId()), normalize(actual.getUserId()), context + " sai userId.");
@@ -345,6 +387,9 @@ public final class StudentJpaMigrationVerifier {
         );
     }
 
+    /**
+     * Suy ra tìm kiếm keyword.
+     */
     private String deriveSearchKeyword(Student sampleStudent) {
         String studentCode = normalize(sampleStudent.getStudentCode());
         if (!studentCode.isBlank()) {
@@ -357,20 +402,32 @@ public final class StudentJpaMigrationVerifier {
         return normalize(sampleStudent.getEmail());
     }
 
+    /**
+     * Chuẩn hóa dữ liệu hiện tại.
+     */
     private String normalize(String value) {
         return value == null ? "" : value.trim();
     }
 
+    /**
+     * Chuẩn hóa dữ liệu hiện tại.
+     */
     private Long normalize(Long value) {
         return value;
     }
 
+    /**
+     * Kiểm tra condition.
+     */
     private void assertCondition(boolean condition, String message) {
         if (!condition) {
             throw new AppException(message);
         }
     }
 
+    /**
+     * Kiểm tra equals.
+     */
     private void assertEquals(Object expected, Object actual, String message) {
         if (!Objects.equals(expected, actual)) {
             throw new AppException(message + " Expected=" + expected + ", actual=" + actual);

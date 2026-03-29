@@ -1,3 +1,6 @@
+/**
+ * Truy vấn dữ liệu điểm bằng JPA.
+ */
 package com.qlsv.dao;
 
 import com.qlsv.config.JpaBootstrap;
@@ -165,6 +168,9 @@ public class ScoreDAO {
                             JOIN FETCH courseSection.subject subject
                             JOIN FETCH subject.faculty subjectFaculty
                             JOIN FETCH courseSection.lecturer lecturer
+                            /**
+                             * Xử lý lower.
+                             */
                             WHERE LOWER(student.studentCode) LIKE :keyword
                                OR LOWER(student.fullName) LIKE :keyword
                                OR LOWER(COALESCE(student.email, '')) LIKE :keyword
@@ -240,6 +246,9 @@ public class ScoreDAO {
         );
     }
 
+    /**
+     * Sao chép state.
+     */
     private void copyState(EntityManager entityManager, Score source, Score target) {
         target.setEnrollment(resolveEnrollmentReference(entityManager, source.getEnrollment()));
         target.setProcessScore(source.getProcessScore());
@@ -249,6 +258,9 @@ public class ScoreDAO {
         target.setResult(source.getResult());
     }
 
+    /**
+     * Xác định đăng ký reference.
+     */
     private Enrollment resolveEnrollmentReference(EntityManager entityManager, Enrollment enrollment) {
         if (enrollment == null || enrollment.getId() == null) {
             return null;
@@ -256,6 +268,9 @@ public class ScoreDAO {
         return entityManager.getReference(Enrollment.class, enrollment.getId());
     }
 
+    /**
+     * Xử lý hydrate học phần compatibility.
+     */
     private void hydrateCourseSectionCompatibility(EntityManager entityManager, List<Score> scores) {
         if (scores == null || scores.isEmpty()) {
             return;
@@ -334,6 +349,9 @@ public class ScoreDAO {
         }
     }
 
+    /**
+     * Xử lý to long.
+     */
     private Long toLong(Object value) {
         if (value == null) {
             return null;
@@ -344,6 +362,9 @@ public class ScoreDAO {
         return Long.parseLong(String.valueOf(value));
     }
 
+    /**
+     * Thực thi read.
+     */
     private <T> T executeRead(String errorMessage, Function<EntityManager, T> action) {
         try {
             return JpaBootstrap.executeWithEntityManager(action);
@@ -352,6 +373,9 @@ public class ScoreDAO {
         }
     }
 
+    /**
+     * Thực thi write.
+     */
     private <T> T executeWrite(String errorMessage, String constraintMessage, Function<EntityManager, T> action) {
         try {
             return JpaBootstrap.executeInCurrentTransaction(action);
@@ -363,6 +387,9 @@ public class ScoreDAO {
         }
     }
 
+    /**
+     * Kiểm tra constraint violation.
+     */
     private boolean isConstraintViolation(Throwable throwable) {
         Throwable current = throwable;
         while (current != null) {

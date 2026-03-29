@@ -1,3 +1,6 @@
+/**
+ * Mô tả thực thể học phần của hệ thống.
+ */
 package com.qlsv.model;
 
 import jakarta.persistence.Column;
@@ -49,9 +52,15 @@ public class CourseSection {
     @Column(name = "max_students", nullable = false)
     private Integer maxStudents;
 
+    /**
+     * Khởi tạo học phần.
+     */
     public CourseSection() {
     }
 
+    /**
+     * Khởi tạo học phần.
+     */
     public CourseSection(Long id, String sectionCode, Subject subject, Lecturer lecturer, Room room,
                          String semester, String schoolYear, String scheduleText, Integer maxStudents) {
         this.id = id;
@@ -64,81 +73,138 @@ public class CourseSection {
         this.maxStudents = maxStudents;
     }
 
+    /**
+     * Trả về id.
+     */
     public Long getId() {
         return id;
     }
 
+    /**
+     * Cập nhật id.
+     */
     public void setId(Long id) {
         this.id = id;
     }
 
+    /**
+     * Trả về phần mã.
+     */
     public String getSectionCode() {
         return sectionCode;
     }
 
+    /**
+     * Cập nhật phần mã.
+     */
     public void setSectionCode(String sectionCode) {
         this.sectionCode = sectionCode;
     }
 
+    /**
+     * Trả về môn học.
+     */
     public Subject getSubject() {
         return subject;
     }
 
+    /**
+     * Cập nhật môn học.
+     */
     public void setSubject(Subject subject) {
         this.subject = subject;
     }
 
+    /**
+     * Trả về giảng viên.
+     */
     public Lecturer getLecturer() {
         return lecturer;
     }
 
+    /**
+     * Cập nhật giảng viên.
+     */
     public void setLecturer(Lecturer lecturer) {
         this.lecturer = lecturer;
     }
 
+    /**
+     * Trả về phòng.
+     */
     public Room getRoom() {
         return room;
     }
 
+    /**
+     * Trả về học kỳ.
+     */
     public String getSemester() {
         return semester;
     }
 
+    /**
+     * Cập nhật học kỳ.
+     */
     public void setSemester(String semester) {
         this.semester = semester;
     }
 
+    /**
+     * Trả về trường năm.
+     */
     public String getSchoolYear() {
         return schoolYear;
     }
 
+    /**
+     * Cập nhật trường năm.
+     */
     public void setSchoolYear(String schoolYear) {
         this.schoolYear = schoolYear;
     }
 
+    /**
+     * Trả về lịch văn bản.
+     */
     public String getScheduleText() {
         return scheduleText;
     }
 
+    /**
+     * Xử lý apply lịch compatibility.
+     */
     public void applyScheduleCompatibility(Room room, String scheduleText) {
         this.room = room;
         this.scheduleText = scheduleText;
     }
 
+    /**
+     * Trả về max sinh viên.
+     */
     public Integer getMaxStudents() {
         return maxStudents;
     }
 
+    /**
+     * Cập nhật max sinh viên.
+     */
     public void setMaxStudents(Integer maxStudents) {
         this.maxStudents = maxStudents;
     }
 
+    /**
+     * Trả về chuỗi hiển thị của đối tượng.
+     */
     @Override
     public String toString() {
         String subjectName = subject == null ? "" : subject.getSubjectName();
         return sectionCode + " - " + subjectName;
     }
 
+    /**
+     * So sánh đối tượng theo định danh phù hợp.
+     */
     @Override
     public boolean equals(Object object) {
         if (this == object) {
@@ -153,6 +219,9 @@ public class CourseSection {
         return Objects.equals(sectionCode, courseSection.sectionCode);
     }
 
+    /**
+     * Tạo mã băm cho đối tượng.
+     */
     @Override
     public int hashCode() {
         return Objects.hash(id != null ? id : sectionCode);

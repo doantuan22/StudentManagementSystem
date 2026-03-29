@@ -1,3 +1,6 @@
+/**
+ * Hộp thoại giảng viên biểu mẫu dialog.
+ */
 package com.qlsv.view.dialog;
 
 import com.qlsv.model.Faculty;
@@ -62,17 +65,26 @@ public class LecturerFormDialog extends JDialog {
 
     private LecturerFormResult result;
 
+    /**
+     * Khởi tạo giảng viên biểu mẫu.
+     */
     private LecturerFormDialog(Component parent, LecturerFormModel model) {
         super(resolveOwner(parent), model.title(), Dialog.ModalityType.APPLICATION_MODAL);
         initComponents(model);
     }
 
+    /**
+     * Hiển thị hộp thoại.
+     */
     public static LecturerFormResult showDialog(Component parent, LecturerFormModel model) {
         LecturerFormDialog dialog = new LecturerFormDialog(parent, model);
         dialog.setVisible(true);
         return dialog.result;
     }
 
+    /**
+     * Khởi tạo các thành phần giao diện.
+     */
     private void initComponents(LecturerFormModel model) {
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
@@ -137,6 +149,9 @@ public class LecturerFormDialog extends JDialog {
         setLocationRelativeTo(getOwner());
     }
 
+    /**
+     * Xử lý model bind.
+     */
     private void bindModel(LecturerFormModel model) {
         lecturerCodeField.setText(model.lecturerCode());
         fullNameField.setText(model.fullName());
@@ -159,6 +174,9 @@ public class LecturerFormDialog extends JDialog {
         SwingUtilities.invokeLater(() -> lecturerCodeField.requestFocusInWindow());
     }
 
+    /**
+     * Tạo basic thông tin phần.
+     */
     private JPanel createBasicInfoSection() {
         JPanel contentPanel = createFieldGridPanel();
         contentPanel.add(createField("Mã giảng viên", styleTextField(lecturerCodeField)), fieldConstraints(0, 0));
@@ -168,6 +186,9 @@ public class LecturerFormDialog extends JDialog {
         return createSection("Thông tin cơ bản", "Thông tin định danh và nhân sự của giảng viên.", contentPanel);
     }
 
+    /**
+     * Tạo work thông tin phần.
+     */
     private JPanel createWorkInfoSection() {
         JPanel contentPanel = createFieldGridPanel();
         contentPanel.add(createField("Khoa", styleComboBox(facultyComboBox)), fieldConstraints(0, 0));
@@ -175,6 +196,9 @@ public class LecturerFormDialog extends JDialog {
         return createSection("Thông tin công tác", "Thông tin khoa phụ trách và trạng thái sử dụng tài khoản.", contentPanel);
     }
 
+    /**
+     * Tạo teaching thông tin phần.
+     */
     private JPanel createTeachingInfoSection() {
         JPanel contentPanel = new JPanel(new BorderLayout(0, 14));
         contentPanel.setOpaque(false);
@@ -213,6 +237,9 @@ public class LecturerFormDialog extends JDialog {
         );
     }
 
+    /**
+     * Tạo contact thông tin phần.
+     */
     private JPanel createContactInfoSection() {
         JPanel contentPanel = createFieldGridPanel();
         contentPanel.add(createField("Email", styleTextField(emailField)), fieldConstraints(0, 0));
@@ -221,6 +248,9 @@ public class LecturerFormDialog extends JDialog {
         return createSection("Liên hệ", "Thông tin liên lạc và địa chỉ của giảng viên.", contentPanel);
     }
 
+    /**
+     * Tạo phần.
+     */
     private JPanel createSection(String title, String subtitle, JComponent content) {
         JPanel panel = new JPanel(new BorderLayout(0, 16));
         panel.setOpaque(true);
@@ -249,16 +279,25 @@ public class LecturerFormDialog extends JDialog {
         return panel;
     }
 
+    /**
+     * Tạo panel trường grid.
+     */
     private JPanel createFieldGridPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setOpaque(false);
         return panel;
     }
 
+    /**
+     * Xử lý trường constraints.
+     */
     private GridBagConstraints fieldConstraints(int x, int y) {
         return fieldConstraints(x, y, 1);
     }
 
+    /**
+     * Xử lý trường constraints.
+     */
     private GridBagConstraints fieldConstraints(int x, int y, int width) {
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.gridx = x;
@@ -271,6 +310,9 @@ public class LecturerFormDialog extends JDialog {
         return constraints;
     }
 
+    /**
+     * Tạo trường.
+     */
     private JPanel createField(String labelText, JComponent inputComponent) {
         JPanel panel = new JPanel(new BorderLayout(0, 6));
         panel.setOpaque(false);
@@ -284,6 +326,9 @@ public class LecturerFormDialog extends JDialog {
         return panel;
     }
 
+    /**
+     * Tạo địa chỉ scroll pane.
+     */
     private JScrollPane createAddressScrollPane() {
         addressArea.setLineWrap(true);
         addressArea.setWrapStyleWord(true);
@@ -297,6 +342,9 @@ public class LecturerFormDialog extends JDialog {
         return scrollPane;
     }
 
+    /**
+     * Tạo môn học cards scroll pane.
+     */
     private JScrollPane createSubjectCardsScrollPane() {
         subjectCardsPanel.setOpaque(false);
         subjectCardsPanel.setLayout(new BoxLayout(subjectCardsPanel, BoxLayout.Y_AXIS));
@@ -309,6 +357,9 @@ public class LecturerFormDialog extends JDialog {
         return scrollPane;
     }
 
+    /**
+     * Áp dụng kiểu cho trường văn bản.
+     */
     private JTextField styleTextField(JTextField textField) {
         textField.setFont(textField.getFont().deriveFont(Font.PLAIN, 13.5f));
         textField.setBorder(BorderFactory.createCompoundBorder(
@@ -320,6 +371,9 @@ public class LecturerFormDialog extends JDialog {
         return textField;
     }
 
+    /**
+     * Áp dụng kiểu cho chọn box.
+     */
     private <T> JComboBox<T> styleComboBox(JComboBox<T> comboBox) {
         comboBox.setFont(comboBox.getFont().deriveFont(Font.PLAIN, 13.5f));
         comboBox.setBorder(BorderFactory.createLineBorder(AppColors.INPUT_BORDER));
@@ -328,6 +382,9 @@ public class LecturerFormDialog extends JDialog {
         return comboBox;
     }
 
+    /**
+     * Áp dụng kiểu cho nút primary.
+     */
     private void stylePrimaryButton(JButton button) {
         button.setFocusPainted(false);
         button.setBorderPainted(false);
@@ -338,6 +395,9 @@ public class LecturerFormDialog extends JDialog {
         button.setBorder(BorderFactory.createEmptyBorder(10, 18, 10, 18));
     }
 
+    /**
+     * Áp dụng kiểu cho nút secondary.
+     */
     private void styleSecondaryButton(JButton button) {
         button.setFocusPainted(false);
         button.setBorderPainted(false);
@@ -348,6 +408,9 @@ public class LecturerFormDialog extends JDialog {
         button.setBorder(BorderFactory.createEmptyBorder(10, 18, 10, 18));
     }
 
+    /**
+     * Áp dụng kiểu cho nút chip.
+     */
     private void styleChipButton(JButton button) {
         button.setFocusPainted(false);
         button.setBorderPainted(false);
@@ -358,6 +421,9 @@ public class LecturerFormDialog extends JDialog {
         button.setBorder(BorderFactory.createEmptyBorder(6, 10, 6, 10));
     }
 
+    /**
+     * Xử lý select trạng thái.
+     */
     private void selectStatus(String statusCode) {
         for (int index = 0; index < statusComboBox.getItemCount(); index++) {
             FilterOption<String> option = statusComboBox.getItemAt(index);
@@ -369,6 +435,9 @@ public class LecturerFormDialog extends JDialog {
         statusComboBox.setSelectedIndex(0);
     }
 
+    /**
+     * Xử lý select gender.
+     */
     private void selectGender(String gender) {
         String normalizedGender = gender == null ? "" : gender.trim();
         for (int index = 0; index < genderComboBox.getItemCount(); index++) {
@@ -389,6 +458,9 @@ public class LecturerFormDialog extends JDialog {
         genderComboBox.setSelectedIndex(0);
     }
 
+    /**
+     * Xử lý rebuild môn học selection.
+     */
     private void rebuildSubjectSelection(List<Subject> subjects, List<Subject> selectedSubjects) {
         availableSubjects.clear();
         subjectCheckboxes.clear();
@@ -413,6 +485,9 @@ public class LecturerFormDialog extends JDialog {
         subjectCardsPanel.repaint();
     }
 
+    /**
+     * Tạo card môn học.
+     */
     private JPanel createSubjectCard(JCheckBox checkBox) {
         JPanel card = new JPanel(new BorderLayout());
         card.setOpaque(true);
@@ -426,6 +501,9 @@ public class LecturerFormDialog extends JDialog {
         return card;
     }
 
+    /**
+     * Xử lý panel refresh đã chọn môn học.
+     */
     private void refreshSelectedSubjectsPanel() {
         selectedSubjectsPanel.removeAll();
         List<Subject> selectedSubjects = getSelectedSubjects();
@@ -442,6 +520,9 @@ public class LecturerFormDialog extends JDialog {
         selectedSubjectsPanel.repaint();
     }
 
+    /**
+     * Tạo môn học chip đã chọn.
+     */
     private JPanel createSelectedSubjectChip(Subject subject) {
         JPanel chip = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         chip.setOpaque(true);
@@ -464,6 +545,9 @@ public class LecturerFormDialog extends JDialog {
         return chip;
     }
 
+    /**
+     * Gỡ môn học selection.
+     */
     private void removeSubjectSelection(Subject subject) {
         if (subject == null || subject.getId() == null) {
             return;
@@ -475,6 +559,9 @@ public class LecturerFormDialog extends JDialog {
         refreshSelectedSubjectsPanel();
     }
 
+    /**
+     * Tạo môn học văn bản.
+     */
     private String buildSubjectText(Subject subject) {
         if (subject == null) {
             return "";
@@ -484,6 +571,9 @@ public class LecturerFormDialog extends JDialog {
         return subjectCode.isBlank() ? subjectName : subjectCode + " - " + subjectName;
     }
 
+    /**
+     * Trả về môn học đã chọn.
+     */
     private List<Subject> getSelectedSubjects() {
         List<Subject> selectedSubjects = new ArrayList<>();
         for (Subject subject : availableSubjects) {
@@ -498,6 +588,9 @@ public class LecturerFormDialog extends JDialog {
         return selectedSubjects;
     }
 
+    /**
+     * Xử lý lưu.
+     */
     private void handleSave() {
         FilterOption<String> selectedStatus = (FilterOption<String>) statusComboBox.getSelectedItem();
         result = new LecturerFormResult(
@@ -515,6 +608,9 @@ public class LecturerFormDialog extends JDialog {
         dispose();
     }
 
+    /**
+     * Xác định owner.
+     */
     private static Window resolveOwner(Component parent) {
         if (parent == null) {
             return null;
@@ -522,6 +618,9 @@ public class LecturerFormDialog extends JDialog {
         return SwingUtilities.getWindowAncestor(parent);
     }
 
+    /**
+     * Xử lý model giảng viên biểu mẫu.
+     */
     public record LecturerFormModel(
             String title,
             String lecturerCode,
@@ -539,6 +638,9 @@ public class LecturerFormDialog extends JDialog {
     ) {
     }
 
+    /**
+     * Xử lý giảng viên kết quả biểu mẫu.
+     */
     public record LecturerFormResult(
             String lecturerCode,
             String fullName,

@@ -7,9 +7,10 @@
 
 SET NAMES utf8mb4;
 
+-- Tạo schema, bảng, ràng buộc và trigger cho hệ thống quản lý sinh viên.
 CREATE DATABASE IF NOT EXISTS student_management
-    CHARACTER SET utf8mb4
-    COLLATE utf8mb4_unicode_ci;
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
 
 USE student_management;
 

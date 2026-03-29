@@ -1,3 +1,6 @@
+/**
+ * Hộp thoại học phần biểu mẫu dialog.
+ */
 package com.qlsv.view.dialog;
 
 import com.qlsv.model.Lecturer;
@@ -48,6 +51,9 @@ public class CourseSectionFormDialog extends JDialog {
 
     private CourseSectionFormResult result;
 
+    /**
+     * Khởi tạo học phần biểu mẫu.
+     */
     private CourseSectionFormDialog(Component parent, CourseSectionFormModel model) {
         super(resolveOwner(parent), model.title(), Dialog.ModalityType.APPLICATION_MODAL);
         initComponents(model);
@@ -164,6 +170,9 @@ public class CourseSectionFormDialog extends JDialog {
         SwingUtilities.invokeLater(() -> sectionCodeField.requestFocusInWindow());
     }
 
+    /**
+     * Tạo overview phần.
+     */
     private JPanel createOverviewSection() {
         JPanel contentPanel = createFieldGridPanel();
         contentPanel.add(createField("Mã học phần", styleTextField(sectionCodeField)), fieldConstraints(0, 0));
@@ -172,6 +181,9 @@ public class CourseSectionFormDialog extends JDialog {
         return createSection("Thông tin cơ bản", "Cấu hình học phần và giảng viên phụ trách.", contentPanel);
     }
 
+    /**
+     * Tạo học vụ phần.
+     */
     private JPanel createAcademicSection() {
         JPanel contentPanel = createFieldGridPanel();
         contentPanel.add(createField("Học kỳ", styleComboBox(semesterComboBox)), fieldConstraints(0, 0));
@@ -180,6 +192,9 @@ public class CourseSectionFormDialog extends JDialog {
         return createSection("Thông tin học vụ", "Thiết lập học kỳ, năm học và sức chứa lớp.", contentPanel);
     }
 
+    /**
+     * Tạo note phần.
+     */
     private JPanel createNoteSection() {
         noteArea.setEditable(false);
         noteArea.setLineWrap(true);
@@ -201,6 +216,9 @@ public class CourseSectionFormDialog extends JDialog {
         );
     }
 
+    /**
+     * Tạo phần.
+     */
     private JPanel createSection(String title, String subtitle, JComponent content) {
         JPanel panel = new JPanel(new BorderLayout(0, 16));
         panel.setOpaque(true);
@@ -229,16 +247,25 @@ public class CourseSectionFormDialog extends JDialog {
         return panel;
     }
 
+    /**
+     * Tạo panel trường grid.
+     */
     private JPanel createFieldGridPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setOpaque(false);
         return panel;
     }
 
+    /**
+     * Xử lý trường constraints.
+     */
     private GridBagConstraints fieldConstraints(int x, int y) {
         return fieldConstraints(x, y, 1);
     }
 
+    /**
+     * Xử lý trường constraints.
+     */
     private GridBagConstraints fieldConstraints(int x, int y, int width) {
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.gridx = x;
@@ -251,6 +278,9 @@ public class CourseSectionFormDialog extends JDialog {
         return constraints;
     }
 
+    /**
+     * Tạo trường.
+     */
     private JPanel createField(String labelText, Component inputComponent) {
         JPanel panel = new JPanel(new BorderLayout(0, 6));
         panel.setOpaque(false);
@@ -264,6 +294,9 @@ public class CourseSectionFormDialog extends JDialog {
         return panel;
     }
 
+    /**
+     * Áp dụng kiểu cho trường văn bản.
+     */
     private JTextField styleTextField(JTextField textField) {
         textField.setFont(textField.getFont().deriveFont(Font.PLAIN, 13.5f));
         textField.setBorder(BorderFactory.createCompoundBorder(
@@ -273,6 +306,9 @@ public class CourseSectionFormDialog extends JDialog {
         return textField;
     }
 
+    /**
+     * Áp dụng kiểu cho chọn box.
+     */
     private <T> JComboBox<T> styleComboBox(JComboBox<T> comboBox) {
         comboBox.setFont(comboBox.getFont().deriveFont(Font.PLAIN, 13.5f));
         comboBox.setBorder(BorderFactory.createLineBorder(AppColors.INPUT_BORDER));
@@ -280,6 +316,9 @@ public class CourseSectionFormDialog extends JDialog {
         return comboBox;
     }
 
+    /**
+     * Áp dụng kiểu cho nút primary.
+     */
     private void stylePrimaryButton(JButton button) {
         button.setFocusPainted(false);
         button.setBorderPainted(false);
@@ -290,6 +329,9 @@ public class CourseSectionFormDialog extends JDialog {
         button.setBorder(BorderFactory.createEmptyBorder(10, 18, 10, 18));
     }
 
+    /**
+     * Áp dụng kiểu cho nút secondary.
+     */
     private void styleSecondaryButton(JButton button) {
         button.setFocusPainted(false);
         button.setBorderPainted(false);
@@ -350,6 +392,9 @@ public class CourseSectionFormDialog extends JDialog {
         return availableLecturers;
     }
 
+    /**
+     * Xử lý contains giảng viên.
+     */
     private boolean containsLecturer(List<Lecturer> lecturers, Lecturer target) {
         if (target == null || lecturers == null) {
             return false;
@@ -377,6 +422,9 @@ public class CourseSectionFormDialog extends JDialog {
         dispose();
     }
 
+    /**
+     * Xác định owner.
+     */
     private static Window resolveOwner(Component parent) {
         if (parent == null) {
             return null;
@@ -384,6 +432,9 @@ public class CourseSectionFormDialog extends JDialog {
         return SwingUtilities.getWindowAncestor(parent);
     }
 
+    /**
+     * Xử lý model học phần biểu mẫu.
+     */
     public record CourseSectionFormModel(
             String title,
             String sectionCode,
@@ -400,6 +451,9 @@ public class CourseSectionFormDialog extends JDialog {
     ) {
     }
 
+    /**
+     * Xử lý học phần kết quả biểu mẫu.
+     */
     public record CourseSectionFormResult(
             String sectionCode,
             Subject subject,

@@ -1,3 +1,6 @@
+/**
+ * Màn hình quản trị cho quản lý lớp.
+ */
 package com.qlsv.view.admin;
 
 import com.qlsv.controller.ClassRoomController;
@@ -40,6 +43,9 @@ public class ClassRoomManagementPanel extends AbstractCrudPanel<ClassRoom> {
 
     private boolean filterReady;
 
+    /**
+     * Khởi tạo quản lý lớp.
+     */
     public ClassRoomManagementPanel() {
         super("Quản lý lớp");
         filterTypeComboBox.setSelectedItem(FILTER_ALL);
@@ -48,11 +54,17 @@ public class ClassRoomManagementPanel extends AbstractCrudPanel<ClassRoom> {
         refreshData();
     }
 
+    /**
+     * Trả về column names.
+     */
     @Override
     protected String[] getColumnNames() {
         return new String[]{"ID", "Mã lớp", "Tên lớp", "Niên khóa", "Khoa", "Sĩ số sinh viên"};
     }
 
+    /**
+     * Nạp items.
+     */
     @Override
     protected List<ClassRoom> loadItems() {
         List<ClassRoom> classRooms;
@@ -78,6 +90,9 @@ public class ClassRoomManagementPanel extends AbstractCrudPanel<ClassRoom> {
         return classRooms;
     }
 
+    /**
+     * Xử lý to row.
+     */
     @Override
     protected Object[] toRow(ClassRoom item) {
         return new Object[]{
@@ -90,6 +105,9 @@ public class ClassRoomManagementPanel extends AbstractCrudPanel<ClassRoom> {
         };
     }
 
+    /**
+     * Trả về trạng thái trống thông báo.
+     */
     @Override
     protected String getEmptyStateMessage() {
         return filterReady
@@ -97,6 +115,9 @@ public class ClassRoomManagementPanel extends AbstractCrudPanel<ClassRoom> {
                 : "Vui lòng chọn điều kiện lọc để hiển thị danh sách lớp.";
     }
 
+    /**
+     * Xử lý prompt for entity.
+     */
     @Override
     protected ClassRoom promptForEntity(ClassRoom existingItem) {
         ClassRoomFormDialog.ClassRoomFormResult formResult = ClassRoomFormDialog.showDialog(
@@ -122,11 +143,17 @@ public class ClassRoomManagementPanel extends AbstractCrudPanel<ClassRoom> {
         return classRoom;
     }
 
+    /**
+     * Lưu entity.
+     */
     @Override
     protected void saveEntity(ClassRoom item) {
         classRoomController.saveClassRoom(item);
     }
 
+    /**
+     * Xóa entity.
+     */
     @Override
     protected void deleteEntity(ClassRoom item) {
         classRoomController.deleteClassRoom(item.getId());
@@ -243,6 +270,9 @@ public class ClassRoomManagementPanel extends AbstractCrudPanel<ClassRoom> {
         return selectedOption != null && selectedOption.value() != null;
     }
 
+    /**
+     * Trả về lọc value đã chọn.
+     */
     private <T> T getSelectedFilterValue(Class<T> type) {
         FilterOption<?> selectedOption = (FilterOption<?>) filterValueComboBox.getSelectedItem();
         if (selectedOption == null || selectedOption.value() == null || !type.isInstance(selectedOption.value())) {

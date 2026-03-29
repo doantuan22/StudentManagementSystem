@@ -1,3 +1,6 @@
+/**
+ * Xử lý nghiệp vụ điểm giảng viên phân tích.
+ */
 package com.qlsv.service;
 
 import com.qlsv.exception.ValidationException;
@@ -19,6 +22,9 @@ public class LecturerScoreAnalysisService {
 
     private final GroqService groqService = new GroqService();
 
+    /**
+     * Chuẩn bị snapshot.
+     */
     public LecturerScoreAnalysisSnapshot prepareSnapshot(List<Score> filteredScores, String filterLabel) {
         if (filteredScores == null || filteredScores.isEmpty()) {
             throw new ValidationException("Không có dữ liệu điểm trong danh sách hiện tại để phân tích.");
@@ -79,6 +85,9 @@ public class LecturerScoreAnalysisService {
         );
     }
 
+    /**
+     * Phân tích snapshot.
+     */
     public String analyzeSnapshot(LecturerScoreAnalysisSnapshot snapshot) {
         GroqService.AnalysisResponse response = groqService.requestAnalysis(
                 buildSystemPrompt(),
@@ -90,6 +99,9 @@ public class LecturerScoreAnalysisService {
         return response.message();
     }
 
+    /**
+     * Kiểm tra complete persisted điểm.
+     */
     private boolean hasCompletePersistedScore(Score score) {
         if (score == null || score.getId() == null) {
             return false;
@@ -105,6 +117,9 @@ public class LecturerScoreAnalysisService {
                 && score.getFinalScore() != null;
     }
 
+    /**
+     * Xử lý to snapshot.
+     */
     private StudentScoreSnapshot toSnapshot(Score score) {
         Enrollment enrollment = score.getEnrollment();
         Student student = enrollment.getStudent();
@@ -115,6 +130,9 @@ public class LecturerScoreAnalysisService {
         double midtermScore = round(score.getMidtermScore());
         double finalScore = round(score.getFinalScore());
         double totalScore = score.getTotalScore() == null
+                /**
+                 * Tính tổng điểm.
+                 */
                 ? calculateTotalScore(processScore, midtermScore, finalScore)
                 : round(score.getTotalScore());
 
@@ -131,10 +149,16 @@ public class LecturerScoreAnalysisService {
         );
     }
 
+    /**
+     * Tạo system prompt.
+     */
     private String buildSystemPrompt() {
         return "Bạn là chuyên gia phân tích dữ liệu học tập hỗ trợ giảng viên đại học.";
     }
 
+    /**
+     * Tạo người dùng prompt.
+     */
     private String buildUserPrompt(LecturerScoreAnalysisSnapshot snapshot) {
         StringBuilder prompt = new StringBuilder(1024 + snapshot.rows().size() * 96);
         prompt.append("Hãy phân tích dữ liệu điểm của nhóm sinh viên theo góc nhìn hỗ trợ giảng viên.\n");
@@ -186,6 +210,9 @@ public class LecturerScoreAnalysisService {
         return prompt.toString();
     }
 
+    /**
+     * Tạo incomplete điểm thông báo.
+     */
     private String buildIncompleteScoreMessage(int totalCount, List<String> incompleteStudents) {
         int previewCount = Math.min(INCOMPLETE_PREVIEW_LIMIT, incompleteStudents.size());
         String preview = String.join("; ", incompleteStudents.subList(0, previewCount));
@@ -200,6 +227,9 @@ public class LecturerScoreAnalysisService {
                 + moreLabel;
     }
 
+    /**
+     * Xử lý describe điểm owner.
+     */
     private String describeScoreOwner(Score score) {
         if (score == null || score.getEnrollment() == null || score.getEnrollment().getStudent() == null) {
             return "Sinh viên chưa xác định";
@@ -220,6 +250,9 @@ public class LecturerScoreAnalysisService {
         return studentCode + " - " + fullName;
     }
 
+    /**
+     * Chuẩn hóa kết quả.
+     */
     private String normalizeResult(String result, double totalScore) {
         if (result == null || result.isBlank()) {
             return totalScore >= PASS_SCORE ? "PASS" : "FAIL";
@@ -227,18 +260,30 @@ public class LecturerScoreAnalysisService {
         return result.trim().toUpperCase(Locale.ROOT);
     }
 
+    /**
+     * Tính tổng điểm.
+     */
     private double calculateTotalScore(double processScore, double midtermScore, double finalScore) {
         return round(processScore * 0.3 + midtermScore * 0.2 + finalScore * 0.5);
     }
 
+    /**
+     * Xử lý round.
+     */
     private double round(double value) {
         return Math.round(value * 100.0) / 100.0;
     }
 
+    /**
+     * Xử lý value mặc định.
+     */
     private String defaultValue(String value, String fallback) {
         return value == null || value.isBlank() ? fallback : value;
     }
 
+    /**
+     * Xử lý join values.
+     */
     private String joinValues(List<String> values, String fallback) {
         if (values == null || values.isEmpty()) {
             return fallback;
@@ -246,10 +291,16 @@ public class LecturerScoreAnalysisService {
         return String.join(", ", values);
     }
 
+    /**
+     * Chuẩn hóa văn bản.
+     */
     private String normalizeText(String value) {
         return value == null ? "" : value.trim();
     }
 
+    /**
+     * Xử lý điểm giảng viên phân tích snapshot.
+     */
     public record LecturerScoreAnalysisSnapshot(
             String filterLabel,
             List<String> sectionCodes,
@@ -263,6 +314,9 @@ public class LecturerScoreAnalysisService {
             List<StudentScoreSnapshot> rows
     ) {
 
+        /**
+         * Xử lý hộp thoại title.
+         */
         public String dialogTitle() {
             if (sectionCodes != null && sectionCodes.size() == 1) {
                 return "Phân tích điểm lớp học phần " + sectionCodes.get(0);
@@ -271,6 +325,9 @@ public class LecturerScoreAnalysisService {
         }
     }
 
+    /**
+     * Xử lý điểm sinh viên snapshot.
+     */
     public record StudentScoreSnapshot(
             String studentCode,
             String fullName,

@@ -1,3 +1,6 @@
+/**
+ * Khởi tạo và quản lý JPA cho ứng dụng.
+ */
 package com.qlsv.config;
 
 import com.qlsv.exception.AppException;
@@ -18,9 +21,15 @@ public final class JpaBootstrap {
 
     private static volatile EntityManagerFactory entityManagerFactory;
 
+    /**
+     * Khởi tạo JPA bootstrap.
+     */
     private JpaBootstrap() {
     }
 
+    /**
+     * Trả về entity manager factory.
+     */
     public static EntityManagerFactory getEntityManagerFactory() {
         if (entityManagerFactory != null && entityManagerFactory.isOpen()) {
             return entityManagerFactory;
@@ -39,10 +48,16 @@ public final class JpaBootstrap {
         }
     }
 
+    /**
+     * Tạo entity manager.
+     */
     public static EntityManager createEntityManager() {
         return getEntityManagerFactory().createEntityManager();
     }
 
+    /**
+     * Thực thi with entity manager.
+     */
     public static <T> T executeWithEntityManager(Function<EntityManager, T> action) {
         EntityManager currentEntityManager = getCurrentEntityManager();
         if (currentEntityManager != null) {
@@ -58,6 +73,9 @@ public final class JpaBootstrap {
         }
     }
 
+    /**
+     * Thực thi in transaction.
+     */
     public static <T> T executeInTransaction(Function<EntityManager, T> action) {
         EntityManager currentEntityManager = getCurrentEntityManager();
         if (currentEntityManager != null) {
@@ -83,6 +101,9 @@ public final class JpaBootstrap {
         }
     }
 
+    /**
+     * Thực thi in hiện tại transaction.
+     */
     public static <T> T executeInCurrentTransaction(Function<EntityManager, T> action) {
         EntityManager currentEntityManager = getCurrentEntityManager();
         EntityTransaction transaction = currentEntityManager == null ? null : currentEntityManager.getTransaction();
@@ -98,6 +119,9 @@ public final class JpaBootstrap {
         }
     }
 
+    /**
+     * Thực thi in transaction.
+     */
     public static <T> T executeInTransaction(String errorMessage, Function<EntityManager, T> action) {
         try {
             return executeInTransaction(action);
@@ -108,6 +132,9 @@ public final class JpaBootstrap {
         }
     }
 
+    /**
+     * Kiểm tra khả năng bootstrap.
+     */
     public static boolean canBootstrap() {
         try {
             return getEntityManagerFactory().isOpen();
@@ -116,6 +143,9 @@ public final class JpaBootstrap {
         }
     }
 
+    /**
+     * Kiểm tra required schema.
+     */
     public static boolean hasRequiredSchema() {
         try {
             executeWithEntityManager(entityManager -> {
@@ -140,6 +170,9 @@ public final class JpaBootstrap {
         }
     }
 
+    /**
+     * Xử lý run smoke test.
+     */
     public static String runSmokeTest() {
         return executeWithEntityManager(entityManager -> {
             Long facultyCount = entityManager.createQuery("select count(f) from Faculty f", Long.class)
@@ -148,6 +181,9 @@ public final class JpaBootstrap {
         });
     }
 
+    /**
+     * Đóng dữ liệu hiện tại.
+     */
     public static void close() {
         synchronized (JpaBootstrap.class) {
             if (entityManagerFactory != null && entityManagerFactory.isOpen()) {
@@ -157,6 +193,9 @@ public final class JpaBootstrap {
         }
     }
 
+    /**
+     * Khởi động điểm vào của ứng dụng.
+     */
     public static void main(String[] args) {
         try {
             System.out.println(runSmokeTest());
@@ -165,6 +204,9 @@ public final class JpaBootstrap {
         }
     }
 
+    /**
+     * Tạo overrides.
+     */
     private static Map<String, Object> buildOverrides() {
         Map<String, Object> properties = new HashMap<>();
         properties.put("jakarta.persistence.jdbc.driver", "com.mysql.cj.jdbc.Driver");
@@ -182,6 +224,9 @@ public final class JpaBootstrap {
         return properties;
     }
 
+    /**
+     * Trả về entity manager hiện tại.
+     */
     private static EntityManager getCurrentEntityManager() {
         EntityManager entityManager = CURRENT_ENTITY_MANAGER.get();
         if (entityManager == null) {
@@ -194,6 +239,9 @@ public final class JpaBootstrap {
         return entityManager;
     }
 
+    /**
+     * Xử lý mark rollback only.
+     */
     private static void markRollbackOnly(EntityTransaction transaction) {
         try {
             if (transaction != null && transaction.isActive() && !transaction.getRollbackOnly()) {
@@ -203,6 +251,9 @@ public final class JpaBootstrap {
         }
     }
 
+    /**
+     * Xử lý rollback quietly.
+     */
     private static void rollbackQuietly(EntityTransaction transaction) {
         try {
             if (transaction != null && transaction.isActive()) {
@@ -212,6 +263,9 @@ public final class JpaBootstrap {
         }
     }
 
+    /**
+     * Đóng quietly.
+     */
     private static void closeQuietly(EntityManager entityManager) {
         try {
             if (entityManager != null && entityManager.isOpen()) {

@@ -1,3 +1,6 @@
+/**
+ * Điều phối dữ liệu cho đăng ký.
+ */
 package com.qlsv.controller;
 
 import com.qlsv.model.Enrollment;

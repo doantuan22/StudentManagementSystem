@@ -1,3 +1,6 @@
+/**
+ * Màn hình giảng viên cho điểm.
+ */
 package com.qlsv.view.lecturer;
 
 import com.qlsv.controller.CourseSectionController;
@@ -63,12 +66,18 @@ public class LecturerScorePanel extends BasePanel {
     private final LecturerScoreAnalysisService lecturerScoreAnalysisService = new LecturerScoreAnalysisService();
 
     private final DefaultTableModel scoreTableModel = new DefaultTableModel(SCORE_TABLE_COLUMNS, 0) {
+        /**
+         * Xác định ô có cho phép chỉnh sửa hay không.
+         */
         @Override
         public boolean isCellEditable(int row, int column) {
             return false;
         }
     };
     private final DefaultTableModel editTableModel = new DefaultTableModel(EDIT_TABLE_COLUMNS, 0) {
+        /**
+         * Xác định ô có cho phép chỉnh sửa hay không.
+         */
         @Override
         public boolean isCellEditable(int row, int column) {
             return row == 0 && column >= 3 && column <= 5;
@@ -94,6 +103,9 @@ public class LecturerScorePanel extends BasePanel {
     private String currentKeyword = "";
     private boolean suppressDetailDialogOpening;
 
+    /**
+     * Khởi tạo điểm giảng viên.
+     */
     public LecturerScorePanel() {
         configureScoreTable();
         configureEditTable();
@@ -135,16 +147,25 @@ public class LecturerScorePanel extends BasePanel {
         });
         searchDebounceTimer.setRepeats(false);
         searchField.getDocument().addDocumentListener(new DocumentListener() {
+            /**
+             * Phản ứng khi nội dung vừa được chèn.
+             */
             @Override
             public void insertUpdate(DocumentEvent event) {
                 restartSearchDebounce();
             }
 
+            /**
+             * Phản ứng khi nội dung vừa bị xóa.
+             */
             @Override
             public void removeUpdate(DocumentEvent event) {
                 restartSearchDebounce();
             }
 
+            /**
+             * Phản ứng khi thuộc tính tài liệu thay đổi.
+             */
             @Override
             public void changedUpdate(DocumentEvent event) {
                 restartSearchDebounce();
@@ -245,6 +266,9 @@ public class LecturerScorePanel extends BasePanel {
             }
         });
         scoreTable.addMouseListener(new MouseAdapter() {
+            /**
+             * Xử lý thao tác nhấp chuột trên giao diện.
+             */
             @Override
             public void mouseClicked(MouseEvent event) {
                 if (event.getClickCount() == 2 && scoreTable.getSelectedRow() >= 0) {
@@ -256,6 +280,9 @@ public class LecturerScorePanel extends BasePanel {
         reloadData();
     }
 
+    /**
+     * Giải phóng tài nguyên khi thành phần bị gỡ.
+     */
     @Override
     public void removeNotify() {
         disposeDetailDialog();
@@ -263,6 +290,9 @@ public class LecturerScorePanel extends BasePanel {
         super.removeNotify();
     }
 
+    /**
+     * Thiết lập bảng điểm.
+     */
     private void configureScoreTable() {
         configureBaseTable(scoreTable);
         scoreTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -278,6 +308,9 @@ public class LecturerScorePanel extends BasePanel {
         scoreTable.getColumnModel().getColumn(8).setPreferredWidth(120);
     }
 
+    /**
+     * Thiết lập bảng edit.
+     */
     private void configureEditTable() {
         configureBaseTable(editTable);
         editTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -295,6 +328,9 @@ public class LecturerScorePanel extends BasePanel {
         editTable.getColumnModel().getColumn(7).setPreferredWidth(120);
     }
 
+    /**
+     * Thiết lập bảng cơ sở.
+     */
     private void configureBaseTable(JTable table) {
         table.setRowHeight(TABLE_ROW_HEIGHT);
         table.setFillsViewportHeight(true);
@@ -309,11 +345,17 @@ public class LecturerScorePanel extends BasePanel {
         table.getTableHeader().setFont(table.getTableHeader().getFont().deriveFont(Font.BOLD, 13f));
     }
 
+    /**
+     * Khởi tạo ialize edit row.
+     */
     private void initializeEditRow() {
         editTableModel.setRowCount(0);
         editTableModel.addRow(new Object[]{"", "", "", "", "", "", "", ""});
     }
 
+    /**
+     * Tạo card phần.
+     */
     private JPanel createSectionCard(BorderLayout layout) {
         JPanel panel = new JPanel(layout);
         panel.setOpaque(true);
@@ -325,6 +367,9 @@ public class LecturerScorePanel extends BasePanel {
         return panel;
     }
 
+    /**
+     * Tạo phần title.
+     */
     private JLabel createSectionTitle(String text) {
         JLabel label = new JLabel(text);
         label.setFont(label.getFont().deriveFont(Font.BOLD, 16f));
@@ -332,6 +377,9 @@ public class LecturerScorePanel extends BasePanel {
         return label;
     }
 
+    /**
+     * Tạo muted description.
+     */
     private JLabel createMutedDescription(String text) {
         JLabel label = new JLabel(text);
         label.setFont(label.getFont().deriveFont(Font.PLAIN, 12.5f));
@@ -339,6 +387,9 @@ public class LecturerScorePanel extends BasePanel {
         return label;
     }
 
+    /**
+     * Tạo bảng scroll pane.
+     */
     private JScrollPane createTableScrollPane(JTable table) {
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(BorderFactory.createLineBorder(AppColors.CARD_BORDER));
@@ -358,6 +409,9 @@ public class LecturerScorePanel extends BasePanel {
         return scrollPane;
     }
 
+    /**
+     * Áp dụng kiểu cho nút secondary.
+     */
     private void styleSecondaryButton(JButton button) {
         button.setFocusPainted(false);
         button.setBorderPainted(false);
@@ -368,6 +422,9 @@ public class LecturerScorePanel extends BasePanel {
         button.setBorder(BorderFactory.createEmptyBorder(8, 14, 8, 14));
     }
 
+    /**
+     * Áp dụng kiểu cho nút primary.
+     */
     private void stylePrimaryButton(JButton button) {
         button.setFocusPainted(false);
         button.setBorderPainted(false);
@@ -379,6 +436,9 @@ public class LecturerScorePanel extends BasePanel {
         button.setFont(button.getFont().deriveFont(Font.BOLD));
     }
 
+    /**
+     * Áp dụng kiểu cho nút lưu.
+     */
     private void styleSaveButton(JButton button) {
         button.setFocusPainted(false);
         button.setBorderPainted(false);
@@ -390,10 +450,16 @@ public class LecturerScorePanel extends BasePanel {
         button.setFont(button.getFont().deriveFont(Font.BOLD));
     }
 
+    /**
+     * Xử lý restart tìm kiếm debounce.
+     */
     private void restartSearchDebounce() {
         searchDebounceTimer.restart();
     }
 
+    /**
+     * Xử lý on điểm đã chọn.
+     */
     private void onScoreSelected() {
         int selectedRow = scoreTable.getSelectedRow();
         if (selectedRow < 0 || selectedRow >= filteredScores.size()) {
@@ -412,6 +478,9 @@ public class LecturerScorePanel extends BasePanel {
         }
     }
 
+    /**
+     * Xử lý fill edit row.
+     */
     private void fillEditRow(Score score) {
         if (editTable.isEditing()) {
             editTable.getCellEditor().stopCellEditing();
@@ -439,6 +508,9 @@ public class LecturerScorePanel extends BasePanel {
         editTableModel.setValueAt(DisplayTextUtil.formatStatus(score.getResult()), 0, 7);
     }
 
+    /**
+     * Xử lý lưu điểm.
+     */
     private void handleSaveScore() {
         if (selectedScore == null) {
             return;
@@ -465,15 +537,24 @@ public class LecturerScorePanel extends BasePanel {
         }
     }
 
+    /**
+     * Phân tích điểm value.
+     */
     private double parseScoreValue(Object value) {
         String normalizedValue = value == null ? "" : String.valueOf(value).trim();
         return Double.parseDouble(normalizedValue);
     }
 
+    /**
+     * Kiểm tra hộp thoại chi tiết visible.
+     */
     private boolean isDetailDialogVisible() {
         return detailDialog != null && detailDialog.isVisible();
     }
 
+    /**
+     * Hiển thị hộp thoại chi tiết.
+     */
     private void showDetailDialog() {
         if (detailDialog == null) {
             detailDialog = new LecturerScoreDetailDialog(editPanel);
@@ -481,12 +562,18 @@ public class LecturerScorePanel extends BasePanel {
         detailDialog.openDialog();
     }
 
+    /**
+     * Ẩn hộp thoại chi tiết.
+     */
     private void hideDetailDialog() {
         if (detailDialog != null) {
             detailDialog.setVisible(false);
         }
     }
 
+    /**
+     * Giải phóng hộp thoại chi tiết.
+     */
     private void disposeDetailDialog() {
         if (detailDialog != null) {
             detailDialog.dispose();
@@ -494,6 +581,9 @@ public class LecturerScorePanel extends BasePanel {
         }
     }
 
+    /**
+     * Giải phóng hộp thoại phân tích.
+     */
     private void disposeAnalysisDialog() {
         if (analysisDialog != null) {
             analysisDialog.dispose();
@@ -501,6 +591,9 @@ public class LecturerScorePanel extends BasePanel {
         }
     }
 
+    /**
+     * Xử lý phân tích điểm.
+     */
     private void handleAnalyzeScores(JButton analyzeButton) {
         LecturerScoreAnalysisService.LecturerScoreAnalysisSnapshot snapshot;
         try {
@@ -519,11 +612,17 @@ public class LecturerScorePanel extends BasePanel {
 
         LecturerScoreAnalysisService.LecturerScoreAnalysisSnapshot immutableSnapshot = snapshot;
         new SwingWorker<String, Void>() {
+            /**
+             * Xử lý do in background.
+             */
             @Override
             protected String doInBackground() {
                 return lecturerScoreAnalysisService.analyzeSnapshot(immutableSnapshot);
             }
 
+            /**
+             * Xử lý done.
+             */
             @Override
             protected void done() {
                 try {
@@ -541,6 +640,9 @@ public class LecturerScorePanel extends BasePanel {
         }.execute();
     }
 
+    /**
+     * Hiển thị hộp thoại phân tích.
+     */
     private void showAnalysisDialog(
             LecturerScoreAnalysisService.LecturerScoreAnalysisSnapshot snapshot,
             String analysisText
@@ -553,6 +655,9 @@ public class LecturerScorePanel extends BasePanel {
         analysisDialog.openDialog();
     }
 
+    /**
+     * Tạo phân tích hộp thoại content.
+     */
     private String buildAnalysisDialogContent(
             LecturerScoreAnalysisService.LecturerScoreAnalysisSnapshot snapshot,
             String analysisText
@@ -575,6 +680,9 @@ public class LecturerScorePanel extends BasePanel {
         return builder.toString();
     }
 
+    /**
+     * Tạo label phân tích lọc.
+     */
     private String buildAnalysisFilterLabel() {
         String courseLabel = resolveCurrentCourseLabel();
         if (currentKeyword.isBlank()) {
@@ -583,6 +691,9 @@ public class LecturerScorePanel extends BasePanel {
         return courseLabel + " | Từ khóa: " + currentKeyword;
     }
 
+    /**
+     * Xác định label khóa học hiện tại.
+     */
     private String resolveCurrentCourseLabel() {
         if (currentCourseSectionId == null) {
             return "Tất cả học phần đang hiển thị";
@@ -597,6 +708,9 @@ public class LecturerScorePanel extends BasePanel {
         return "Học phần đang hiển thị";
     }
 
+    /**
+     * Xác định async error thông báo.
+     */
     private String resolveAsyncErrorMessage(ExecutionException exception) {
         Throwable cause = exception.getCause();
         if (cause != null && cause.getMessage() != null && !cause.getMessage().isBlank()) {
@@ -605,6 +719,9 @@ public class LecturerScorePanel extends BasePanel {
         return "Không thể phân tích dữ liệu điểm ở thời điểm hiện tại.";
     }
 
+    /**
+     * Nạp học phần.
+     */
     private void loadCourseSections() {
         try {
             Lecturer lecturer = lecturerController.getCurrentLecturer();
@@ -621,11 +738,17 @@ public class LecturerScorePanel extends BasePanel {
         }
     }
 
+    /**
+     * Làm mới dữ liệu đang hiển thị.
+     */
     @Override
     public void reloadData() {
         refreshScoreData(true, getSelectedEnrollmentId());
     }
 
+    /**
+     * Xử lý refresh điểm dữ liệu.
+     */
     private void refreshScoreData(boolean reloadCourseSections, Long preferredEnrollmentId) {
         try {
             if (reloadCourseSections) {
@@ -640,6 +763,9 @@ public class LecturerScorePanel extends BasePanel {
         }
     }
 
+    /**
+     * Xử lý apply filters.
+     */
     private void applyFilters(Long preferredEnrollmentId) {
         courseFilteredScores.clear();
         filteredScores.clear();
@@ -679,6 +805,9 @@ public class LecturerScorePanel extends BasePanel {
         }
     }
 
+    /**
+     * Xử lý matches hiện tại khóa học lọc.
+     */
     private boolean matchesCurrentCourseFilter(Score score) {
         if (currentCourseSectionId == null) {
             return true;
@@ -688,6 +817,9 @@ public class LecturerScorePanel extends BasePanel {
                 && currentCourseSectionId.equals(score.getEnrollment().getCourseSection().getId());
     }
 
+    /**
+     * Xử lý matches hiện tại keyword.
+     */
     private boolean matchesCurrentKeyword(Score score) {
         if (currentKeyword.isBlank()) {
             return true;
@@ -696,6 +828,9 @@ public class LecturerScorePanel extends BasePanel {
                 || containsIgnoreCase(getStudentName(score), currentKeyword);
     }
 
+    /**
+     * Xử lý restore đã chọn row.
+     */
     private void restoreSelectedRow(Long preferredEnrollmentId) {
         if (preferredEnrollmentId == null) {
             scoreTable.clearSelection();
@@ -712,6 +847,9 @@ public class LecturerScorePanel extends BasePanel {
         scoreTable.clearSelection();
     }
 
+    /**
+     * Xử lý restore khóa học selection.
+     */
     private void restoreCourseSelection() {
         if (currentCourseSectionId == null) {
             courseComboBox.setSelectedIndex(0);
@@ -729,6 +867,9 @@ public class LecturerScorePanel extends BasePanel {
         currentCourseSectionId = null;
     }
 
+    /**
+     * Xác định học phần id from chọn selection.
+     */
     private Long resolveCourseSectionIdFromComboSelection() {
         Object selectedItem = courseComboBox.getSelectedItem();
         if (selectedItem instanceof CourseSection section) {
@@ -737,14 +878,23 @@ public class LecturerScorePanel extends BasePanel {
         return null;
     }
 
+    /**
+     * Trả về đăng ký id đã chọn.
+     */
     private Long getSelectedEnrollmentId() {
         return selectedScore == null ? null : getEnrollmentId(selectedScore);
     }
 
+    /**
+     * Trả về đăng ký id.
+     */
     private Long getEnrollmentId(Score score) {
         return score == null || score.getEnrollment() == null ? null : score.getEnrollment().getId();
     }
 
+    /**
+     * Trả về sinh viên mã.
+     */
     private String getStudentCode(Score score) {
         if (score == null || score.getEnrollment() == null || score.getEnrollment().getStudent() == null) {
             return "";
@@ -752,6 +902,9 @@ public class LecturerScorePanel extends BasePanel {
         return DisplayTextUtil.defaultText(score.getEnrollment().getStudent().getStudentCode());
     }
 
+    /**
+     * Trả về sinh viên tên.
+     */
     private String getStudentName(Score score) {
         if (score == null || score.getEnrollment() == null || score.getEnrollment().getStudent() == null) {
             return "";
@@ -759,6 +912,9 @@ public class LecturerScorePanel extends BasePanel {
         return DisplayTextUtil.defaultText(score.getEnrollment().getStudent().getFullName());
     }
 
+    /**
+     * Trả về học phần mã.
+     */
     private String getCourseSectionCode(Score score) {
         if (score == null || score.getEnrollment() == null || score.getEnrollment().getCourseSection() == null) {
             return "";
@@ -766,20 +922,32 @@ public class LecturerScorePanel extends BasePanel {
         return DisplayTextUtil.defaultText(score.getEnrollment().getCourseSection().getSectionCode());
     }
 
+    /**
+     * Xử lý contains ignore case.
+     */
     private boolean containsIgnoreCase(String source, String keyword) {
         return normalize(source).contains(keyword);
     }
 
+    /**
+     * Chuẩn hóa dữ liệu hiện tại.
+     */
     private String normalize(String value) {
         return value == null ? "" : value.trim().toLowerCase(Locale.ROOT);
     }
 
     private static final class ResponsiveTable extends JTable {
 
+        /**
+         * Xử lý bảng responsive.
+         */
         private ResponsiveTable(DefaultTableModel model) {
             super(model);
         }
 
+        /**
+         * Trả về scrollable tracks viewport width.
+         */
         @Override
         public boolean getScrollableTracksViewportWidth() {
             return getPreferredSize().width < getParent().getWidth();

@@ -1,3 +1,6 @@
+/**
+ * Màn hình giảng viên cho tổng quan.
+ */
 package com.qlsv.view.lecturer;
 
 import com.qlsv.view.common.AppColors;
@@ -11,6 +14,9 @@ import java.awt.GridLayout;
 
 public class LecturerHomePanel extends BasePanel {
 
+    /**
+     * Khởi tạo giảng viên tổng quan.
+     */
     public LecturerHomePanel() {
         setOpaque(true);
         setBackground(AppColors.CONTENT_BACKGROUND);
@@ -37,6 +43,9 @@ public class LecturerHomePanel extends BasePanel {
         add(infoPanel, BorderLayout.CENTER);
     }
 
+    /**
+     * Tạo card thông tin.
+     */
     private JPanel createInfoCard(String title, String content) {
         JPanel card = new JPanel(new BorderLayout(10, 10));
         card.setBackground(AppColors.CARD_BACKGROUND);

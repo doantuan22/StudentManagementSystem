@@ -1,3 +1,6 @@
+/**
+ * Hộp thoại lịch biểu mẫu dialog.
+ */
 package com.qlsv.view.dialog;
 
 import com.qlsv.model.CourseSection;
@@ -40,17 +43,26 @@ public class ScheduleFormDialog extends JDialog {
 
     private ScheduleFormResult result;
 
+    /**
+     * Khởi tạo lịch biểu mẫu.
+     */
     private ScheduleFormDialog(Component parent, ScheduleFormModel model) {
         super(resolveOwner(parent), model.title(), Dialog.ModalityType.APPLICATION_MODAL);
         initComponents(model);
     }
 
+    /**
+     * Hiển thị hộp thoại.
+     */
     public static ScheduleFormResult showDialog(Component parent, ScheduleFormModel model) {
         ScheduleFormDialog dialog = new ScheduleFormDialog(parent, model);
         dialog.setVisible(true);
         return dialog.result;
     }
 
+    /**
+     * Khởi tạo các thành phần giao diện.
+     */
     private void initComponents(ScheduleFormModel model) {
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
@@ -113,6 +125,9 @@ public class ScheduleFormDialog extends JDialog {
         setLocationRelativeTo(getOwner());
     }
 
+    /**
+     * Xử lý model bind.
+     */
     private void bindModel(ScheduleFormModel model) {
         courseSectionComboBox.removeAllItems();
         for (CourseSection courseSection : model.courseSections()) {
@@ -156,12 +171,18 @@ public class ScheduleFormDialog extends JDialog {
         });
     }
 
+    /**
+     * Tạo học phần phần.
+     */
     private JPanel createCourseSectionSection() {
         JPanel contentPanel = createFieldGridPanel();
         contentPanel.add(createField("Học phần", styleComboBox(courseSectionComboBox)), fieldConstraints(0, 0, 2));
         return createSection("Thông tin học phần", "Giữ nguyên học phần đang chọn khi cập nhật lịch hiện hữu.", contentPanel);
     }
 
+    /**
+     * Tạo lịch phần.
+     */
     private JPanel createScheduleSection() {
         JPanel contentPanel = createFieldGridPanel();
         contentPanel.add(createField("Thứ học", styleComboBox(dayOfWeekComboBox)), fieldConstraints(0, 0));
@@ -171,6 +192,9 @@ public class ScheduleFormDialog extends JDialog {
         return createSection("Lịch học", "Thiết lập ngày học, tiết học và phòng học.", contentPanel);
     }
 
+    /**
+     * Tạo note phần.
+     */
     private JPanel createNoteSection() {
         noteArea.setLineWrap(true);
         noteArea.setWrapStyleWord(true);
@@ -185,6 +209,9 @@ public class ScheduleFormDialog extends JDialog {
         return createSection("Ghi chú", "Ghi nhận thêm nếu cần cho buổi học hoặc học phần này.", scrollPane);
     }
 
+    /**
+     * Tạo phần.
+     */
     private JPanel createSection(String title, String subtitle, JComponent content) {
         JPanel panel = new JPanel(new BorderLayout(0, 16));
         panel.setOpaque(true);
@@ -213,16 +240,25 @@ public class ScheduleFormDialog extends JDialog {
         return panel;
     }
 
+    /**
+     * Tạo panel trường grid.
+     */
     private JPanel createFieldGridPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setOpaque(false);
         return panel;
     }
 
+    /**
+     * Xử lý trường constraints.
+     */
     private GridBagConstraints fieldConstraints(int x, int y) {
         return fieldConstraints(x, y, 1);
     }
 
+    /**
+     * Xử lý trường constraints.
+     */
     private GridBagConstraints fieldConstraints(int x, int y, int width) {
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.gridx = x;
@@ -235,6 +271,9 @@ public class ScheduleFormDialog extends JDialog {
         return constraints;
     }
 
+    /**
+     * Tạo trường.
+     */
     private JPanel createField(String labelText, Component inputComponent) {
         JPanel panel = new JPanel(new BorderLayout(0, 6));
         panel.setOpaque(false);
@@ -248,6 +287,9 @@ public class ScheduleFormDialog extends JDialog {
         return panel;
     }
 
+    /**
+     * Áp dụng kiểu cho chọn box.
+     */
     private <T> JComboBox<T> styleComboBox(JComboBox<T> comboBox) {
         comboBox.setFont(comboBox.getFont().deriveFont(Font.PLAIN, 13.5f));
         comboBox.setBorder(BorderFactory.createLineBorder(AppColors.INPUT_BORDER));
@@ -255,6 +297,9 @@ public class ScheduleFormDialog extends JDialog {
         return comboBox;
     }
 
+    /**
+     * Áp dụng kiểu cho nút primary.
+     */
     private void stylePrimaryButton(JButton button) {
         button.setFocusPainted(false);
         button.setBorderPainted(false);
@@ -265,6 +310,9 @@ public class ScheduleFormDialog extends JDialog {
         button.setBorder(BorderFactory.createEmptyBorder(10, 18, 10, 18));
     }
 
+    /**
+     * Áp dụng kiểu cho nút secondary.
+     */
     private void styleSecondaryButton(JButton button) {
         button.setFocusPainted(false);
         button.setBorderPainted(false);
@@ -275,6 +323,9 @@ public class ScheduleFormDialog extends JDialog {
         button.setBorder(BorderFactory.createEmptyBorder(10, 18, 10, 18));
     }
 
+    /**
+     * Xử lý lưu.
+     */
     private void handleSave() {
         result = new ScheduleFormResult(
                 (CourseSection) courseSectionComboBox.getSelectedItem(),
@@ -287,6 +338,9 @@ public class ScheduleFormDialog extends JDialog {
         dispose();
     }
 
+    /**
+     * Xác định owner.
+     */
     private static Window resolveOwner(Component parent) {
         if (parent == null) {
             return null;
@@ -294,6 +348,9 @@ public class ScheduleFormDialog extends JDialog {
         return SwingUtilities.getWindowAncestor(parent);
     }
 
+    /**
+     * Xử lý model lịch biểu mẫu.
+     */
     public record ScheduleFormModel(
             String title,
             List<CourseSection> courseSections,
@@ -310,6 +367,9 @@ public class ScheduleFormDialog extends JDialog {
     ) {
     }
 
+    /**
+     * Xử lý lịch kết quả biểu mẫu.
+     */
     public record ScheduleFormResult(
             CourseSection courseSection,
             String dayOfWeek,

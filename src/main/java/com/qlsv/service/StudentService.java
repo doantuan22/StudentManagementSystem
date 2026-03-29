@@ -1,3 +1,6 @@
+/**
+ * Xử lý nghiệp vụ sinh viên.
+ */
 package com.qlsv.service;
 
 import com.qlsv.config.JpaBootstrap;
@@ -168,6 +171,9 @@ public class StudentService {
         );
     }
 
+    /**
+     * Kiểm tra dữ liệu hiện tại.
+     */
     private void validate(Student student) {
         student.setStudentCode(ValidationUtil.normalizeCodePrefix(student.getStudentCode(), "SV", "MÃ£ sinh viÃªn"));
         ValidationUtil.requireWithinLength(student.getStudentCode(), 50, "Mã sinh viên");
@@ -183,6 +189,9 @@ public class StudentService {
         }
     }
 
+    /**
+     * Chuẩn hóa địa chỉ.
+     */
     private String normalizeAddress(String address) {
         String normalizedAddress = address == null ? "" : address.trim();
         if (normalizedAddress.length() > 255) {
@@ -191,6 +200,9 @@ public class StudentService {
         return normalizedAddress;
     }
 
+    /**
+     * Bảo đảm người dùng liên kết.
+     */
     private void ensureLinkedUser(Student student) {
         if (student.getUserId() != null) {
             return;
@@ -221,6 +233,9 @@ public class StudentService {
         student.setUserId(user.getId());
     }
 
+    /**
+     * Đồng bộ người dùng liên kết.
+     */
     private void syncLinkedUser(Student student) {
         if (student.getUserId() == null) {
             return;

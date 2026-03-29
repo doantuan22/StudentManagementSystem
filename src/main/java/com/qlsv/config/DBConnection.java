@@ -1,3 +1,6 @@
+/**
+ * Tạo kết nối JDBC phục vụ kiểm tra và bootstrap.
+ */
 package com.qlsv.config;
 
 import com.qlsv.exception.AppException;
@@ -20,9 +23,15 @@ public final class DBConnection {
     private static volatile boolean driverLoaded;
     private static final Logger LOGGER = Logger.getLogger(DBConnection.class.getName());
 
+    /**
+     * Khởi tạo CSDL kết nối.
+     */
     private DBConnection() {
     }
 
+    /**
+     * Bảo đảm driver loaded.
+     */
     private static void ensureDriverLoaded() {
         if (driverLoaded) {
             return;
@@ -46,6 +55,9 @@ public final class DBConnection {
         }
     }
 
+    /**
+     * Trả về kết nối.
+     */
     public static Connection getConnection() {
         ensureDriverLoaded();
         try {
@@ -63,6 +75,9 @@ public final class DBConnection {
         }
     }
 
+    /**
+     * Kiểm tra khả năng connect.
+     */
     public static boolean canConnect() {
         try (Connection ignored = getConnection()) {
             return true;
@@ -74,6 +89,9 @@ public final class DBConnection {
         }
     }
 
+    /**
+     * Kiểm tra required tables.
+     */
     public static boolean hasRequiredTables() {
         try (Connection connection = getConnection()) {
             DatabaseMetaData databaseMetaData = connection.getMetaData();
@@ -125,12 +143,18 @@ public final class DBConnection {
         }
     }
 
+    /**
+     * Xử lý bảng exists.
+     */
     private static boolean tableExists(DatabaseMetaData databaseMetaData, String tableName) throws SQLException {
         try (var resultSet = databaseMetaData.getTables(null, null, tableName, null)) {
             return resultSet.next();
         }
     }
 
+    /**
+     * Xử lý column exists.
+     */
     private static boolean columnExists(DatabaseMetaData databaseMetaData, String tableName, String columnName) throws SQLException {
         try (var resultSet = databaseMetaData.getColumns(null, null, tableName, columnName)) {
             return resultSet.next();

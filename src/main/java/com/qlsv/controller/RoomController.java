@@ -1,3 +1,6 @@
+/**
+ * Điều phối dữ liệu cho phòng.
+ */
 package com.qlsv.controller;
 
 import com.qlsv.exception.AppException;
@@ -13,6 +16,9 @@ public class RoomController {
     private static final Logger LOGGER = Logger.getLogger(RoomController.class.getName());
     private final RoomService roomService = new RoomService();
 
+    /**
+     * Trả về toàn bộ phòng.
+     */
     public List<Room> getAllRooms() {
         try {
             return roomService.getAllRooms();
@@ -21,6 +27,9 @@ public class RoomController {
         }
     }
 
+    /**
+     * Tìm kiếm phòng.
+     */
     public List<Room> searchRooms(String keyword) {
         try {
             return roomService.searchRooms(keyword);
@@ -29,10 +38,16 @@ public class RoomController {
         }
     }
 
+    /**
+     * Trả về phòng for selection.
+     */
     public List<Room> getRoomsForSelection() {
         return getAllRooms();
     }
 
+    /**
+     * Lưu phòng.
+     */
     public void saveRoom(Room room) {
         try {
             roomService.saveRoom(room);
@@ -41,6 +56,9 @@ public class RoomController {
         }
     }
 
+    /**
+     * Xóa phòng.
+     */
     public void deleteRoom(Long id) {
         try {
             roomService.deleteRoom(id);
@@ -49,6 +67,9 @@ public class RoomController {
         }
     }
 
+    /**
+     * Xử lý propagate.
+     */
     private AppException propagate(AppException exception) {
         LOGGER.log(Level.SEVERE, exception.getMessage(), exception);
         return exception;

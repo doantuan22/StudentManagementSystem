@@ -1,3 +1,6 @@
+/**
+ * Điều phối dữ liệu cho đăng ký management màn hình.
+ */
 package com.qlsv.controller;
 
 import com.qlsv.dto.DisplayDtoMapper;
@@ -70,18 +73,30 @@ public class EnrollmentManagementScreenController {
         return DisplayDtoMapper.toEnrollmentDisplayDto(enrollment);
     }
 
+    /**
+     * Nạp sinh viên.
+     */
     public List<Student> loadStudents() {
         return studentController.getStudentsForSelection();
     }
 
+    /**
+     * Nạp học phần.
+     */
     public List<CourseSection> loadCourseSections() {
         return courseSectionController.getAllCourseSectionsForSelection();
     }
 
+    /**
+     * Nạp lớp phòng.
+     */
     public List<ClassRoom> loadClassRooms() {
         return classRoomController.getClassRoomsForSelection();
     }
 
+    /**
+     * Nạp khoa.
+     */
     public List<Faculty> loadFaculties() {
         return facultyController.getFacultiesForSelection();
     }
@@ -114,6 +129,9 @@ public class EnrollmentManagementScreenController {
         enrollmentController.deleteEnrollment(enrollment.getId());
     }
 
+    /**
+     * Xử lý đăng ký biểu mẫu dữ liệu.
+     */
     public record EnrollmentFormData(Student student, CourseSection courseSection, String status) {
     }
 }

@@ -1,3 +1,6 @@
+/**
+ * Xử lý nghiệp vụ người dùng.
+ */
 package com.qlsv.service;
 
 import com.qlsv.config.JpaBootstrap;
@@ -57,6 +60,9 @@ public class UserService {
         updatePassword(targetUser, normalizedNewPassword);
     }
 
+    /**
+     * Bắt buộc admin quyền.
+     */
     private void requireAdminPermission(Role expectedRole) {
         if (expectedRole == Role.STUDENT) {
             permissionService.requirePermission(RolePermission.MANAGE_STUDENTS);
@@ -69,6 +75,9 @@ public class UserService {
         permissionService.requireAnyRole(Role.ADMIN);
     }
 
+    /**
+     * Kiểm tra new mật khẩu.
+     */
     private String validateNewPassword(String newPassword, String confirmPassword) {
         String normalizedNewPassword = ValidationUtil.requireNotBlank(
                 newPassword,
@@ -87,6 +96,9 @@ public class UserService {
         return normalizedNewPassword;
     }
 
+    /**
+     * Cập nhật mật khẩu.
+     */
     private void updatePassword(User user, String rawPassword) {
         String hashedPassword = PasswordHasher.hash(rawPassword);
 

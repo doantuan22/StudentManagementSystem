@@ -1,3 +1,6 @@
+/**
+ * Màn hình giảng viên cho hồ sơ.
+ */
 package com.qlsv.view.lecturer;
 
 import com.qlsv.controller.LecturerController;
@@ -49,6 +52,9 @@ public class LecturerProfilePanel extends BasePanel {
     private boolean isEditing;
     private Lecturer currentLecturer;
 
+    /**
+     * Khởi tạo hồ sơ giảng viên.
+     */
     public LecturerProfilePanel() {
         setBackground(AppColors.CONTENT_BACKGROUND);
         initComponents();
@@ -75,6 +81,9 @@ public class LecturerProfilePanel extends BasePanel {
         add(scrollPane, BorderLayout.CENTER);
     }
 
+    /**
+     * Làm mới dữ liệu đang hiển thị.
+     */
     @Override
     public void reloadData() {
         try {
@@ -126,6 +135,9 @@ public class LecturerProfilePanel extends BasePanel {
         return card;
     }
 
+    /**
+     * Tạo hero đầu trang.
+     */
     private JPanel buildHeroHeader() {
         JPanel headerPanel = new JPanel(new GridBagLayout());
         headerPanel.setOpaque(false);
@@ -167,6 +179,9 @@ public class LecturerProfilePanel extends BasePanel {
         return headerPanel;
     }
 
+    /**
+     * Tạo panel tóm tắt.
+     */
     private JPanel buildSummaryPanel() {
         JPanel summaryPanel = new JPanel(new GridBagLayout());
         summaryPanel.setOpaque(false);
@@ -259,6 +274,9 @@ public class LecturerProfilePanel extends BasePanel {
         return sectionsPanel;
     }
 
+    /**
+     * Tạo card identity.
+     */
     private JPanel buildIdentityCard() {
         JPanel card = createSectionCard(
                 "Thông tin định danh",
@@ -277,6 +295,9 @@ public class LecturerProfilePanel extends BasePanel {
         return card;
     }
 
+    /**
+     * Tạo card work.
+     */
     private JPanel buildWorkCard() {
         JPanel card = createSectionCard(
                 "Thông tin công tác",
@@ -333,6 +354,9 @@ public class LecturerProfilePanel extends BasePanel {
         return card;
     }
 
+    /**
+     * Tạo card phần.
+     */
     private JPanel createSectionCard(String title, String subtitle, Color background) {
         JPanel card = createCard(background);
 
@@ -355,6 +379,9 @@ public class LecturerProfilePanel extends BasePanel {
         return card;
     }
 
+    /**
+     * Tạo card.
+     */
     private JPanel createCard(Color background) {
         JPanel card = new JPanel(new BorderLayout(0, 14));
         card.setOpaque(true);
@@ -366,6 +393,9 @@ public class LecturerProfilePanel extends BasePanel {
         return card;
     }
 
+    /**
+     * Tạo panel trường.
+     */
     private JPanel createFieldsPanel() {
         JPanel panel = new JPanel();
         panel.setOpaque(false);
@@ -373,6 +403,9 @@ public class LecturerProfilePanel extends BasePanel {
         return panel;
     }
 
+    /**
+     * Tạo badge.
+     */
     private JPanel createBadge(String label, String value) {
         JPanel badge = new JPanel(new BorderLayout(0, 6));
         badge.setOpaque(true);
@@ -395,6 +428,9 @@ public class LecturerProfilePanel extends BasePanel {
         return badge;
     }
 
+    /**
+     * Tạo trường read only.
+     */
     private JPanel createReadOnlyField(String label, String value) {
         JLabel labelComponent = new JLabel(label);
         labelComponent.setForeground(AppColors.CARD_MUTED_TEXT);
@@ -411,6 +447,9 @@ public class LecturerProfilePanel extends BasePanel {
         return panel;
     }
 
+    /**
+     * Tạo trường input.
+     */
     private JPanel createInputField(String label, JTextField textField) {
         JLabel labelComponent = new JLabel(label);
         labelComponent.setForeground(AppColors.CARD_MUTED_TEXT);
@@ -423,6 +462,9 @@ public class LecturerProfilePanel extends BasePanel {
         return panel;
     }
 
+    /**
+     * Tạo trường văn bản.
+     */
     private JTextField createTextField(String value) {
         JTextField textField = new JTextField(value == null ? "" : value);
         textField.setMaximumSize(new Dimension(Integer.MAX_VALUE, INPUT_HEIGHT));
@@ -434,6 +476,9 @@ public class LecturerProfilePanel extends BasePanel {
         return textField;
     }
 
+    /**
+     * Thêm tóm tắt badge.
+     */
     private void addSummaryBadge(JPanel summaryPanel, GridBagConstraints template, int x, int y, JPanel badgePanel) {
         GridBagConstraints gbc = (GridBagConstraints) template.clone();
         gbc.gridx = x;
@@ -442,6 +487,9 @@ public class LecturerProfilePanel extends BasePanel {
         summaryPanel.add(badgePanel, gbc);
     }
 
+    /**
+     * Tạo label note.
+     */
     private JLabel createNoteLabel(String text) {
         JLabel label = new JLabel("<html><div style='width:260px;line-height:1.45;'>" + text + "</div></html>");
         label.setForeground(AppColors.CARD_MUTED_TEXT);
@@ -449,6 +497,9 @@ public class LecturerProfilePanel extends BasePanel {
         return label;
     }
 
+    /**
+     * Áp dụng kiểu cho nút filled.
+     */
     private void styleFilledButton(JButton button, Color background) {
         button.setFocusPainted(false);
         button.setBorderPainted(false);

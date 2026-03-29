@@ -1,3 +1,6 @@
+/**
+ * Màn hình giảng viên cho học phần.
+ */
 package com.qlsv.view.lecturer;
 
 import com.qlsv.controller.CourseSectionController;
@@ -38,9 +41,15 @@ public class LecturerCourseSectionPanel extends BasePanel {
     private LecturerCourseSectionDetailDialog detailDialog;
     private final JLabel summaryLabel = new JLabel("Đang tải học phần phụ trách...");
 
+    /**
+     * Khởi tạo giảng viên học phần.
+     */
     public LecturerCourseSectionPanel() {
         tableModel = new DefaultTableModel(
                 new String[]{"Mã học phần", "Môn học", "Học kỳ", "Năm học", "Lịch học"}, 0) {
+            /**
+             * Xác định ô có cho phép chỉnh sửa hay không.
+             */
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -60,6 +69,9 @@ public class LecturerCourseSectionPanel extends BasePanel {
             }
         });
         table.addMouseListener(new MouseAdapter() {
+            /**
+             * Xử lý thao tác nhấp chuột trên giao diện.
+             */
             @Override
             public void mouseClicked(MouseEvent event) {
                 if (event.getClickCount() == 2 && table.getSelectedRow() >= 0) {
@@ -112,12 +124,18 @@ public class LecturerCourseSectionPanel extends BasePanel {
         reloadData();
     }
 
+    /**
+     * Giải phóng tài nguyên khi thành phần bị gỡ.
+     */
     @Override
     public void removeNotify() {
         disposeDetailDialog();
         super.removeNotify();
     }
 
+    /**
+     * Xử lý bảng selection changed.
+     */
     private void handleTableSelectionChanged() {
         updateDetailPanel();
         if (table.getSelectedRow() < 0) {
@@ -127,6 +145,9 @@ public class LecturerCourseSectionPanel extends BasePanel {
         showDetailDialog();
     }
 
+    /**
+     * Cập nhật panel chi tiết.
+     */
     private void updateDetailPanel() {
         int selectedRow = table.getSelectedRow();
         if (selectedRow == -1) {
@@ -154,6 +175,9 @@ public class LecturerCourseSectionPanel extends BasePanel {
         }
     }
 
+    /**
+     * Hiển thị hộp thoại chi tiết.
+     */
     private void showDetailDialog() {
         if (detailDialog == null) {
             detailDialog = new LecturerCourseSectionDetailDialog(detailSectionPanel);
@@ -161,12 +185,18 @@ public class LecturerCourseSectionPanel extends BasePanel {
         detailDialog.openDialog();
     }
 
+    /**
+     * Ẩn hộp thoại chi tiết.
+     */
     private void hideDetailDialog() {
         if (detailDialog != null) {
             detailDialog.setVisible(false);
         }
     }
 
+    /**
+     * Giải phóng hộp thoại chi tiết.
+     */
     private void disposeDetailDialog() {
         if (detailDialog != null) {
             detailDialog.dispose();
@@ -174,6 +204,9 @@ public class LecturerCourseSectionPanel extends BasePanel {
         }
     }
 
+    /**
+     * Làm mới dữ liệu đang hiển thị.
+     */
     @Override
     public void reloadData() {
         try {
@@ -199,6 +232,9 @@ public class LecturerCourseSectionPanel extends BasePanel {
         }
     }
 
+    /**
+     * Thiết lập bảng.
+     */
     private void configureTable(JTable table) {
         table.setRowHeight(28);
         table.setFillsViewportHeight(true);

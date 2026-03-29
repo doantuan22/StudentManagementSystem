@@ -1,3 +1,6 @@
+/**
+ * Mô tả thực thể lịch của hệ thống.
+ */
 package com.qlsv.model;
 
 import jakarta.persistence.Column;
@@ -40,9 +43,15 @@ public class Schedule {
     @Column(name = "note", length = 255)
     private String note;
 
+    /**
+     * Khởi tạo lịch.
+     */
     public Schedule() {
     }
 
+    /**
+     * Khởi tạo lịch.
+     */
     public Schedule(Long id, CourseSection courseSection, String dayOfWeek, Integer startPeriod,
                     Integer endPeriod, Room room, String note) {
         this.id = id;
@@ -54,72 +63,123 @@ public class Schedule {
         this.note = note;
     }
 
+    /**
+     * Trả về id.
+     */
     public Long getId() {
         return id;
     }
 
+    /**
+     * Cập nhật id.
+     */
     public void setId(Long id) {
         this.id = id;
     }
 
+    /**
+     * Trả về học phần.
+     */
     public CourseSection getCourseSection() {
         return courseSection;
     }
 
+    /**
+     * Cập nhật học phần.
+     */
     public void setCourseSection(CourseSection courseSection) {
         this.courseSection = courseSection;
     }
 
+    /**
+     * Trả về day of week.
+     */
     public String getDayOfWeek() {
         return dayOfWeek;
     }
 
+    /**
+     * Cập nhật day of week.
+     */
     public void setDayOfWeek(String dayOfWeek) {
         this.dayOfWeek = dayOfWeek;
     }
 
+    /**
+     * Trả về start period.
+     */
     public Integer getStartPeriod() {
         return startPeriod;
     }
 
+    /**
+     * Cập nhật start period.
+     */
     public void setStartPeriod(Integer startPeriod) {
         this.startPeriod = startPeriod;
     }
 
+    /**
+     * Trả về end period.
+     */
     public Integer getEndPeriod() {
         return endPeriod;
     }
 
+    /**
+     * Cập nhật end period.
+     */
     public void setEndPeriod(Integer endPeriod) {
         this.endPeriod = endPeriod;
     }
 
+    /**
+     * Trả về phòng.
+     */
     public Room getRoom() {
         return room;
     }
 
+    /**
+     * Cập nhật phòng.
+     */
     public void setRoom(Room room) {
         this.room = room;
     }
 
+    /**
+     * Trả về note.
+     */
     public String getNote() {
         return note;
     }
 
+    /**
+     * Cập nhật note.
+     */
     public void setNote(String note) {
         this.note = note;
     }
 
+    /**
+     * Xử lý to hiển thị văn bản.
+     */
     public String toDisplayText() {
         return dayOfWeek + " tiết " + startPeriod + "-" + endPeriod + " phòng " + (room != null ? room.getRoomName() : "Trống");
     }
 
+    /**
+     * Trả về chuỗi hiển thị của đối tượng.
+     */
     @Override
     public String toString() {
         String sectionCode = courseSection == null ? "" : courseSection.getSectionCode();
         return sectionCode + " - " + toDisplayText();
     }
 
+    /**
+     * So sánh đối tượng theo định danh phù hợp.
+     */
     @Override
     public boolean equals(Object object) {
         if (this == object) {
@@ -131,6 +191,9 @@ public class Schedule {
         return Objects.equals(id, schedule.id);
     }
 
+    /**
+     * Tạo mã băm cho đối tượng.
+     */
     @Override
     public int hashCode() {
         return Objects.hash(id);

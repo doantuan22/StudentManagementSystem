@@ -1,3 +1,6 @@
+/**
+ * Hộp thoại môn học biểu mẫu dialog.
+ */
 package com.qlsv.view.dialog;
 
 import com.qlsv.model.Faculty;
@@ -35,17 +38,26 @@ public class SubjectFormDialog extends JDialog {
 
     private SubjectFormResult result;
 
+    /**
+     * Khởi tạo môn học biểu mẫu.
+     */
     private SubjectFormDialog(Component parent, SubjectFormModel model) {
         super(resolveOwner(parent), model.title(), Dialog.ModalityType.APPLICATION_MODAL);
         initComponents(model);
     }
 
+    /**
+     * Hiển thị hộp thoại.
+     */
     public static SubjectFormResult showDialog(Component parent, SubjectFormModel model) {
         SubjectFormDialog dialog = new SubjectFormDialog(parent, model);
         dialog.setVisible(true);
         return dialog.result;
     }
 
+    /**
+     * Khởi tạo các thành phần giao diện.
+     */
     private void initComponents(SubjectFormModel model) {
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
@@ -124,6 +136,9 @@ public class SubjectFormDialog extends JDialog {
         SwingUtilities.invokeLater(() -> subjectCodeField.requestFocusInWindow());
     }
 
+    /**
+     * Tạo trường.
+     */
     private JPanel createField(String labelText, Component inputComponent) {
         JPanel panel = new JPanel(new BorderLayout(0, 6));
         panel.setOpaque(false);
@@ -135,6 +150,9 @@ public class SubjectFormDialog extends JDialog {
         return panel;
     }
 
+    /**
+     * Áp dụng kiểu cho trường văn bản.
+     */
     private JTextField styleTextField(JTextField textField) {
         textField.setFont(textField.getFont().deriveFont(Font.PLAIN, 13.5f));
         textField.setBorder(BorderFactory.createCompoundBorder(
@@ -144,12 +162,18 @@ public class SubjectFormDialog extends JDialog {
         return textField;
     }
 
+    /**
+     * Áp dụng kiểu cho chọn box.
+     */
     private <T> JComboBox<T> styleComboBox(JComboBox<T> comboBox) {
         comboBox.setFont(comboBox.getFont().deriveFont(Font.PLAIN, 13.5f));
         comboBox.setBorder(BorderFactory.createLineBorder(AppColors.INPUT_BORDER));
         return comboBox;
     }
 
+    /**
+     * Tạo description scroll pane.
+     */
     private JScrollPane createDescriptionScrollPane() {
         descriptionArea.setLineWrap(true);
         descriptionArea.setWrapStyleWord(true);
@@ -161,6 +185,9 @@ public class SubjectFormDialog extends JDialog {
         return scrollPane;
     }
 
+    /**
+     * Áp dụng kiểu cho nút primary.
+     */
     private void stylePrimaryButton(JButton button) {
         button.setFocusPainted(false);
         button.setBorderPainted(false);
@@ -171,6 +198,9 @@ public class SubjectFormDialog extends JDialog {
         button.setBorder(BorderFactory.createEmptyBorder(10, 18, 10, 18));
     }
 
+    /**
+     * Áp dụng kiểu cho nút secondary.
+     */
     private void styleSecondaryButton(JButton button) {
         button.setFocusPainted(false);
         button.setBorderPainted(false);
@@ -181,6 +211,9 @@ public class SubjectFormDialog extends JDialog {
         button.setBorder(BorderFactory.createEmptyBorder(10, 18, 10, 18));
     }
 
+    /**
+     * Xử lý lưu.
+     */
     private void handleSave() {
         result = new SubjectFormResult(
                 subjectCodeField.getText(),
@@ -192,6 +225,9 @@ public class SubjectFormDialog extends JDialog {
         dispose();
     }
 
+    /**
+     * Xác định owner.
+     */
     private static Window resolveOwner(Component parent) {
         if (parent == null) {
             return null;
@@ -199,6 +235,9 @@ public class SubjectFormDialog extends JDialog {
         return SwingUtilities.getWindowAncestor(parent);
     }
 
+    /**
+     * Xử lý model môn học biểu mẫu.
+     */
     public record SubjectFormModel(
             String title,
             String subjectCode,
@@ -210,6 +249,9 @@ public class SubjectFormDialog extends JDialog {
     ) {
     }
 
+    /**
+     * Xử lý môn học kết quả biểu mẫu.
+     */
     public record SubjectFormResult(
             String subjectCode,
             String subjectName,

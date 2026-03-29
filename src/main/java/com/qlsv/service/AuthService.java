@@ -1,3 +1,6 @@
+/**
+ * Xử lý nghiệp vụ xác thực.
+ */
 package com.qlsv.service;
 
 import com.qlsv.dao.UserDAO;

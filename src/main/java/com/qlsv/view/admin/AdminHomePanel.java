@@ -1,3 +1,6 @@
+/**
+ * Màn hình quản trị cho tổng quan.
+ */
 package com.qlsv.view.admin;
 
 import com.qlsv.view.common.AppColors;
@@ -17,6 +20,9 @@ public class AdminHomePanel extends BasePanel {
 
     private final SystemStatisticsPanel statisticsPanel = new SystemStatisticsPanel();
 
+    /**
+     * Khởi tạo tổng quan quản trị.
+     */
     public AdminHomePanel() {
         setOpaque(true);
         setBackground(AppColors.CONTENT_BACKGROUND);
@@ -54,11 +60,17 @@ public class AdminHomePanel extends BasePanel {
         add(statisticsPanel, BorderLayout.CENTER);
     }
 
+    /**
+     * Làm mới dữ liệu đang hiển thị.
+     */
     @Override
     public void reloadData() {
         statisticsPanel.reloadStatistics();
     }
 
+    /**
+     * Thiết lập nút primary.
+     */
     private void configurePrimaryButton(JButton button) {
         button.setFocusPainted(false);
         button.setBorderPainted(false);

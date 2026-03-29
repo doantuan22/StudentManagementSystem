@@ -1,3 +1,6 @@
+/**
+ * Xử lý nghiệp vụ phòng.
+ */
 package com.qlsv.service;
 
 import com.qlsv.config.JpaBootstrap;
@@ -13,11 +16,17 @@ public class RoomService {
     private final RoomDAO roomDAO = new RoomDAO();
     private final PermissionService permissionService = new PermissionService();
 
+    /**
+     * Trả về toàn bộ phòng.
+     */
     public List<Room> getAllRooms() {
         permissionService.requireAnyRole(Role.ADMIN);
         return roomDAO.findAll();
     }
 
+    /**
+     * Tìm kiếm phòng.
+     */
     public List<Room> searchRooms(String keyword) {
         permissionService.requireAnyRole(Role.ADMIN);
         if (keyword == null || keyword.isBlank()) {
@@ -26,6 +35,9 @@ public class RoomService {
         return roomDAO.searchByKeyword(keyword.trim());
     }
 
+    /**
+     * Lưu phòng.
+     */
     public void saveRoom(Room room) {
         permissionService.requireAnyRole(Role.ADMIN);
         JpaBootstrap.executeInTransaction(
@@ -42,6 +54,9 @@ public class RoomService {
         );
     }
 
+    /**
+     * Xóa phòng.
+     */
     public void deleteRoom(Long id) {
         permissionService.requireAnyRole(Role.ADMIN);
         if (id == null || id <= 0) {
@@ -56,6 +71,9 @@ public class RoomService {
         );
     }
 
+    /**
+     * Kiểm tra phòng.
+     */
     private void validateRoom(Room room) {
         if (room == null) {
             throw new AppException("Dữ liệu phòng học không hợp lệ.");

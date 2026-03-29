@@ -1,3 +1,6 @@
+/**
+ * Xử lý nghiệp vụ học phần.
+ */
 package com.qlsv.service;
 
 import com.qlsv.config.JpaBootstrap;
@@ -105,6 +108,9 @@ public class CourseSectionService {
         );
     }
 
+    /**
+     * Cập nhật and return.
+     */
     private CourseSection updateAndReturn(CourseSection courseSection) {
         courseSectionDAO.update(courseSection);
         return courseSection;
@@ -138,6 +144,9 @@ public class CourseSectionService {
         validateLecturerSubjectWhitelist(courseSection, existingCourseSection);
     }
 
+    /**
+     * Nạp học phần hiện có.
+     */
     private CourseSection loadExistingCourseSection(Long courseSectionId) {
         if (courseSectionId == null) {
             return null;
@@ -165,6 +174,9 @@ public class CourseSectionService {
         }
     }
 
+    /**
+     * Xử lý should validate whitelist.
+     */
     private boolean shouldValidateWhitelist(CourseSection courseSection, CourseSection existingCourseSection) {
         if (courseSection == null || courseSection.getSubject() == null || courseSection.getLecturer() == null) {
             return false;

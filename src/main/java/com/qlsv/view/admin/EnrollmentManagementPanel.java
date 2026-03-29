@@ -1,3 +1,6 @@
+/**
+ * Màn hình quản trị cho đăng ký management.
+ */
 package com.qlsv.view.admin;
 
 import com.qlsv.controller.DisplayField;
@@ -63,6 +66,9 @@ public class EnrollmentManagementPanel extends AbstractCrudPanel<Enrollment> {
 
     private boolean filterReady;
 
+    /**
+     * Khởi tạo đăng ký management.
+     */
     public EnrollmentManagementPanel() {
         super("Quản lý đăng ký học phần");
         filterTypeComboBox.setSelectedItem(FILTER_ALL);
@@ -72,6 +78,9 @@ public class EnrollmentManagementPanel extends AbstractCrudPanel<Enrollment> {
         refreshData();
     }
 
+    /**
+     * Trả về column names.
+     */
     @Override
     protected String[] getColumnNames() {
         return new String[]{"ID", "Sinh viên", "Học phần", "Trạng thái", "Thời gian đăng ký"};
@@ -108,6 +117,9 @@ public class EnrollmentManagementPanel extends AbstractCrudPanel<Enrollment> {
         };
     }
 
+    /**
+     * Trả về trạng thái trống thông báo.
+     */
     @Override
     protected String getEmptyStateMessage() {
         return filterReady
@@ -131,6 +143,9 @@ public class EnrollmentManagementPanel extends AbstractCrudPanel<Enrollment> {
                 .toArray(String[][]::new));
     }
 
+    /**
+     * Tạo hộp thoại chi tiết.
+     */
     @Override
     protected BaseDetailDialog createDetailDialog(javax.swing.JComponent detailPanel) {
         return new EnrollmentDetailDialog(detailPanel);
@@ -256,6 +271,9 @@ public class EnrollmentManagementPanel extends AbstractCrudPanel<Enrollment> {
         refreshData();
     }
 
+    /**
+     * Kiểm tra valid lọc selection.
+     */
     private boolean hasValidFilterSelection() {
         String filterType = (String) filterTypeComboBox.getSelectedItem();
         if (FILTER_ALL.equals(filterType)) {
@@ -265,6 +283,9 @@ public class EnrollmentManagementPanel extends AbstractCrudPanel<Enrollment> {
         return selectedOption != null && selectedOption.value() != null;
     }
 
+    /**
+     * Trả về lọc value đã chọn.
+     */
     private <T> T getSelectedFilterValue(Class<T> type) {
         FilterOption<?> selectedOption = (FilterOption<?>) filterValueComboBox.getSelectedItem();
         if (selectedOption == null || selectedOption.value() == null || !type.isInstance(selectedOption.value())) {
@@ -273,6 +294,9 @@ public class EnrollmentManagementPanel extends AbstractCrudPanel<Enrollment> {
         return type.cast(selectedOption.value());
     }
 
+    /**
+     * Xử lý select trạng thái.
+     */
     private void selectStatus(JComboBox<FilterOption<String>> statusComboBox, String statusCode) {
         for (int index = 0; index < statusComboBox.getItemCount(); index++) {
             FilterOption<String> option = statusComboBox.getItemAt(index);
@@ -284,6 +308,9 @@ public class EnrollmentManagementPanel extends AbstractCrudPanel<Enrollment> {
         statusComboBox.setSelectedIndex(0);
     }
 
+    /**
+     * Lọc sinh viên theo keyword.
+     */
     private List<Student> filterStudentsByKeyword(List<Student> students, String keyword) {
         String normalizedKeyword = normalizeSearchText(keyword);
         if (normalizedKeyword.isBlank()) {
@@ -297,6 +324,9 @@ public class EnrollmentManagementPanel extends AbstractCrudPanel<Enrollment> {
                 .toList();
     }
 
+    /**
+     * Định dạng sinh viên hiển thị.
+     */
     private String formatStudentDisplay(Student student) {
         if (student == null) {
             return "";
@@ -304,12 +334,18 @@ public class EnrollmentManagementPanel extends AbstractCrudPanel<Enrollment> {
         return student.getStudentCode() + " - " + student.getFullName();
     }
 
+    /**
+     * Cập nhật label sinh viên đã chọn.
+     */
     private void updateSelectedStudentLabel(JLabel label, Student student) {
         label.setText(student == null
                 ? "Chưa chọn sinh viên"
                 : "Đã chọn: " + formatStudentDisplay(student));
     }
 
+    /**
+     * Chuẩn hóa tìm kiếm văn bản.
+     */
     private String normalizeSearchText(String value) {
         if (value == null) {
             return "";
@@ -322,6 +358,9 @@ public class EnrollmentManagementPanel extends AbstractCrudPanel<Enrollment> {
     private static final class StudentSelectionState {
         private Student selectedStudent;
 
+        /**
+         * Xử lý sinh viên selection state.
+         */
         private StudentSelectionState(Student selectedStudent) {
             this.selectedStudent = selectedStudent;
         }

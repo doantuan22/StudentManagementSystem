@@ -1,3 +1,6 @@
+/**
+ * Điều phối dữ liệu cho lớp.
+ */
 package com.qlsv.controller;
 
 import com.qlsv.model.ClassRoom;

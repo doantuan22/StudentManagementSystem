@@ -1,3 +1,6 @@
+/**
+ * Màn hình quản trị cho quản lý điểm.
+ */
 package com.qlsv.view.admin;
 
 import com.qlsv.controller.DisplayField;
@@ -91,6 +94,9 @@ public class ScoreManagementPanel extends BasePanel {
     private final DefaultTableModel studentTableModel = new DefaultTableModel(
             new String[]{"Mã SV", "Họ tên", "Lớp", "Khoa", "Số môn", "Điểm TB"}, 0
     ) {
+        /**
+         * Xác định ô có cho phép chỉnh sửa hay không.
+         */
         @Override
         public boolean isCellEditable(int row, int column) {
             return false;
@@ -99,6 +105,9 @@ public class ScoreManagementPanel extends BasePanel {
     private final DefaultTableModel detailTableModel = new DefaultTableModel(
             new String[]{"Mã học phần", "Tên môn", "Học kỳ", "QT", "GK", "CK", "Tổng kết", "Trạng thái"}, 0
     ) {
+        /**
+         * Xác định ô có cho phép chỉnh sửa hay không.
+         */
         @Override
         public boolean isCellEditable(int row, int column) {
             return false;
@@ -122,6 +131,9 @@ public class ScoreManagementPanel extends BasePanel {
     private boolean filterReady;
     private boolean suppressDetailDialogOpening;
 
+    /**
+     * Khởi tạo quản lý điểm.
+     */
     public ScoreManagementPanel() {
         setOpaque(true);
         setBackground(AppColors.CONTENT_BACKGROUND);
@@ -131,6 +143,9 @@ public class ScoreManagementPanel extends BasePanel {
         reloadData();
     }
 
+    /**
+     * Làm mới dữ liệu đang hiển thị.
+     */
     @Override
     public void reloadData() {
         try {
@@ -140,6 +155,9 @@ public class ScoreManagementPanel extends BasePanel {
         }
     }
 
+    /**
+     * Cập nhật visible.
+     */
     @Override
     public void setVisible(boolean visible) {
         boolean wasVisible = isVisible();
@@ -149,12 +167,18 @@ public class ScoreManagementPanel extends BasePanel {
         }
     }
 
+    /**
+     * Giải phóng tài nguyên khi thành phần bị gỡ.
+     */
     @Override
     public void removeNotify() {
         disposeDetailDialog();
         super.removeNotify();
     }
 
+    /**
+     * Khởi tạo các thành phần giao diện.
+     */
     private void initComponents() {
         JLabel titleLabel = new JLabel("Quản lý điểm");
         titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 22f));
@@ -268,6 +292,9 @@ public class ScoreManagementPanel extends BasePanel {
             }
         });
         studentTable.addMouseListener(new MouseAdapter() {
+            /**
+             * Xử lý thao tác nhấp chuột trên giao diện.
+             */
             @Override
             public void mouseClicked(MouseEvent event) {
                 if (event.getClickCount() == 2 && getSelectedStudentSummary() != null) {
@@ -300,6 +327,9 @@ public class ScoreManagementPanel extends BasePanel {
         add(mainContentPanel, BorderLayout.CENTER);
     }
 
+    /**
+     * Xử lý apply hiện tại filters.
+     */
     private void applyCurrentFilters(Long preferredStudentId) {
         List<Score> scores = screenController.loadItems(
                 filterReady,
@@ -321,6 +351,9 @@ public class ScoreManagementPanel extends BasePanel {
         bindStudentRows(buildStudentRows(loadedScores), preferredStudentId);
     }
 
+    /**
+     * Xử lý bind sinh viên rows.
+     */
     private void bindStudentRows(List<StudentScoreSummary> summaries, Long preferredStudentId) {
         studentRows.clear();
         studentRows.addAll(summaries);
@@ -361,6 +394,9 @@ public class ScoreManagementPanel extends BasePanel {
         }
     }
 
+    /**
+     * Xử lý bind sinh viên chi tiết.
+     */
     private void bindStudentDetail(StudentScoreSummary summary) {
         selectedStudentScores.clear();
         detailTableModel.setRowCount(0);
@@ -398,6 +434,9 @@ public class ScoreManagementPanel extends BasePanel {
         }
     }
 
+    /**
+     * Xử lý sinh viên selection changed.
+     */
     private void handleStudentSelectionChanged() {
         StudentScoreSummary summary = getSelectedStudentSummary();
         bindStudentDetail(summary);
@@ -410,6 +449,9 @@ public class ScoreManagementPanel extends BasePanel {
         }
     }
 
+    /**
+     * Xử lý add điểm.
+     */
     private void handleAddScore() {
         try {
             Score score = promptForScore(null);
@@ -426,6 +468,9 @@ public class ScoreManagementPanel extends BasePanel {
         }
     }
 
+    /**
+     * Xử lý edit điểm.
+     */
     private void handleEditScore() {
         Score selectedScore = getSelectedDetailScore();
         if (selectedScore == null) {
@@ -448,6 +493,9 @@ public class ScoreManagementPanel extends BasePanel {
         }
     }
 
+    /**
+     * Xử lý xóa điểm.
+     */
     private void handleDeleteScore() {
         Score selectedScore = getSelectedDetailScore();
         if (selectedScore == null) {
@@ -470,6 +518,9 @@ public class ScoreManagementPanel extends BasePanel {
         }
     }
 
+    /**
+     * Xử lý prompt for điểm.
+     */
     private Score promptForScore(Score existingItem) {
         ScoreFormDialog.ScoreFormResult formResult = ScoreFormDialog.showDialog(
                 this,
@@ -502,6 +553,9 @@ public class ScoreManagementPanel extends BasePanel {
         }
     }
 
+    /**
+     * Làm mới lọc values.
+     */
     private void reloadFilterValues() {
         filterReady = FILTER_ALL.equals(filterTypeComboBox.getSelectedItem());
         filterValueComboBox.removeAllItems();
@@ -528,6 +582,9 @@ public class ScoreManagementPanel extends BasePanel {
         filterValueComboBox.setEnabled(false);
     }
 
+    /**
+     * Xử lý reset filters.
+     */
     private void resetFilters() {
         filterTypeComboBox.setSelectedItem(FILTER_ALL);
         keywordField.setText("");
@@ -535,6 +592,9 @@ public class ScoreManagementPanel extends BasePanel {
         reloadData();
     }
 
+    /**
+     * Kiểm tra valid lọc selection.
+     */
     private boolean hasValidFilterSelection() {
         String filterType = (String) filterTypeComboBox.getSelectedItem();
         if (FILTER_ALL.equals(filterType)) {
@@ -544,6 +604,9 @@ public class ScoreManagementPanel extends BasePanel {
         return selectedOption != null && selectedOption.value() != null;
     }
 
+    /**
+     * Trả về lọc value đã chọn.
+     */
     private <T> T getSelectedFilterValue(Class<T> type) {
         FilterOption<?> selectedOption = (FilterOption<?>) filterValueComboBox.getSelectedItem();
         if (selectedOption == null || selectedOption.value() == null || !type.isInstance(selectedOption.value())) {
@@ -552,6 +615,9 @@ public class ScoreManagementPanel extends BasePanel {
         return type.cast(selectedOption.value());
     }
 
+    /**
+     * Trả về sinh viên tóm tắt đã chọn.
+     */
     private StudentScoreSummary getSelectedStudentSummary() {
         int selectedRow = studentTable.getSelectedRow();
         if (selectedRow < 0 || selectedRow >= studentRows.size()) {
@@ -560,11 +626,17 @@ public class ScoreManagementPanel extends BasePanel {
         return studentRows.get(selectedRow);
     }
 
+    /**
+     * Trả về sinh viên id đã chọn.
+     */
     private Long getSelectedStudentId() {
         StudentScoreSummary summary = getSelectedStudentSummary();
         return summary == null ? null : summary.studentId();
     }
 
+    /**
+     * Trả về chi tiết điểm đã chọn.
+     */
     private Score getSelectedDetailScore() {
         int selectedRow = detailTable.getSelectedRow();
         if (selectedRow < 0 || selectedRow >= selectedStudentScores.size()) {
@@ -573,6 +645,9 @@ public class ScoreManagementPanel extends BasePanel {
         return selectedStudentScores.get(selectedRow);
     }
 
+    /**
+     * Tạo sinh viên rows.
+     */
     private List<StudentScoreSummary> buildStudentRows(List<Score> scores) {
         Map<Long, List<Score>> scoresByStudentId = new LinkedHashMap<>();
         for (Score score : scores) {
@@ -594,6 +669,9 @@ public class ScoreManagementPanel extends BasePanel {
         return summaries;
     }
 
+    /**
+     * Xử lý to sinh viên row.
+     */
     private StudentScoreSummary toStudentRow(List<Score> studentScores) {
         Score firstScore = studentScores.get(0);
         Student student = firstScore.getEnrollment().getStudent();
@@ -618,6 +696,9 @@ public class ScoreManagementPanel extends BasePanel {
         );
     }
 
+    /**
+     * Xử lý to sinh viên row.
+     */
     private Object[] toStudentRow(StudentScoreSummary summary) {
         return new Object[]{
                 summary.studentCode(),
@@ -629,6 +710,9 @@ public class ScoreManagementPanel extends BasePanel {
         };
     }
 
+    /**
+     * Xử lý matches keyword.
+     */
     private boolean matchesKeyword(Score score, String normalizedKeyword) {
         if (normalizedKeyword.isBlank()) {
             return true;
@@ -643,6 +727,9 @@ public class ScoreManagementPanel extends BasePanel {
                 || normalizeSearchText(displayDto.resultText()).contains(normalizedKeyword);
     }
 
+    /**
+     * Cập nhật chi tiết tóm tắt.
+     */
     private void updateDetailSummary(StudentScoreSummary summary, Score selectedScore) {
         if (summary == null) {
             detailSummaryPanel.showMessage("Vui lòng chọn sinh viên để xem chi tiết điểm.");
@@ -655,6 +742,9 @@ public class ScoreManagementPanel extends BasePanel {
                 .toArray(String[][]::new));
     }
 
+    /**
+     * Tạo chi tiết trường.
+     */
     private List<DisplayField> buildDetailFields(StudentScoreSummary summary, Score selectedScore) {
         List<DisplayField> detailFields = new ArrayList<>();
         detailFields.add(new DisplayField("Mã sinh viên", defaultText(summary.studentCode())));
@@ -704,6 +794,9 @@ public class ScoreManagementPanel extends BasePanel {
         return detailFields;
     }
 
+    /**
+     * Xử lý safe phần mã.
+     */
     private String safeSectionCode(Score score) {
         if (score == null || score.getEnrollment() == null || score.getEnrollment().getCourseSection() == null) {
             return "";
@@ -711,6 +804,9 @@ public class ScoreManagementPanel extends BasePanel {
         return score.getEnrollment().getCourseSection().getSectionCode();
     }
 
+    /**
+     * Xác định học kỳ văn bản.
+     */
     private String resolveSemesterText(Score score) {
         if (score == null || score.getEnrollment() == null || score.getEnrollment().getCourseSection() == null) {
             return "";
@@ -718,6 +814,9 @@ public class ScoreManagementPanel extends BasePanel {
         return AcademicFormatUtil.formatSemester(score.getEnrollment().getCourseSection().getSemester());
     }
 
+    /**
+     * Chuẩn hóa tìm kiếm văn bản.
+     */
     private String normalizeSearchText(String value) {
         if (value == null) {
             return "";
@@ -726,6 +825,9 @@ public class ScoreManagementPanel extends BasePanel {
         return normalized.toLowerCase(Locale.ROOT).trim();
     }
 
+    /**
+     * Tạo panel chi tiết content.
+     */
     private JPanel createDetailContentPanel(JScrollPane detailTableScrollPane) {
         JPanel container = new JPanel(new BorderLayout(0, 12));
         container.setOpaque(false);
@@ -742,10 +844,16 @@ public class ScoreManagementPanel extends BasePanel {
         return container;
     }
 
+    /**
+     * Kiểm tra hộp thoại chi tiết visible.
+     */
     private boolean isDetailDialogVisible() {
         return detailDialog != null && detailDialog.isVisible();
     }
 
+    /**
+     * Hiển thị hộp thoại chi tiết.
+     */
     private void showDetailDialog() {
         if (detailDialog == null) {
             detailDialog = new ScoreDetailDialog(detailContentPanel);
@@ -753,12 +861,18 @@ public class ScoreManagementPanel extends BasePanel {
         detailDialog.openDialog();
     }
 
+    /**
+     * Ẩn hộp thoại chi tiết.
+     */
     private void hideDetailDialog() {
         if (detailDialog != null) {
             detailDialog.setVisible(false);
         }
     }
 
+    /**
+     * Giải phóng hộp thoại chi tiết.
+     */
     private void disposeDetailDialog() {
         if (detailDialog != null) {
             detailDialog.dispose();
@@ -766,6 +880,9 @@ public class ScoreManagementPanel extends BasePanel {
         }
     }
 
+    /**
+     * Tạo panel trạng thái trống.
+     */
     private JPanel createEmptyStatePanel() {
         JPanel emptyStatePanel = new JPanel(new BorderLayout());
         emptyStatePanel.setOpaque(true);
@@ -780,6 +897,9 @@ public class ScoreManagementPanel extends BasePanel {
         return emptyStatePanel;
     }
 
+    /**
+     * Tạo panel phần.
+     */
     private JPanel createSectionPanel(String title, String description, JComponent content) {
         JPanel panel = createSurfaceCard(new BorderLayout(0, 12));
 
@@ -800,6 +920,9 @@ public class ScoreManagementPanel extends BasePanel {
         return panel;
     }
 
+    /**
+     * Tạo bảng scroll pane.
+     */
     private JScrollPane createTableScrollPane(JTable table, boolean alwaysShowVerticalBar) {
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(BorderFactory.createLineBorder(AppColors.CARD_BORDER));
@@ -814,6 +937,9 @@ public class ScoreManagementPanel extends BasePanel {
         return scrollPane;
     }
 
+    /**
+     * Tạo chi tiết bảng scroll pane.
+     */
     private JScrollPane createDetailTableScrollPane() {
         JScrollPane scrollPane = createTableScrollPane(detailTable, true);
         Dimension preferredSize = scrollPane.getPreferredSize();
@@ -822,6 +948,9 @@ public class ScoreManagementPanel extends BasePanel {
         return scrollPane;
     }
 
+    /**
+     * Hiển thị sinh viên bảng state.
+     */
     private void showStudentTableState(boolean hasData, String message) {
         if (hasData) {
             tableCardLayout.show(tableCardPanel, "table");
@@ -832,6 +961,9 @@ public class ScoreManagementPanel extends BasePanel {
         tableCardLayout.show(tableCardPanel, "empty");
     }
 
+    /**
+     * Tạo card surface.
+     */
     private JPanel createSurfaceCard(LayoutManager layoutManager) {
         JPanel panel = new JPanel(layoutManager);
         panel.setOpaque(true);
@@ -843,6 +975,9 @@ public class ScoreManagementPanel extends BasePanel {
         return panel;
     }
 
+    /**
+     * Thiết lập bảng.
+     */
     private void configureTable(JTable table) {
         table.setRowHeight(34);
         table.setFillsViewportHeight(true);
@@ -857,6 +992,9 @@ public class ScoreManagementPanel extends BasePanel {
         table.getTableHeader().setFont(table.getTableHeader().getFont().deriveFont(Font.BOLD, 13f));
     }
 
+    /**
+     * Thiết lập chi tiết bảng columns.
+     */
     private void configureDetailTableColumns() {
         TableColumnModel columnModel = detailTable.getColumnModel();
         int[] preferredWidths = {150, 320, 130, 85, 85, 85, 110, 150};
@@ -865,6 +1003,9 @@ public class ScoreManagementPanel extends BasePanel {
         }
     }
 
+    /**
+     * Thiết lập sinh viên bảng columns.
+     */
     private void configureStudentTableColumns() {
         TableColumnModel columnModel = studentTable.getColumnModel();
         int[] preferredWidths = {120, 240, 170, 180, 95, 100};
@@ -873,6 +1014,9 @@ public class ScoreManagementPanel extends BasePanel {
         }
     }
 
+    /**
+     * Áp dụng kiểu cho trường văn bản.
+     */
     private void styleTextField(JTextField field) {
         field.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(AppColors.INPUT_BORDER),
@@ -880,6 +1024,9 @@ public class ScoreManagementPanel extends BasePanel {
         ));
     }
 
+    /**
+     * Áp dụng kiểu cho nút thao tác.
+     */
     private void styleActionButton(JButton button, Color background) {
         button.setFocusPainted(false);
         button.setBorderPainted(false);
@@ -891,10 +1038,16 @@ public class ScoreManagementPanel extends BasePanel {
         button.setFont(button.getFont().deriveFont(Font.BOLD, 13f));
     }
 
+    /**
+     * Định dạng điểm.
+     */
     private String formatScore(double value) {
         return String.format(Locale.ROOT, "%.2f", value);
     }
 
+    /**
+     * Xử lý văn bản mặc định.
+     */
     private String defaultText(String value) {
         if (value == null || value.isBlank()) {
             return "Chưa cập nhật";
@@ -904,10 +1057,16 @@ public class ScoreManagementPanel extends BasePanel {
 
     private static final class ResponsiveTable extends JTable {
 
+        /**
+         * Xử lý bảng responsive.
+         */
         private ResponsiveTable(DefaultTableModel model) {
             super(model);
         }
 
+        /**
+         * Trả về scrollable tracks viewport width.
+         */
         @Override
         public boolean getScrollableTracksViewportWidth() {
             return getAutoResizeMode() != AUTO_RESIZE_OFF
@@ -916,6 +1075,9 @@ public class ScoreManagementPanel extends BasePanel {
         }
     }
 
+    /**
+     * Xử lý điểm sinh viên tóm tắt.
+     */
     private record StudentScoreSummary(
             Long studentId,
             String studentCode,

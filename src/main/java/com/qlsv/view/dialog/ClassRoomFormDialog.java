@@ -1,3 +1,6 @@
+/**
+ * Hộp thoại lớp biểu mẫu dialog.
+ */
 package com.qlsv.view.dialog;
 
 import com.qlsv.model.Faculty;
@@ -32,6 +35,9 @@ public class ClassRoomFormDialog extends JDialog {
 
     private ClassRoomFormResult result;
 
+    /**
+     * Khởi tạo lớp biểu mẫu.
+     */
     private ClassRoomFormDialog(Component parent, ClassRoomFormModel model) {
         super(resolveOwner(parent), model.title(), Dialog.ModalityType.APPLICATION_MODAL);
         initComponents(model);
@@ -119,6 +125,9 @@ public class ClassRoomFormDialog extends JDialog {
         SwingUtilities.invokeLater(() -> classCodeField.requestFocusInWindow());
     }
 
+    /**
+     * Tạo trường.
+     */
     private JPanel createField(String labelText, Component inputComponent) {
         JPanel panel = new JPanel(new BorderLayout(0, 6));
         panel.setOpaque(false);
@@ -130,6 +139,9 @@ public class ClassRoomFormDialog extends JDialog {
         return panel;
     }
 
+    /**
+     * Áp dụng kiểu cho trường văn bản.
+     */
     private JTextField styleTextField(JTextField textField) {
         textField.setFont(textField.getFont().deriveFont(Font.PLAIN, 13.5f));
         textField.setBorder(BorderFactory.createCompoundBorder(
@@ -139,12 +151,18 @@ public class ClassRoomFormDialog extends JDialog {
         return textField;
     }
 
+    /**
+     * Áp dụng kiểu cho chọn box.
+     */
     private <T> JComboBox<T> styleComboBox(JComboBox<T> comboBox) {
         comboBox.setFont(comboBox.getFont().deriveFont(Font.PLAIN, 13.5f));
         comboBox.setBorder(BorderFactory.createLineBorder(AppColors.INPUT_BORDER));
         return comboBox;
     }
 
+    /**
+     * Áp dụng kiểu cho nút primary.
+     */
     private void stylePrimaryButton(JButton button) {
         button.setFocusPainted(false);
         button.setBorderPainted(false);
@@ -155,6 +173,9 @@ public class ClassRoomFormDialog extends JDialog {
         button.setBorder(BorderFactory.createEmptyBorder(10, 18, 10, 18));
     }
 
+    /**
+     * Áp dụng kiểu cho nút secondary.
+     */
     private void styleSecondaryButton(JButton button) {
         button.setFocusPainted(false);
         button.setBorderPainted(false);
@@ -178,6 +199,9 @@ public class ClassRoomFormDialog extends JDialog {
         dispose();
     }
 
+    /**
+     * Xác định owner.
+     */
     private static Window resolveOwner(Component parent) {
         if (parent == null) {
             return null;
@@ -185,6 +209,9 @@ public class ClassRoomFormDialog extends JDialog {
         return SwingUtilities.getWindowAncestor(parent);
     }
 
+    /**
+     * Xử lý model lớp biểu mẫu.
+     */
     public record ClassRoomFormModel(
             String title,
             String classCode,
@@ -195,6 +222,9 @@ public class ClassRoomFormDialog extends JDialog {
     ) {
     }
 
+    /**
+     * Xử lý lớp kết quả biểu mẫu.
+     */
     public record ClassRoomFormResult(
             String classCode,
             String className,

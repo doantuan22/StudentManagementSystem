@@ -3,6 +3,7 @@
 -- MUC DICH: Kiem tra nhanh sau khi da dung xong database va seed.
 -- ============================================================
 
+-- Kiểm tra nhanh dữ liệu và cấu trúc chính sau khi khởi tạo database.
 USE student_management;
 
 -- 1. Kiem tra so luong bang (Ky vong: 13-14 bang chinh)

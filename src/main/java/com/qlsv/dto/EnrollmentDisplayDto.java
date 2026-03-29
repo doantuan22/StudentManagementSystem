@@ -1,5 +1,11 @@
+/**
+ * Gói dữ liệu hiển thị cho đăng ký hiển thị.
+ */
 package com.qlsv.dto;
 
+/**
+ * Xử lý đăng ký hiển thị dto.
+ */
 public record EnrollmentDisplayDto(
         Long id,
         String studentCode,

@@ -1,3 +1,6 @@
+/**
+ * Điều phối dữ liệu cho quản lý điểm màn hình.
+ */
 package com.qlsv.controller;
 
 import com.qlsv.dto.DisplayDtoMapper;
@@ -16,6 +19,9 @@ public class ScoreManagementScreenController {
     private final CourseSectionController courseSectionController = new CourseSectionController();
     private final ClassRoomController classRoomController = new ClassRoomController();
 
+    /**
+     * Nạp items.
+     */
     public List<Score> loadItems(boolean filterReady, String filterType, Object filterValue,
                                  String filterAll, String filterSectionCode, String filterClassRoom) {
         if (!filterReady) {
@@ -34,6 +40,9 @@ public class ScoreManagementScreenController {
         return List.of();
     }
 
+    /**
+     * Tạo chi tiết trường.
+     */
     public List<DisplayField> buildDetailFields(Score score) {
         if (score == null) {
             return List.of();
@@ -54,22 +63,37 @@ public class ScoreManagementScreenController {
         );
     }
 
+    /**
+     * Xử lý to hiển thị dto.
+     */
     public ScoreDisplayDto toDisplayDto(Score score) {
         return DisplayDtoMapper.toScoreDisplayDto(score);
     }
 
+    /**
+     * Nạp đăng ký.
+     */
     public List<Enrollment> loadEnrollments() {
         return enrollmentController.getAllEnrollments();
     }
 
+    /**
+     * Nạp học phần.
+     */
     public List<CourseSection> loadCourseSections() {
         return courseSectionController.getAllCourseSectionsForSelection();
     }
 
+    /**
+     * Nạp lớp phòng.
+     */
     public List<ClassRoom> loadClassRooms() {
         return classRoomController.getClassRoomsForSelection();
     }
 
+    /**
+     * Xử lý apply biểu mẫu dữ liệu.
+     */
     public Score applyFormData(Score existingItem, ScoreFormData formData) {
         Score score = existingItem == null ? new Score() : existingItem;
         score.setEnrollment(formData.enrollment());
@@ -79,18 +103,30 @@ public class ScoreManagementScreenController {
         return score;
     }
 
+    /**
+     * Lưu điểm.
+     */
     public void saveScore(Score score) {
         scoreController.saveScore(score);
     }
 
+    /**
+     * Xóa điểm.
+     */
     public void deleteScore(Score score) {
         scoreController.deleteScore(score.getId());
     }
 
+    /**
+     * Phân tích điểm.
+     */
     private Double parseScore(String rawValue) {
         return rawValue == null || rawValue.isBlank() ? 0.0 : Double.parseDouble(rawValue.trim());
     }
 
+    /**
+     * Xử lý điểm biểu mẫu dữ liệu.
+     */
     public record ScoreFormData(Enrollment enrollment, String processScore, String midtermScore, String finalScore) {
     }
 }

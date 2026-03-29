@@ -1,3 +1,6 @@
+/**
+ * Khung giao diện quản trị cho dashboard.
+ */
 package com.qlsv.view.admin;
 
 import com.qlsv.controller.LoginController;
@@ -25,10 +28,16 @@ public class AdminDashboardFrame extends BaseFrame {
     private final UserController userController = new UserController();
     private final AppNavigator navigator;
 
+    /**
+     * Khởi tạo admin dashboard.
+     */
     public AdminDashboardFrame(User user, AppNavigator navigator) {
         this(user, navigator, new LoginController());
     }
 
+    /**
+     * Khởi tạo admin dashboard.
+     */
     AdminDashboardFrame(User user, AppNavigator navigator, LoginController loginController) {
         super("Bảng điều khiển - Quản trị");
         this.navigator = navigator;

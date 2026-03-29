@@ -1,3 +1,6 @@
+/**
+ * Truy vấn dữ liệu học phần bằng JPA.
+ */
 package com.qlsv.dao;
 
 import com.qlsv.config.JpaBootstrap;
@@ -120,6 +123,9 @@ public class CourseSectionDAO {
                             JOIN FETCH cs.subject s
                             JOIN FETCH s.faculty
                             JOIN FETCH cs.lecturer l
+                            /**
+                             * Xử lý exists.
+                             */
                             WHERE EXISTS (
                                 SELECT 1
                                 FROM Schedule sc
@@ -147,6 +153,9 @@ public class CourseSectionDAO {
                             JOIN FETCH cs.subject s
                             JOIN FETCH s.faculty
                             JOIN FETCH cs.lecturer l
+                            /**
+                             * Xử lý lower.
+                             */
                             WHERE LOWER(cs.sectionCode) LIKE :keyword
                                OR LOWER(cs.semester) LIKE :keyword
                                OR LOWER(cs.schoolYear) LIKE :keyword
@@ -237,6 +246,9 @@ public class CourseSectionDAO {
     public int countEnrollments(Long courseSectionId) {
         return executeRead("Không thể đếm số lượng đăng ký của học phần.", entityManager -> {
             Long count = entityManager.createQuery("""
+                            /**
+                             * Xử lý count.
+                             */
                             SELECT COUNT(e)
                             FROM Enrollment e
                             WHERE e.courseSection.id = :courseSectionId
@@ -247,6 +259,9 @@ public class CourseSectionDAO {
         });
     }
 
+    /**
+     * Sao chép state.
+     */
     private void copyState(EntityManager entityManager, CourseSection source, CourseSection target) {
         target.setSectionCode(source.getSectionCode());
         target.setSemester(source.getSemester());
@@ -256,6 +271,9 @@ public class CourseSectionDAO {
         target.setLecturer(resolveLecturerReference(entityManager, source.getLecturer()));
     }
 
+    /**
+     * Xác định môn học reference.
+     */
     private Subject resolveSubjectReference(EntityManager entityManager, Subject subject) {
         if (subject == null || subject.getId() == null) {
             return null;
@@ -263,6 +281,9 @@ public class CourseSectionDAO {
         return entityManager.getReference(Subject.class, subject.getId());
     }
 
+    /**
+     * Xác định giảng viên reference.
+     */
     private Lecturer resolveLecturerReference(EntityManager entityManager, Lecturer lecturer) {
         if (lecturer == null || lecturer.getId() == null) {
             return null;
@@ -340,6 +361,9 @@ public class CourseSectionDAO {
         }
     }
 
+    /**
+     * Xử lý to long.
+     */
     private Long toLong(Object value) {
         if (value == null) {
             return null;
@@ -350,6 +374,9 @@ public class CourseSectionDAO {
         return Long.parseLong(String.valueOf(value));
     }
 
+    /**
+     * Thực thi read.
+     */
     private <T> T executeRead(String errorMessage, Function<EntityManager, T> action) {
         try {
             return JpaBootstrap.executeWithEntityManager(action);
@@ -358,6 +385,9 @@ public class CourseSectionDAO {
         }
     }
 
+    /**
+     * Thực thi write.
+     */
     private <T> T executeWrite(String errorMessage, String constraintMessage, Function<EntityManager, T> action) {
         try {
             return JpaBootstrap.executeInCurrentTransaction(action);
@@ -369,6 +399,9 @@ public class CourseSectionDAO {
         }
     }
 
+    /**
+     * Kiểm tra constraint violation.
+     */
     private boolean isConstraintViolation(Throwable throwable) {
         Throwable current = throwable;
         while (current != null) {

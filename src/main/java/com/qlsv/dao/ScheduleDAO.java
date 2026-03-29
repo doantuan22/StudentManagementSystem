@@ -1,3 +1,6 @@
+/**
+ * Truy vấn dữ liệu lịch bằng JPA.
+ */
 package com.qlsv.dao;
 
 import com.qlsv.config.JpaBootstrap;
@@ -135,6 +138,9 @@ public class ScheduleDAO {
                         JOIN FETCH subject.faculty
                         JOIN FETCH cs.lecturer lecturer
                         JOIN FETCH s.room room
+                        /**
+                         * Xử lý lower.
+                         */
                         WHERE LOWER(cs.sectionCode) LIKE :keyword
                            OR LOWER(subject.subjectCode) LIKE :keyword
                            OR LOWER(subject.subjectName) LIKE :keyword
@@ -216,6 +222,9 @@ public class ScheduleDAO {
                                                Integer endPeriod, Long excludeScheduleId) {
         return executeRead("Không thể kiểm tra trùng lịch của giảng viên.", entityManager -> {
             Long total = entityManager.createQuery("""
+                            /**
+                             * Xử lý count.
+                             */
                             SELECT COUNT(s)
                             FROM Schedule s
                             JOIN s.courseSection otherSection
@@ -241,6 +250,9 @@ public class ScheduleDAO {
                                            Integer endPeriod, Long excludeScheduleId) {
         return executeRead("Không thể kiểm tra trùng lịch của phòng học.", entityManager -> {
             Long total = entityManager.createQuery("""
+                            /**
+                             * Xử lý count.
+                             */
                             SELECT COUNT(s)
                             FROM Schedule s
                             WHERE s.room.id = :roomId
@@ -264,6 +276,9 @@ public class ScheduleDAO {
     public boolean hasStudentScheduleConflict(Long studentId, Long courseSectionId, Long excludeEnrollmentId) {
         return executeRead("Không thể kiểm tra trùng lịch của sinh viên.", entityManager -> {
             Long count = entityManager.createQuery("""
+                            /**
+                             * Xử lý count.
+                             */
                             SELECT COUNT(existingSchedule)
                             FROM Schedule existingSchedule
                             JOIN Enrollment enrollment ON enrollment.courseSection = existingSchedule.courseSection
@@ -288,6 +303,9 @@ public class ScheduleDAO {
         });
     }
 
+    /**
+     * Sao chép state.
+     */
     private void copyState(EntityManager entityManager, Schedule source, Schedule target) {
         target.setCourseSection(resolveCourseSectionReference(entityManager, source.getCourseSection()));
         target.setDayOfWeek(source.getDayOfWeek());
@@ -297,6 +315,9 @@ public class ScheduleDAO {
         target.setNote(source.getNote());
     }
 
+    /**
+     * Xác định học phần reference.
+     */
     private CourseSection resolveCourseSectionReference(EntityManager entityManager, CourseSection courseSection) {
         if (courseSection == null || courseSection.getId() == null) {
             return null;
@@ -304,6 +325,9 @@ public class ScheduleDAO {
         return entityManager.getReference(CourseSection.class, courseSection.getId());
     }
 
+    /**
+     * Xác định phòng reference.
+     */
     private Room resolveRoomReference(EntityManager entityManager, Room room) {
         if (room == null || room.getId() == null) {
             return null;
@@ -311,6 +335,9 @@ public class ScheduleDAO {
         return entityManager.getReference(Room.class, room.getId());
     }
 
+    /**
+     * Thực thi read.
+     */
     private <T> T executeRead(String errorMessage, Function<EntityManager, T> action) {
         try {
             return JpaBootstrap.executeWithEntityManager(action);
@@ -319,6 +346,9 @@ public class ScheduleDAO {
         }
     }
 
+    /**
+     * Thực thi write.
+     */
     private <T> T executeWrite(String errorMessage, String constraintMessage, Function<EntityManager, T> action) {
         try {
             return JpaBootstrap.executeInCurrentTransaction(action);
@@ -330,6 +360,9 @@ public class ScheduleDAO {
         }
     }
 
+    /**
+     * Kiểm tra constraint violation.
+     */
     private boolean isConstraintViolation(Throwable throwable) {
         Throwable current = throwable;
         while (current != null) {

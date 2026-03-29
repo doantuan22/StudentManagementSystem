@@ -1,3 +1,6 @@
+/**
+ * Chuẩn hóa văn bản hiển thị trên UI.
+ */
 package com.qlsv.utils;
 
 import java.time.LocalDate;
@@ -15,6 +18,9 @@ public final class DisplayTextUtil {
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
+    /**
+     * Khởi tạo hiển thị văn bản.
+     */
     private DisplayTextUtil() {
     }
 
@@ -25,6 +31,9 @@ public final class DisplayTextUtil {
         return value == null || value.isBlank() ? NOT_UPDATED : value.trim();
     }
 
+    /**
+     * Xử lý văn bản mặc định.
+     */
     public static String defaultText(Object value) {
         return value == null ? NOT_UPDATED : defaultText(String.valueOf(value));
     }
@@ -90,6 +99,9 @@ public final class DisplayTextUtil {
         return "Tiết " + startPeriod + " - " + endPeriod;
     }
 
+    /**
+     * Định dạng người dùng reference.
+     */
     public static String formatUserReference(Long userId) {
         return userId == null ? "Chưa liên kết" : String.valueOf(userId);
     }

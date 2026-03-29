@@ -1,3 +1,6 @@
+/**
+ * Mô tả thực thể người dùng của hệ thống.
+ */
 package com.qlsv.model;
 
 import jakarta.persistence.Column;
@@ -40,9 +43,15 @@ public class User {
     @Column(name = "active", nullable = false)
     private boolean active;
 
+    /**
+     * Khởi tạo người dùng.
+     */
     public User() {
     }
 
+    /**
+     * Khởi tạo người dùng.
+     */
     public User(Long id, String username, String passwordHash, String fullName, String email, Role role, boolean active) {
         this.id = id;
         this.username = username;
@@ -53,75 +62,129 @@ public class User {
         this.active = active;
     }
 
+    /**
+     * Trả về id.
+     */
     public Long getId() {
         return id;
     }
 
+    /**
+     * Cập nhật id.
+     */
     public void setId(Long id) {
         this.id = id;
     }
 
+    /**
+     * Trả về username.
+     */
     public String getUsername() {
         return username;
     }
 
+    /**
+     * Cập nhật username.
+     */
     public void setUsername(String username) {
         this.username = username;
     }
 
+    /**
+     * Trả về mật khẩu băm.
+     */
     public String getPasswordHash() {
         return passwordHash;
     }
 
+    /**
+     * Cập nhật mật khẩu băm.
+     */
     public void setPasswordHash(String passwordHash) {
         this.passwordHash = passwordHash;
     }
 
+    /**
+     * Trả về họ tên.
+     */
     public String getFullName() {
         return fullName;
     }
 
+    /**
+     * Cập nhật họ tên.
+     */
     public void setFullName(String fullName) {
         this.fullName = fullName;
     }
 
+    /**
+     * Trả về email.
+     */
     public String getEmail() {
         return email;
     }
 
+    /**
+     * Cập nhật email.
+     */
     public void setEmail(String email) {
         this.email = email;
     }
 
+    /**
+     * Trả về vai trò.
+     */
     public Role getRole() {
         return roleEntity == null ? null : roleEntity.toRoleEnum();
     }
 
+    /**
+     * Cập nhật vai trò.
+     */
     public void setRole(Role role) {
         this.roleEntity = RoleEntity.fromEnum(role);
     }
 
+    /**
+     * Trả về vai trò entity.
+     */
     public RoleEntity getRoleEntity() {
         return roleEntity;
     }
 
+    /**
+     * Cập nhật vai trò entity.
+     */
     public void setRoleEntity(RoleEntity roleEntity) {
         this.roleEntity = roleEntity;
     }
 
+    /**
+     * Kiểm tra đang hoạt động.
+     */
     public boolean isActive() {
         return active;
     }
 
+    /**
+     * Cập nhật đang hoạt động.
+     */
     public void setActive(boolean active) {
         this.active = active;
     }
 
+    /**
+     * Trả về chuỗi hiển thị của đối tượng.
+     */
     @Override
     public String toString() {
         return fullName == null || fullName.isBlank() ? username : fullName + " (" + username + ")";
     }
 
+    /**
+     * So sánh đối tượng theo định danh phù hợp.
+     */
     @Override
     public boolean equals(Object object) {
         if (this == object) {
@@ -136,6 +199,9 @@ public class User {
         return Objects.equals(username, user.username);
     }
 
+    /**
+     * Tạo mã băm cho đối tượng.
+     */
     @Override
     public int hashCode() {
         return Objects.hash(id != null ? id : username);

@@ -1,3 +1,6 @@
+/**
+ * Truy vấn dữ liệu đăng ký bằng JPA.
+ */
 package com.qlsv.dao;
 
 import com.qlsv.config.JpaBootstrap;
@@ -183,6 +186,9 @@ public class EnrollmentDAO {
                             JOIN FETCH courseSection.subject subject
                             JOIN FETCH subject.faculty subjectFaculty
                             JOIN FETCH courseSection.lecturer lecturer
+                            /**
+                             * Xử lý lower.
+                             */
                             WHERE LOWER(student.studentCode) LIKE :keyword
                                OR LOWER(student.fullName) LIKE :keyword
                                OR LOWER(COALESCE(student.email, '')) LIKE :keyword
@@ -206,6 +212,9 @@ public class EnrollmentDAO {
     public boolean existsByStudentAndSubject(Long studentId, Long subjectId) {
         return executeRead("Không thể kiểm tra đăng ký trùng môn học.", entityManager -> {
             Long total = entityManager.createQuery("""
+                            /**
+                             * Xử lý count.
+                             */
                             SELECT COUNT(e)
                             FROM Enrollment e
                             JOIN e.courseSection courseSection
@@ -225,6 +234,9 @@ public class EnrollmentDAO {
     public boolean existsByStudentAndCourseSection(Long studentId, Long courseSectionId) {
         return executeRead("Không thể kiểm tra đăng ký trùng học phần.", entityManager -> {
             Long total = entityManager.createQuery("""
+                            /**
+                             * Xử lý count.
+                             */
                             SELECT COUNT(e)
                             FROM Enrollment e
                             WHERE e.student.id = :studentId
@@ -243,6 +255,9 @@ public class EnrollmentDAO {
     public int countByCourseSectionId(Long courseSectionId) {
         return executeRead("Không thể đếm số lượng đăng ký của học phần.", entityManager -> {
             Long total = entityManager.createQuery("""
+                            /**
+                             * Xử lý count.
+                             */
                             SELECT COUNT(e)
                             FROM Enrollment e
                             WHERE e.courseSection.id = :courseSectionId
@@ -310,6 +325,9 @@ public class EnrollmentDAO {
         );
     }
 
+    /**
+     * Sao chép state.
+     */
     private void copyState(EntityManager entityManager, Enrollment source, Enrollment target) {
         target.setStudent(resolveStudentReference(entityManager, source.getStudent()));
         target.setCourseSection(resolveCourseSectionReference(entityManager, source.getCourseSection()));
@@ -317,6 +335,9 @@ public class EnrollmentDAO {
         target.setEnrolledAt(source.getEnrolledAt());
     }
 
+    /**
+     * Xác định sinh viên reference.
+     */
     private Student resolveStudentReference(EntityManager entityManager, Student student) {
         if (student == null || student.getId() == null) {
             return null;
@@ -324,6 +345,9 @@ public class EnrollmentDAO {
         return entityManager.getReference(Student.class, student.getId());
     }
 
+    /**
+     * Xác định học phần reference.
+     */
     private CourseSection resolveCourseSectionReference(EntityManager entityManager, CourseSection courseSection) {
         if (courseSection == null || courseSection.getId() == null) {
             return null;
@@ -409,6 +433,9 @@ public class EnrollmentDAO {
         }
     }
 
+    /**
+     * Xử lý to long.
+     */
     private Long toLong(Object value) {
         if (value == null) {
             return null;
@@ -419,6 +446,9 @@ public class EnrollmentDAO {
         return Long.parseLong(String.valueOf(value));
     }
 
+    /**
+     * Thực thi read.
+     */
     private <T> T executeRead(String errorMessage, Function<EntityManager, T> action) {
         try {
             return JpaBootstrap.executeWithEntityManager(action);
@@ -427,6 +457,9 @@ public class EnrollmentDAO {
         }
     }
 
+    /**
+     * Thực thi write.
+     */
     private <T> T executeWrite(String errorMessage, String constraintMessage, Function<EntityManager, T> action) {
         try {
             return JpaBootstrap.executeInCurrentTransaction(action);
@@ -438,6 +471,9 @@ public class EnrollmentDAO {
         }
     }
 
+    /**
+     * Kiểm tra constraint violation.
+     */
     private boolean isConstraintViolation(Throwable throwable) {
         Throwable current = throwable;
         while (current != null) {

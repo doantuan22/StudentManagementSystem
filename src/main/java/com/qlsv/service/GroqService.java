@@ -1,3 +1,6 @@
+/**
+ * Xử lý nghiệp vụ groq.
+ */
 package com.qlsv.service;
 
 import com.qlsv.config.AppConfig;
@@ -21,6 +24,9 @@ public class GroqService {
     private final String apiKey;
     private final HttpClient httpClient;
 
+    /**
+     * Khởi tạo groq.
+     */
     public GroqService() {
         this.apiKey = AppConfig.getProperty("groq.api.key");
         this.httpClient = HttpClient.newBuilder()
@@ -28,11 +34,17 @@ public class GroqService {
                 .build();
     }
 
+    /**
+     * Phân tích điểm.
+     */
     public String analyzeScores(List<Score> scores) {
         AnalysisResponse response = requestAnalysis(STUDENT_SYSTEM_PROMPT, buildStudentUserPrompt(scores));
         return response.message();
     }
 
+    /**
+     * Gửi yêu cầu phân tích.
+     */
     public AnalysisResponse requestAnalysis(String systemPrompt, String userPrompt) {
         if (apiKey == null || apiKey.isBlank()) {
             return AnalysisResponse.failure("Lỗi: Chưa cấu hình Groq API Key trong application.properties (groq.api.key=...)");
@@ -59,11 +71,17 @@ public class GroqService {
         }
     }
 
+    /**
+     * Tạo sinh viên người dùng prompt.
+     */
     private String buildStudentUserPrompt(List<Score> scores) {
         return "Bạn là một cố vấn học tập chuyên nghiệp. Hãy phân tích bảng điểm sau đây của sinh viên và đưa ra nhận xét, lời khuyên học tập (viết bằng tiếng Việt, súc tích, dễ đọc): "
                 + formatScoresToJson(scores);
     }
 
+    /**
+     * Tạo yêu cầu body.
+     */
     private String buildRequestBody(String systemPrompt, String userPrompt) {
         return "{"
                 + "\"model\": \"" + MODEL_NAME + "\","
@@ -74,6 +92,9 @@ public class GroqService {
                 + "}";
     }
 
+    /**
+     * Định dạng điểm to json.
+     */
     private String formatScoresToJson(List<Score> scores) {
         return scores.stream()
                 .map(score -> {
@@ -96,10 +117,16 @@ public class GroqService {
                 .collect(Collectors.joining(",", "[", "]"));
     }
 
+    /**
+     * Định dạng number.
+     */
     private String formatNumber(Double value) {
         return value == null ? "null" : String.format(Locale.US, "%.1f", value);
     }
 
+    /**
+     * Xử lý escape json.
+     */
     private String escapeJson(String value) {
         if (value == null) {
             return "";
@@ -120,6 +147,9 @@ public class GroqService {
         return builder.toString();
     }
 
+    /**
+     * Tách content from response.
+     */
     private String extractContentFromResponse(String responseBody) {
         try {
             String marker = "\"content\":";
@@ -165,12 +195,21 @@ public class GroqService {
         }
     }
 
+    /**
+     * Xử lý phân tích response.
+     */
     public record AnalysisResponse(boolean success, String message) {
 
+        /**
+         * Xử lý success.
+         */
         public static AnalysisResponse success(String message) {
             return new AnalysisResponse(true, message);
         }
 
+        /**
+         * Xử lý failure.
+         */
         public static AnalysisResponse failure(String message) {
             return new AnalysisResponse(false, message);
         }

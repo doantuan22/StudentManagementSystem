@@ -1,3 +1,6 @@
+/**
+ * Màn hình giảng viên cho lịch.
+ */
 package com.qlsv.view.lecturer;
 
 import com.qlsv.controller.ScheduleController;
@@ -24,9 +27,15 @@ public class LecturerSchedulePanel extends BasePanel {
     private final DefaultTableModel tableModel;
     private final JLabel summaryLabel = new JLabel("Đang tải lịch dạy...");
 
+    /**
+     * Khởi tạo lịch giảng viên.
+     */
     public LecturerSchedulePanel() {
         tableModel = new DefaultTableModel(
                 new String[]{"Học phần", "Môn học", "Thứ", "Tiết", "Phòng", "Ghi chú"}, 0) {
+            /**
+             * Xác định ô có cho phép chỉnh sửa hay không.
+             */
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -80,6 +89,9 @@ public class LecturerSchedulePanel extends BasePanel {
         reloadData();
     }
 
+    /**
+     * Làm mới dữ liệu đang hiển thị.
+     */
     @Override
     public void reloadData() {
         try {
@@ -103,6 +115,9 @@ public class LecturerSchedulePanel extends BasePanel {
         }
     }
 
+    /**
+     * Thiết lập bảng.
+     */
     private void configureTable(JTable table) {
         table.setRowHeight(28);
         table.setFillsViewportHeight(true);

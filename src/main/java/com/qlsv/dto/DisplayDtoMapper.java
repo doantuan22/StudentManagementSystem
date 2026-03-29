@@ -1,3 +1,6 @@
+/**
+ * Gói dữ liệu hiển thị cho hiển thị dto mapper.
+ */
 package com.qlsv.dto;
 
 import com.qlsv.model.CourseSection;
@@ -10,6 +13,9 @@ import com.qlsv.utils.DisplayTextUtil;
 
 public final class DisplayDtoMapper {
 
+    /**
+     * Khởi tạo hiển thị dto mapper.
+     */
     private DisplayDtoMapper() {
     }
 
@@ -54,6 +60,9 @@ public final class DisplayDtoMapper {
         );
     }
 
+    /**
+     * Xử lý to học phần hiển thị dto.
+     */
     public static CourseSectionDisplayDto toCourseSectionDisplayDto(CourseSection courseSection) {
         return toCourseSectionDisplayDto(courseSection, null);
     }

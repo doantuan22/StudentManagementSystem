@@ -1,3 +1,6 @@
+/**
+ * Khung CRUD dùng chung cho các màn hình quản trị.
+ */
 package com.qlsv.view.common;
 
 import com.qlsv.utils.DialogUtil;
@@ -51,6 +54,9 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
     private List<T> allItems = new ArrayList<>();
     private List<T> currentItems = new ArrayList<>();
 
+    /**
+     * Khởi tạo abstract crud.
+     */
     protected AbstractCrudPanel(String title) {
         setOpaque(true);
         setBackground(AppColors.CONTENT_BACKGROUND);
@@ -105,6 +111,9 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
         add(northPanel, BorderLayout.NORTH);
 
         tableModel = new DefaultTableModel(getColumnNames(), 0) {
+            /**
+             * Xác định ô có cho phép chỉnh sửa hay không.
+             */
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -121,6 +130,9 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
             }
         });
         table.addMouseListener(new MouseAdapter() {
+            /**
+             * Xử lý thao tác nhấp chuột trên giao diện.
+             */
             @Override
             public void mouseClicked(MouseEvent event) {
                 if (event.getClickCount() == 2 && getSelectedItem() != null) {
@@ -162,16 +174,34 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
         searchField.addActionListener(event -> handleSearch());
     }
 
+    /**
+     * Trả về column names.
+     */
     protected abstract String[] getColumnNames();
 
+    /**
+     * Nạp items.
+     */
     protected abstract List<T> loadItems();
 
+    /**
+     * Xử lý to row.
+     */
     protected abstract Object[] toRow(T item);
 
+    /**
+     * Xử lý prompt for entity.
+     */
     protected abstract T promptForEntity(T existingItem);
 
+    /**
+     * Lưu entity.
+     */
     protected abstract void saveEntity(T item);
 
+    /**
+     * Xóa entity.
+     */
     protected abstract void deleteEntity(T item);
 
     /**
@@ -216,9 +246,15 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
     protected void onSelectionChanged(T selectedItem) {
     }
 
+    /**
+     * Thiết lập tùy biến thao tác nút.
+     */
     protected void configureCustomActionButtons(JPanel actionPanel) {
     }
 
+    /**
+     * Kiểm tra đầu trang tìm kiếm visible.
+     */
     protected boolean isHeaderSearchVisible() {
         return true;
     }
@@ -237,20 +273,32 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
         repaint();
     }
 
+    /**
+     * Cập nhật panel chi tiết.
+     */
     protected final void setDetailPanel(JComponent detailPanel) {
         this.detailPanel = detailPanel;
         disposeDetailDialog();
         rebuildContentLayout();
     }
 
+    /**
+     * Trả về bảng.
+     */
     protected final JTable getTable() {
         return table;
     }
 
+    /**
+     * Trả về items hiện tại.
+     */
     protected final List<T> getCurrentItems() {
         return new ArrayList<>(currentItems);
     }
 
+    /**
+     * Thiết lập thao tác nút.
+     */
     protected final void configureActionButtons(boolean showAdd, boolean showEdit, boolean showDelete, boolean showReload) {
         addButton.setVisible(showAdd);
         editButton.setVisible(showEdit);
@@ -258,10 +306,16 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
         reloadButton.setVisible(showReload);
     }
 
+    /**
+     * Tạo hộp thoại chi tiết.
+     */
     protected BaseDetailDialog createDetailDialog(JComponent detailPanel) {
         return new BaseDetailDialog("Chi tiết bản ghi", detailPanel);
     }
 
+    /**
+     * Kiểm tra hộp thoại chi tiết visible.
+     */
     protected final boolean isDetailDialogVisible() {
         return detailDialog != null && detailDialog.isVisible();
     }
@@ -279,17 +333,26 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
         detailDialog.openDialog();
     }
 
+    /**
+     * Ẩn hộp thoại chi tiết.
+     */
     protected final void hideDetailDialog() {
         if (detailDialog != null) {
             detailDialog.setVisible(false);
         }
     }
 
+    /**
+     * Làm mới dữ liệu đang hiển thị.
+     */
     @Override
     public void reloadData() {
         refreshData();
     }
 
+    /**
+     * Giải phóng tài nguyên khi thành phần bị gỡ.
+     */
     @Override
     public void removeNotify() {
         disposeDetailDialog();
@@ -327,6 +390,9 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
         bindRows(performSearch(keyword, allItems));
     }
 
+    /**
+     * Xử lý tìm kiếm.
+     */
     private void handleSearch() {
         try {
             applySearch();
@@ -417,6 +483,9 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
         }
     }
 
+    /**
+     * Xử lý rebuild content layout.
+     */
     private void rebuildContentLayout() {
         mainContentPanel.removeAll();
         mainContentPanel.add(tableCardPanel, BorderLayout.CENTER);
@@ -424,6 +493,9 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
         repaint();
     }
 
+    /**
+     * Xử lý chi tiết selection.
+     */
     private void handleDetailSelection(T selectedItem) {
         if (selectedItem == null) {
             hideDetailDialog();
@@ -432,6 +504,9 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
         showDetailDialog();
     }
 
+    /**
+     * Giải phóng hộp thoại chi tiết.
+     */
     private void disposeDetailDialog() {
         if (detailDialog != null) {
             detailDialog.dispose();
@@ -439,6 +514,9 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
         }
     }
 
+    /**
+     * Thiết lập bảng.
+     */
     private void configureTable() {
         table.setRowHeight(28);
         table.setFillsViewportHeight(true);
@@ -452,6 +530,9 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
         table.getTableHeader().setFont(table.getTableHeader().getFont().deriveFont(Font.BOLD, 13f));
     }
 
+    /**
+     * Tạo card phần.
+     */
     private JPanel createSectionCard(LayoutManager layoutManager) {
         JPanel panel = new JPanel(layoutManager);
         panel.setOpaque(true);
@@ -476,11 +557,17 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
         button.setBorder(BorderFactory.createEmptyBorder(9, 16, 9, 16));
     }
 
+    /**
+     * Áp dụng kiểu cho nút compact filled.
+     */
     private void styleCompactFilledButton(JButton button, Color background) {
         styleFilledButton(button, background);
         button.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
     }
 
+    /**
+     * Áp dụng kiểu cho nested nút.
+     */
     private void styleNestedButtons(Component component) {
         if (component instanceof JButton button) {
             styleFilledButton(button, AppColors.BUTTON_NEUTRAL);
@@ -494,10 +581,16 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
 
     private static final class ResponsiveTable extends JTable {
 
+        /**
+         * Xử lý bảng responsive.
+         */
         private ResponsiveTable(DefaultTableModel model) {
             super(model);
         }
 
+        /**
+         * Trả về scrollable tracks viewport width.
+         */
         @Override
         public boolean getScrollableTracksViewportWidth() {
             return getAutoResizeMode() != AUTO_RESIZE_OFF

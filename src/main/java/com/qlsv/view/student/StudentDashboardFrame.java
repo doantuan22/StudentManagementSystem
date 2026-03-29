@@ -1,3 +1,6 @@
+/**
+ * Khung giao diện sinh viên cho dashboard.
+ */
 package com.qlsv.view.student;
 
 import com.qlsv.controller.LoginController;
@@ -19,10 +22,16 @@ public class StudentDashboardFrame extends BaseFrame {
     private final LoginController loginController;
     private final AppNavigator navigator;
 
+    /**
+     * Khởi tạo sinh viên dashboard.
+     */
     public StudentDashboardFrame(User user, AppNavigator navigator) {
         this(user, navigator, new LoginController());
     }
 
+    /**
+     * Khởi tạo sinh viên dashboard.
+     */
     StudentDashboardFrame(User user, AppNavigator navigator, LoginController loginController) {
         super("Bảng điều khiển - Sinh viên");
         this.navigator = navigator;

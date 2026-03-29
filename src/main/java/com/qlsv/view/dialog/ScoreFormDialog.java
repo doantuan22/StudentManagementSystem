@@ -1,3 +1,6 @@
+/**
+ * Hộp thoại điểm biểu mẫu dialog.
+ */
 package com.qlsv.view.dialog;
 
 import com.qlsv.model.Enrollment;
@@ -37,17 +40,26 @@ public class ScoreFormDialog extends JDialog {
 
     private ScoreFormResult result;
 
+    /**
+     * Khởi tạo điểm biểu mẫu.
+     */
     private ScoreFormDialog(Component parent, ScoreFormModel model) {
         super(resolveOwner(parent), model.title(), Dialog.ModalityType.APPLICATION_MODAL);
         initComponents(model);
     }
 
+    /**
+     * Hiển thị hộp thoại.
+     */
     public static ScoreFormResult showDialog(Component parent, ScoreFormModel model) {
         ScoreFormDialog dialog = new ScoreFormDialog(parent, model);
         dialog.setVisible(true);
         return dialog.result;
     }
 
+    /**
+     * Khởi tạo các thành phần giao diện.
+     */
     private void initComponents(ScoreFormModel model) {
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
@@ -110,6 +122,9 @@ public class ScoreFormDialog extends JDialog {
         setLocationRelativeTo(getOwner());
     }
 
+    /**
+     * Xử lý model bind.
+     */
     private void bindModel(ScoreFormModel model) {
         enrollmentComboBox.removeAllItems();
         for (Enrollment enrollment : model.enrollments()) {
@@ -126,12 +141,18 @@ public class ScoreFormDialog extends JDialog {
         SwingUtilities.invokeLater(() -> enrollmentComboBox.requestFocusInWindow());
     }
 
+    /**
+     * Tạo đăng ký phần.
+     */
     private JPanel createEnrollmentSection() {
         JPanel contentPanel = createFieldGridPanel();
         contentPanel.add(createField("Đăng ký học phần", styleComboBox(enrollmentComboBox)), fieldConstraints(0, 0, 2));
         return createSection("Thông tin bản ghi", "Giữ nguyên đăng ký hiện có khi cập nhật điểm.", contentPanel);
     }
 
+    /**
+     * Tạo điểm phần.
+     */
     private JPanel createScoreSection() {
         JPanel contentPanel = createFieldGridPanel();
         contentPanel.add(createField("Điểm quá trình", styleTextField(processScoreField)), fieldConstraints(0, 0));
@@ -140,6 +161,9 @@ public class ScoreFormDialog extends JDialog {
         return createSection("Điểm thành phần", "Các giá trị vẫn được kiểm tra bởi flow xử lý hiện tại.", contentPanel);
     }
 
+    /**
+     * Tạo phần.
+     */
     private JPanel createSection(String title, String subtitle, JComponent content) {
         JPanel panel = new JPanel(new BorderLayout(0, 16));
         panel.setOpaque(true);
@@ -170,16 +194,25 @@ public class ScoreFormDialog extends JDialog {
         return panel;
     }
 
+    /**
+     * Tạo panel trường grid.
+     */
     private JPanel createFieldGridPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setOpaque(false);
         return panel;
     }
 
+    /**
+     * Xử lý trường constraints.
+     */
     private GridBagConstraints fieldConstraints(int x, int y) {
         return fieldConstraints(x, y, 1);
     }
 
+    /**
+     * Xử lý trường constraints.
+     */
     private GridBagConstraints fieldConstraints(int x, int y, int width) {
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.gridx = x;
@@ -192,6 +225,9 @@ public class ScoreFormDialog extends JDialog {
         return constraints;
     }
 
+    /**
+     * Tạo trường.
+     */
     private JPanel createField(String labelText, Component inputComponent) {
         JPanel panel = new JPanel(new BorderLayout(0, 6));
         panel.setOpaque(false);
@@ -206,6 +242,9 @@ public class ScoreFormDialog extends JDialog {
         return panel;
     }
 
+    /**
+     * Áp dụng kiểu cho trường văn bản.
+     */
     private JTextField styleTextField(JTextField textField) {
         textField.setFont(textField.getFont().deriveFont(Font.PLAIN, 13.5f));
         textField.setBorder(BorderFactory.createCompoundBorder(
@@ -216,6 +255,9 @@ public class ScoreFormDialog extends JDialog {
         return textField;
     }
 
+    /**
+     * Áp dụng kiểu cho chọn box.
+     */
     private <T> JComboBox<T> styleComboBox(JComboBox<T> comboBox) {
         comboBox.setFont(comboBox.getFont().deriveFont(Font.PLAIN, 13.5f));
         comboBox.setBorder(BorderFactory.createLineBorder(AppColors.INPUT_BORDER));
@@ -224,6 +266,9 @@ public class ScoreFormDialog extends JDialog {
         return comboBox;
     }
 
+    /**
+     * Áp dụng kiểu cho nút primary.
+     */
     private void stylePrimaryButton(JButton button) {
         button.setFocusPainted(false);
         button.setBorderPainted(false);
@@ -234,6 +279,9 @@ public class ScoreFormDialog extends JDialog {
         button.setBorder(BorderFactory.createEmptyBorder(10, 18, 10, 18));
     }
 
+    /**
+     * Áp dụng kiểu cho nút secondary.
+     */
     private void styleSecondaryButton(JButton button) {
         button.setFocusPainted(false);
         button.setBorderPainted(false);
@@ -244,6 +292,9 @@ public class ScoreFormDialog extends JDialog {
         button.setBorder(BorderFactory.createEmptyBorder(10, 18, 10, 18));
     }
 
+    /**
+     * Xử lý lưu.
+     */
     private void handleSave() {
         result = new ScoreFormResult(
                 (Enrollment) enrollmentComboBox.getSelectedItem(),
@@ -254,6 +305,9 @@ public class ScoreFormDialog extends JDialog {
         dispose();
     }
 
+    /**
+     * Xác định owner.
+     */
     private static Window resolveOwner(Component parent) {
         if (parent == null) {
             return null;
@@ -261,6 +315,9 @@ public class ScoreFormDialog extends JDialog {
         return SwingUtilities.getWindowAncestor(parent);
     }
 
+    /**
+     * Xử lý model điểm biểu mẫu.
+     */
     public record ScoreFormModel(
             String title,
             List<Enrollment> enrollments,
@@ -271,6 +328,9 @@ public class ScoreFormDialog extends JDialog {
     ) {
     }
 
+    /**
+     * Xử lý điểm kết quả biểu mẫu.
+     */
     public record ScoreFormResult(
             Enrollment enrollment,
             String processScore,

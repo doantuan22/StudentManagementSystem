@@ -1,3 +1,6 @@
+/**
+ * Thanh điều hướng bên trái cho các dashboard.
+ */
 package com.qlsv.view.common;
 
 import javax.swing.BorderFactory;
@@ -30,6 +33,9 @@ public class SidebarMenu extends JPanel {
 
     private String activeKey;
 
+    /**
+     * Khởi tạo menu thanh bên.
+     */
     public SidebarMenu(String title, String description) {
         setOpaque(false);
         setLayout(new BorderLayout(0, 16));
@@ -96,11 +102,17 @@ public class SidebarMenu extends JPanel {
             action.run();
         });
         button.addMouseListener(new MouseAdapter() {
+            /**
+             * Xử lý mouse entered.
+             */
             @Override
             public void mouseEntered(MouseEvent event) {
                 updateButtonState(key, button, true);
             }
 
+            /**
+             * Xử lý mouse exited.
+             */
             @Override
             public void mouseExited(MouseEvent event) {
                 updateButtonState(key, button, false);
@@ -127,6 +139,9 @@ public class SidebarMenu extends JPanel {
         }
     }
 
+    /**
+     * Xử lý paint component.
+     */
     @Override
     protected void paintComponent(Graphics graphics) {
         Graphics2D graphics2D = (Graphics2D) graphics.create();
@@ -156,6 +171,9 @@ public class SidebarMenu extends JPanel {
         button.repaint();
     }
 
+    /**
+     * Xử lý to html.
+     */
     private String toHtml(String text) {
         return "<html><div style='width:220px;'>" + text + "</div></html>";
     }

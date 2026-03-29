@@ -1,3 +1,6 @@
+/**
+ * Kiểm tra và chuẩn hóa dữ liệu đầu vào.
+ */
 package com.qlsv.utils;
 
 import com.qlsv.exception.ValidationException;
@@ -12,6 +15,9 @@ public final class ValidationUtil {
     private static final Pattern PHONE_PATTERN =
             Pattern.compile("^(\\+84|0)[0-9]{9,10}$");
 
+    /**
+     * Khởi tạo kiểm tra.
+     */
     private ValidationUtil() {
     }
 
@@ -35,6 +41,9 @@ public final class ValidationUtil {
         return value;
     }
 
+    /**
+     * Xử lý điểm mặc định.
+     */
     public static Double defaultScore(Double value) {
         return value == null ? 0.0 : value;
     }

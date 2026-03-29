@@ -1,3 +1,6 @@
+/**
+ * Hộp thoại kết quả phân tích dialog.
+ */
 package com.qlsv.view.dialog;
 
 import com.qlsv.view.common.AppColors;
@@ -11,24 +14,39 @@ public class AnalysisResultDialog extends BaseDetailDialog {
 
     private final JTextArea textArea;
 
+    /**
+     * Khởi tạo kết quả phân tích.
+     */
     public AnalysisResultDialog(String title) {
         this(title, createTextArea());
     }
 
+    /**
+     * Khởi tạo kết quả phân tích.
+     */
     private AnalysisResultDialog(String title, JTextArea textArea) {
         super(title, textArea, 760, 560);
         this.textArea = textArea;
     }
 
+    /**
+     * Cập nhật phân tích văn bản.
+     */
     public void setAnalysisText(String text) {
         textArea.setText(text == null ? "" : text);
         textArea.setCaretPosition(0);
     }
 
+    /**
+     * Cập nhật hộp thoại title.
+     */
     public void setDialogTitle(String title) {
         setTitle(title);
     }
 
+    /**
+     * Tạo văn bản area.
+     */
     private static JTextArea createTextArea() {
         JTextArea area = new JTextArea();
         area.setEditable(false);

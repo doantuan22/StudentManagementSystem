@@ -1,3 +1,6 @@
+/**
+ * Màn hình quản trị cho quản lý môn học.
+ */
 package com.qlsv.view.admin;
 
 import com.qlsv.controller.FacultyController;
@@ -38,6 +41,9 @@ public class SubjectManagementPanel extends AbstractCrudPanel<Subject> {
 
     private boolean filterReady;
 
+    /**
+     * Khởi tạo quản lý môn học.
+     */
     public SubjectManagementPanel() {
         super("Quản lý môn học");
         filterTypeComboBox.setSelectedItem(FILTER_ALL);
@@ -47,11 +53,17 @@ public class SubjectManagementPanel extends AbstractCrudPanel<Subject> {
         refreshData();
     }
 
+    /**
+     * Trả về column names.
+     */
     @Override
     protected String[] getColumnNames() {
         return new String[]{"ID", "Mã môn học", "Tên môn học", "Số tín chỉ", "Khoa"};
     }
 
+    /**
+     * Nạp items.
+     */
     @Override
     protected List<Subject> loadItems() {
         if (!filterReady) {
@@ -69,6 +81,9 @@ public class SubjectManagementPanel extends AbstractCrudPanel<Subject> {
         };
     }
 
+    /**
+     * Xử lý to row.
+     */
     @Override
     protected Object[] toRow(Subject item) {
         return new Object[]{
@@ -80,6 +95,9 @@ public class SubjectManagementPanel extends AbstractCrudPanel<Subject> {
         };
     }
 
+    /**
+     * Trả về trạng thái trống thông báo.
+     */
     @Override
     protected String getEmptyStateMessage() {
         return filterReady
@@ -87,6 +105,9 @@ public class SubjectManagementPanel extends AbstractCrudPanel<Subject> {
                 : "Vui lòng chọn điều kiện lọc để hiển thị danh sách môn học.";
     }
 
+    /**
+     * Xử lý on selection changed.
+     */
     @Override
     protected void onSelectionChanged(Subject selectedItem) {
         if (selectedItem == null) {
@@ -104,11 +125,17 @@ public class SubjectManagementPanel extends AbstractCrudPanel<Subject> {
         });
     }
 
+    /**
+     * Tạo hộp thoại chi tiết.
+     */
     @Override
     protected BaseDetailDialog createDetailDialog(javax.swing.JComponent detailPanel) {
         return new SubjectDetailDialog(detailPanel);
     }
 
+    /**
+     * Xử lý prompt for entity.
+     */
     @Override
     protected Subject promptForEntity(Subject existingItem) {
         SubjectFormDialog.SubjectFormResult formResult = SubjectFormDialog.showDialog(
@@ -136,16 +163,25 @@ public class SubjectManagementPanel extends AbstractCrudPanel<Subject> {
         return subject;
     }
 
+    /**
+     * Lưu entity.
+     */
     @Override
     protected void saveEntity(Subject item) {
         subjectController.saveSubject(item);
     }
 
+    /**
+     * Xóa entity.
+     */
     @Override
     protected void deleteEntity(Subject item) {
         subjectController.deleteSubject(item.getId());
     }
 
+    /**
+     * Tạo panel lọc.
+     */
     private JPanel buildFilterPanel() {
         JButton applyButton = new JButton("Áp dụng");
         JButton resetButton = new JButton("Đặt lại");
@@ -171,6 +207,9 @@ public class SubjectManagementPanel extends AbstractCrudPanel<Subject> {
         return filterPanel;
     }
 
+    /**
+     * Làm mới lọc values.
+     */
     private void reloadFilterValues() {
         String filterType = (String) filterTypeComboBox.getSelectedItem();
         filterReady = FILTER_ALL.equals(filterType);
@@ -188,12 +227,18 @@ public class SubjectManagementPanel extends AbstractCrudPanel<Subject> {
         }
     }
 
+    /**
+     * Xử lý reset lọc.
+     */
     private void resetFilter() {
         filterTypeComboBox.setSelectedItem(FILTER_ALL);
         reloadFilterValues();
         refreshData();
     }
 
+    /**
+     * Kiểm tra valid lọc selection.
+     */
     private boolean hasValidFilterSelection() {
         String filterType = (String) filterTypeComboBox.getSelectedItem();
         if (FILTER_ALL.equals(filterType)) {
@@ -203,6 +248,9 @@ public class SubjectManagementPanel extends AbstractCrudPanel<Subject> {
         return selectedOption != null && selectedOption.value() != null;
     }
 
+    /**
+     * Trả về lọc value đã chọn.
+     */
     private <T> T getSelectedFilterValue(Class<T> type) {
         FilterOption<?> selectedOption = (FilterOption<?>) filterValueComboBox.getSelectedItem();
         if (selectedOption == null || selectedOption.value() == null || !type.isInstance(selectedOption.value())) {

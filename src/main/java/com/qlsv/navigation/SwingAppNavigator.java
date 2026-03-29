@@ -1,3 +1,6 @@
+/**
+ * Điều hướng màn hình Swing theo vai trò người dùng.
+ */
 package com.qlsv.navigation;
 
 import com.qlsv.controller.DashboardController;
@@ -13,16 +16,25 @@ public class SwingAppNavigator implements AppNavigator {
 
     private final DashboardController dashboardController = new DashboardController();
 
+    /**
+     * Hiển thị đăng nhập.
+     */
     @Override
     public void showLogin() {
         new LoginFrame(this).setVisible(true);
     }
 
+    /**
+     * Hiển thị dashboard.
+     */
     @Override
     public void showDashboard(User user) {
         createDashboardFrame(user).setVisible(true);
     }
 
+    /**
+     * Tạo khung dashboard.
+     */
     private JFrame createDashboardFrame(User user) {
         return switch (dashboardController.resolveDashboard(user)) {
             case ADMIN -> new AdminDashboardFrame(user, this);

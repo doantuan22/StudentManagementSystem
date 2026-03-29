@@ -1,3 +1,6 @@
+/**
+ * Mô tả thực thể khoa của hệ thống.
+ */
 package com.qlsv.model;
 
 import jakarta.persistence.Column;
@@ -26,9 +29,15 @@ public class Faculty {
     @Column(name = "description", length = 255)
     private String description;
 
+    /**
+     * Khởi tạo khoa.
+     */
     public Faculty() {
     }
 
+    /**
+     * Khởi tạo khoa.
+     */
     public Faculty(Long id, String facultyCode, String facultyName, String description) {
         this.id = id;
         this.facultyCode = facultyCode;
@@ -36,43 +45,73 @@ public class Faculty {
         this.description = description;
     }
 
+    /**
+     * Trả về id.
+     */
     public Long getId() {
         return id;
     }
 
+    /**
+     * Cập nhật id.
+     */
     public void setId(Long id) {
         this.id = id;
     }
 
+    /**
+     * Trả về khoa mã.
+     */
     public String getFacultyCode() {
         return facultyCode;
     }
 
+    /**
+     * Cập nhật khoa mã.
+     */
     public void setFacultyCode(String facultyCode) {
         this.facultyCode = facultyCode;
     }
 
+    /**
+     * Trả về khoa tên.
+     */
     public String getFacultyName() {
         return facultyName;
     }
 
+    /**
+     * Cập nhật khoa tên.
+     */
     public void setFacultyName(String facultyName) {
         this.facultyName = facultyName;
     }
 
+    /**
+     * Trả về description.
+     */
     public String getDescription() {
         return description;
     }
 
+    /**
+     * Cập nhật description.
+     */
     public void setDescription(String description) {
         this.description = description;
     }
 
+    /**
+     * Trả về chuỗi hiển thị của đối tượng.
+     */
     @Override
     public String toString() {
         return facultyCode + " - " + facultyName;
     }
 
+    /**
+     * So sánh đối tượng theo định danh phù hợp.
+     */
     @Override
     public boolean equals(Object object) {
         if (this == object) {
@@ -87,6 +126,9 @@ public class Faculty {
         return Objects.equals(facultyCode, faculty.facultyCode);
     }
 
+    /**
+     * Tạo mã băm cho đối tượng.
+     */
     @Override
     public int hashCode() {
         return Objects.hash(id != null ? id : facultyCode);

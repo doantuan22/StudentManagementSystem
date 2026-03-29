@@ -8,6 +8,7 @@
 -- ============================================================
 
 SET NAMES utf8mb4;
+-- Nạp dữ liệu mẫu cho các vai trò và nghiệp vụ chính của hệ thống.
 USE student_management;
 
 -- ------------------------------------------------------------

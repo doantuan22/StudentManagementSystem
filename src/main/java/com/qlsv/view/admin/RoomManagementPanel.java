@@ -1,3 +1,6 @@
+/**
+ * Màn hình quản trị cho quản lý phòng.
+ */
 package com.qlsv.view.admin;
 
 import com.qlsv.controller.RoomController;
@@ -20,21 +23,33 @@ public class RoomManagementPanel extends AbstractCrudPanel<Room> {
 
     private boolean isSearching;
 
+    /**
+     * Khởi tạo quản lý phòng.
+     */
     public RoomManagementPanel() {
         super("Quản lý phòng học");
         refreshData();
     }
 
+    /**
+     * Kiểm tra đầu trang tìm kiếm visible.
+     */
     @Override
     protected boolean isHeaderSearchVisible() {
         return false;
     }
 
+    /**
+     * Trả về column names.
+     */
     @Override
     protected String[] getColumnNames() {
         return new String[]{"ID", "Mã phòng", "Tên phòng"};
     }
 
+    /**
+     * Nạp items.
+     */
     @Override
     protected List<Room> loadItems() {
         if (isSearching && !searchField.getText().trim().isBlank()) {
@@ -43,6 +58,9 @@ public class RoomManagementPanel extends AbstractCrudPanel<Room> {
         return roomController.getAllRooms();
     }
 
+    /**
+     * Xử lý to row.
+     */
     @Override
     protected Object[] toRow(Room item) {
         return new Object[]{
@@ -52,11 +70,17 @@ public class RoomManagementPanel extends AbstractCrudPanel<Room> {
         };
     }
 
+    /**
+     * Trả về trạng thái trống thông báo.
+     */
     @Override
     protected String getEmptyStateMessage() {
         return isSearching ? "Không tìm thấy phòng học nào phù hợp với từ khóa." : "Chưa có dữ liệu phòng học.";
     }
 
+    /**
+     * Xử lý prompt for entity.
+     */
     @Override
     protected Room promptForEntity(Room existingItem) {
         RoomFormDialog.RoomFormResult formResult = RoomFormDialog.showDialog(
@@ -78,16 +102,25 @@ public class RoomManagementPanel extends AbstractCrudPanel<Room> {
         return room;
     }
 
+    /**
+     * Lưu entity.
+     */
     @Override
     protected void saveEntity(Room item) {
         roomController.saveRoom(item);
     }
 
+    /**
+     * Xóa entity.
+     */
     @Override
     protected void deleteEntity(Room item) {
         roomController.deleteRoom(item.getId());
     }
 
+    /**
+     * Tạo panel lọc.
+     */
     private JPanel buildFilterPanel() {
         JButton searchButton = new JButton("Tìm kiếm");
         JButton resetButton = new JButton("Đặt lại");

@@ -1,3 +1,6 @@
+/**
+ * Điều phối dữ liệu cho quản lý lịch màn hình.
+ */
 package com.qlsv.controller;
 
 import com.qlsv.dto.DisplayDtoMapper;
@@ -20,6 +23,9 @@ public class ScheduleManagementScreenController {
     private final FacultyController facultyController = new FacultyController();
     private final RoomController roomController = new RoomController();
 
+    /**
+     * Nạp items.
+     */
     public List<Schedule> loadItems(boolean filterReady, String filterType, Object filterValue,
                                     String filterAll, String filterSectionCode, String filterRoom, String filterFaculty) {
         if (!filterReady) {
@@ -66,6 +72,9 @@ public class ScheduleManagementScreenController {
         return schedules;
     }
 
+    /**
+     * Tạo chi tiết trường.
+     */
     public List<DisplayField> buildDetailFields(Schedule schedule) {
         if (schedule == null) {
             return List.of();
@@ -82,22 +91,37 @@ public class ScheduleManagementScreenController {
         );
     }
 
+    /**
+     * Xử lý to hiển thị dto.
+     */
     public ScheduleDisplayDto toDisplayDto(Schedule schedule) {
         return DisplayDtoMapper.toScheduleDisplayDto(schedule);
     }
 
+    /**
+     * Nạp học phần.
+     */
     public List<CourseSection> loadCourseSections() {
         return courseSectionController.getAllCourseSectionsForSelection();
     }
 
+    /**
+     * Nạp khoa.
+     */
     public List<Faculty> loadFaculties() {
         return facultyController.getFacultiesForSelection();
     }
 
+    /**
+     * Nạp phòng.
+     */
     public List<Room> loadRooms() {
         return roomController.getRoomsForSelection();
     }
 
+    /**
+     * Xử lý apply biểu mẫu dữ liệu.
+     */
     public Schedule applyFormData(Schedule existingItem, ScheduleFormData formData) {
         Integer startPeriod = formData.startPeriod();
         Integer endPeriod = formData.endPeriod();
@@ -115,10 +139,16 @@ public class ScheduleManagementScreenController {
         return schedule;
     }
 
+    /**
+     * Lưu lịch.
+     */
     public void saveSchedule(Schedule schedule) {
         scheduleController.saveSchedule(schedule);
     }
 
+    /**
+     * Xóa lịch.
+     */
     public void deleteSchedule(Schedule schedule) {
         if (schedule.getId() == null) {
             throw new IllegalArgumentException("Học phần này chưa có lịch học để xóa.");
@@ -126,6 +156,9 @@ public class ScheduleManagementScreenController {
         scheduleController.deleteSchedule(schedule.getId());
     }
 
+    /**
+     * Xử lý lịch biểu mẫu dữ liệu.
+     */
     public record ScheduleFormData(
             CourseSection courseSection,
             String dayOfWeek,

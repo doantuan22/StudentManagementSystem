@@ -1,3 +1,6 @@
+/**
+ * Xử lý nghiệp vụ giảng viên.
+ */
 package com.qlsv.service;
 
 import com.qlsv.config.JpaBootstrap;
@@ -26,35 +29,56 @@ public class LecturerService {
     private final UserDAO userDAO = new UserDAO();
     private final PermissionService permissionService = new PermissionService();
 
+    /**
+     * Trả về toàn bộ dữ liệu dữ liệu hiện tại.
+     */
     public List<Lecturer> findAll() {
         permissionService.requirePermission(RolePermission.MANAGE_LECTURERS);
         return lecturerDAO.findAll();
     }
 
+    /**
+     * Trả về toàn bộ dữ liệu for selection.
+     */
     public List<Lecturer> findAllForSelection() {
         permissionService.requireLogin();
         return lecturerDAO.findAll();
     }
 
+    /**
+     * Tìm dữ liệu theo khoa id.
+     */
     public List<Lecturer> findByFacultyId(Long facultyId) {
         permissionService.requirePermission(RolePermission.MANAGE_LECTURERS);
         return lecturerDAO.findByFacultyId(facultyId);
     }
 
+    /**
+     * Tìm giảng viên hiện tại.
+     */
     public Lecturer findCurrentLecturer() {
         permissionService.requirePermission(RolePermission.VIEW_OWN_PROFILE);
         return lecturerDAO.findByUserId(SessionManager.requireCurrentUser().getId())
                 .orElseThrow(() -> new ValidationException("Khong tim thay ho so giang vien cua tai khoan dang dang nhap."));
     }
 
+    /**
+     * Lưu dữ liệu hiện tại.
+     */
     public Lecturer save(Lecturer lecturer) {
         return saveInternal(lecturer, null);
     }
 
+    /**
+     * Lưu with môn học.
+     */
     public Lecturer saveWithSubjects(Lecturer lecturer, List<Subject> subjects) {
         return saveInternal(lecturer, normalizeSubjectIds(subjects));
     }
 
+    /**
+     * Xóa dữ liệu hiện tại.
+     */
     public boolean delete(Long id) {
         permissionService.requirePermission(RolePermission.MANAGE_LECTURERS);
         return JpaBootstrap.executeInTransaction(
@@ -63,6 +87,9 @@ public class LecturerService {
         );
     }
 
+    /**
+     * Lưu internal.
+     */
     private Lecturer saveInternal(Lecturer lecturer, List<Long> subjectIds) {
         authorizeSave(lecturer);
         validate(lecturer);
@@ -101,6 +128,9 @@ public class LecturerService {
         return persistedLecturer;
     }
 
+    /**
+     * Xử lý authorize lưu.
+     */
     private void authorizeSave(Lecturer lecturer) {
         if (lecturer.getId() != null) {
             if (permissionService.hasPermission(RolePermission.MANAGE_LECTURERS)) {
@@ -119,6 +149,9 @@ public class LecturerService {
         permissionService.requirePermission(RolePermission.MANAGE_LECTURERS);
     }
 
+    /**
+     * Kiểm tra dữ liệu hiện tại.
+     */
     private void validate(Lecturer lecturer) {
         lecturer.setLecturerCode(ValidationUtil.normalizeCodePrefix(lecturer.getLecturerCode(), "GV", "Ma giang vien"));
         ValidationUtil.requireWithinLength(lecturer.getLecturerCode(), 50, "Ma giang vien");
@@ -133,6 +166,9 @@ public class LecturerService {
         }
     }
 
+    /**
+     * Bảo đảm người dùng liên kết.
+     */
     private void ensureLinkedUser(Lecturer lecturer) {
         if (lecturer.getUserId() != null) {
             return;
@@ -163,6 +199,9 @@ public class LecturerService {
         lecturer.setUserId(user.getId());
     }
 
+    /**
+     * Đồng bộ người dùng liên kết.
+     */
     private void syncLinkedUser(Lecturer lecturer) {
         if (lecturer.getUserId() == null) {
             return;
@@ -171,6 +210,9 @@ public class LecturerService {
         userDAO.updateEmail(lecturer.getUserId(), lecturer.getEmail());
     }
 
+    /**
+     * Chuẩn hóa môn học ids.
+     */
     private List<Long> normalizeSubjectIds(List<Subject> subjects) {
         Set<Long> subjectIds = new LinkedHashSet<>();
         if (subjects != null) {

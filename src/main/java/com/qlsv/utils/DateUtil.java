@@ -1,3 +1,6 @@
+/**
+ * Hỗ trợ chuyển đổi và định dạng ngày tháng.
+ */
 package com.qlsv.utils;
 
 import com.qlsv.exception.ValidationException;
@@ -10,6 +13,9 @@ public final class DateUtil {
 
     private static final DateTimeFormatter INPUT_DATE_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE;
 
+    /**
+     * Khởi tạo ngày.
+     */
     private DateUtil() {
     }
 
@@ -42,6 +48,9 @@ public final class DateUtil {
         return date == null ? "" : date.format(INPUT_DATE_FORMATTER);
     }
 
+    /**
+     * Phân tích ngày.
+     */
     private static LocalDate parseDate(String value, String fieldName) {
         try {
             return LocalDate.parse(value, INPUT_DATE_FORMATTER);

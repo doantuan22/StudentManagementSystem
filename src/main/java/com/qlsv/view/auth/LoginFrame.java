@@ -1,3 +1,6 @@
+/**
+ * Khung giao diện xác thực cho đăng nhập.
+ */
 package com.qlsv.view.auth;
 
 import com.qlsv.controller.LoginController;
@@ -48,10 +51,16 @@ public class LoginFrame extends BaseFrame {
     private final LoginController loginController;
     private final AppNavigator navigator;
 
+    /**
+     * Khởi tạo đăng nhập.
+     */
     public LoginFrame(AppNavigator navigator) {
         this(navigator, new LoginController());
     }
 
+    /**
+     * Khởi tạo đăng nhập.
+     */
     LoginFrame(AppNavigator navigator, LoginController loginController) {
         super("Đăng nhập");
         this.navigator = navigator;
@@ -204,6 +213,9 @@ public class LoginFrame extends BaseFrame {
         return actionPanel;
     }
 
+    /**
+     * Tạo trường input.
+     */
     private RoundedTextField createInputField() {
         RoundedTextField textField = new RoundedTextField(16);
         textField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
@@ -214,6 +226,9 @@ public class LoginFrame extends BaseFrame {
         return textField;
     }
 
+    /**
+     * Tạo trường mật khẩu.
+     */
     private RoundedPasswordField createPasswordField() {
         RoundedPasswordField passwordField = new RoundedPasswordField(16);
         passwordField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
@@ -224,6 +239,9 @@ public class LoginFrame extends BaseFrame {
         return passwordField;
     }
 
+    /**
+     * Tạo nút đăng nhập.
+     */
     private RoundedButton createLoginButton() {
         RoundedButton loginButton = new RoundedButton("Đăng nhập", 18);
         loginButton.setBackground(AppColors.LOGIN_PRIMARY);

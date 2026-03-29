@@ -1,3 +1,6 @@
+/**
+ * Khung giao diện giảng viên cho dashboard.
+ */
 package com.qlsv.view.lecturer;
 
 import com.qlsv.controller.LoginController;
@@ -20,10 +23,16 @@ public class LecturerDashboardFrame extends BaseFrame {
     private final LoginController loginController;
     private final AppNavigator navigator;
 
+    /**
+     * Khởi tạo giảng viên dashboard.
+     */
     public LecturerDashboardFrame(User user, AppNavigator navigator) {
         this(user, navigator, new LoginController());
     }
 
+    /**
+     * Khởi tạo giảng viên dashboard.
+     */
     LecturerDashboardFrame(User user, AppNavigator navigator, LoginController loginController) {
         super("Bảng điều khiển - Giảng viên");
         this.navigator = navigator;

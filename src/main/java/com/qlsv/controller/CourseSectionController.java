@@ -1,3 +1,6 @@
+/**
+ * Điều phối dữ liệu cho học phần.
+ */
 package com.qlsv.controller;
 
 import com.qlsv.model.CourseSection;

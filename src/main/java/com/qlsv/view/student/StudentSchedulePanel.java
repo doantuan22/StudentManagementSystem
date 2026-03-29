@@ -1,3 +1,6 @@
+/**
+ * Màn hình sinh viên cho lịch.
+ */
 package com.qlsv.view.student;
 
 import com.qlsv.controller.ScheduleController;
@@ -28,6 +31,9 @@ public class StudentSchedulePanel extends BasePanel {
     private final ScheduleController scheduleController = new ScheduleController();
     private final DefaultTableModel tableModel = new DefaultTableModel(
             new String[]{"Học phần", "Môn học", "Giảng viên", "Thứ", "Tiết", "Phòng", "Ghi chú"}, 0) {
+        /**
+         * Xác định ô có cho phép chỉnh sửa hay không.
+         */
         @Override
         public boolean isCellEditable(int row, int column) {
             return false;
@@ -38,12 +44,18 @@ public class StudentSchedulePanel extends BasePanel {
     private DashboardCard subjectsCard;
     private final JLabel summaryLabel = new JLabel("Đang tải lịch học...");
 
+    /**
+     * Khởi tạo lịch sinh viên.
+     */
     public StudentSchedulePanel() {
         setBackground(AppColors.CONTENT_BACKGROUND);
         initComponents();
         reloadData();
     }
 
+    /**
+     * Khởi tạo các thành phần giao diện.
+     */
     private void initComponents() {
         JLabel titleLabel = new JLabel("Lịch học sinh viên");
         titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 22f));
@@ -85,6 +97,9 @@ public class StudentSchedulePanel extends BasePanel {
         add(tablePanel, BorderLayout.CENTER);
     }
 
+    /**
+     * Làm mới dữ liệu đang hiển thị.
+     */
     @Override
     public void reloadData() {
         try {
@@ -118,6 +133,9 @@ public class StudentSchedulePanel extends BasePanel {
         }
     }
 
+    /**
+     * Tạo card bảng.
+     */
     private JPanel createTableCard(String title, JLabel summaryLabel, JScrollPane scrollPane) {
         JPanel panel = new JPanel(new BorderLayout(0, 12));
         panel.setOpaque(true);
@@ -149,6 +167,9 @@ public class StudentSchedulePanel extends BasePanel {
         return panel;
     }
 
+    /**
+     * Thiết lập bảng.
+     */
     private void configureTable(JTable table) {
         table.setRowHeight(28);
         table.setFillsViewportHeight(true);
@@ -163,6 +184,9 @@ public class StudentSchedulePanel extends BasePanel {
         table.getTableHeader().setPreferredSize(new Dimension(0, 32));
     }
 
+    /**
+     * Áp dụng kiểu cho nút neutral.
+     */
     private void styleNeutralButton(JButton button) {
         button.setFocusPainted(false);
         button.setBorderPainted(false);

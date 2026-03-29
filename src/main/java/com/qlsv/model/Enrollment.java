@@ -1,3 +1,6 @@
+/**
+ * Mô tả thực thể đăng ký của hệ thống.
+ */
 package com.qlsv.model;
 
 import jakarta.persistence.Column;
@@ -35,9 +38,15 @@ public class Enrollment {
     @Column(name = "enrolled_at", nullable = false)
     private LocalDateTime enrolledAt;
 
+    /**
+     * Khởi tạo đăng ký.
+     */
     public Enrollment() {
     }
 
+    /**
+     * Khởi tạo đăng ký.
+     */
     public Enrollment(Long id, Student student, CourseSection courseSection, String status, LocalDateTime enrolledAt) {
         this.id = id;
         this.student = student;
@@ -46,46 +55,79 @@ public class Enrollment {
         this.enrolledAt = enrolledAt;
     }
 
+    /**
+     * Trả về id.
+     */
     public Long getId() {
         return id;
     }
 
+    /**
+     * Cập nhật id.
+     */
     public void setId(Long id) {
         this.id = id;
     }
 
+    /**
+     * Trả về sinh viên.
+     */
     public Student getStudent() {
         return student;
     }
 
+    /**
+     * Cập nhật sinh viên.
+     */
     public void setStudent(Student student) {
         this.student = student;
     }
 
+    /**
+     * Trả về học phần.
+     */
     public CourseSection getCourseSection() {
         return courseSection;
     }
 
+    /**
+     * Cập nhật học phần.
+     */
     public void setCourseSection(CourseSection courseSection) {
         this.courseSection = courseSection;
     }
 
+    /**
+     * Trả về trạng thái.
+     */
     public String getStatus() {
         return status;
     }
 
+    /**
+     * Cập nhật trạng thái.
+     */
     public void setStatus(String status) {
         this.status = status;
     }
 
+    /**
+     * Trả về enrolled at.
+     */
     public LocalDateTime getEnrolledAt() {
         return enrolledAt;
     }
 
+    /**
+     * Cập nhật enrolled at.
+     */
     public void setEnrolledAt(LocalDateTime enrolledAt) {
         this.enrolledAt = enrolledAt;
     }
 
+    /**
+     * Trả về chuỗi hiển thị của đối tượng.
+     */
     @Override
     public String toString() {
         String studentName = student == null ? "" : student.getFullName();
@@ -93,6 +135,9 @@ public class Enrollment {
         return studentName + " - " + sectionCode;
     }
 
+    /**
+     * So sánh đối tượng theo định danh phù hợp.
+     */
     @Override
     public boolean equals(Object object) {
         if (this == object) {
@@ -104,6 +149,9 @@ public class Enrollment {
         return Objects.equals(id, enrollment.id);
     }
 
+    /**
+     * Tạo mã băm cho đối tượng.
+     */
     @Override
     public int hashCode() {
         return Objects.hash(id);

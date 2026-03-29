@@ -1,3 +1,6 @@
+/**
+ * Truy vấn dữ liệu lớp bằng JPA.
+ */
 package com.qlsv.dao;
 
 import com.qlsv.config.JpaBootstrap;
@@ -73,6 +76,9 @@ public class ClassRoomDAO {
         String normalizedKeyword = "%" + (keyword == null ? "" : keyword.trim().toLowerCase()) + "%";
         return executeRead("Không thể tìm kiếm lớp.", entityManager ->
                 entityManager.createQuery(FETCH_BASE + """
+                                /**
+                                 * Xử lý lower.
+                                 */
                                 WHERE LOWER(c.classCode) LIKE :keyword
                                    OR LOWER(c.className) LIKE :keyword
                                    OR LOWER(c.academicYear) LIKE :keyword
@@ -140,6 +146,9 @@ public class ClassRoomDAO {
         );
     }
 
+    /**
+     * Sao chép state.
+     */
     private void copyState(EntityManager entityManager, ClassRoom source, ClassRoom target) {
         target.setClassCode(source.getClassCode());
         target.setClassName(source.getClassName());
@@ -147,6 +156,9 @@ public class ClassRoomDAO {
         target.setFaculty(resolveFacultyReference(entityManager, source.getFaculty()));
     }
 
+    /**
+     * Xác định khoa reference.
+     */
     private Faculty resolveFacultyReference(EntityManager entityManager, Faculty faculty) {
         if (faculty == null || faculty.getId() == null) {
             return null;
@@ -154,6 +166,9 @@ public class ClassRoomDAO {
         return entityManager.getReference(Faculty.class, faculty.getId());
     }
 
+    /**
+     * Thực thi read.
+     */
     private <T> T executeRead(String errorMessage, Function<EntityManager, T> action) {
         try {
             return JpaBootstrap.executeWithEntityManager(action);
@@ -176,6 +191,9 @@ public class ClassRoomDAO {
         }
     }
 
+    /**
+     * Kiểm tra constraint violation.
+     */
     private boolean isConstraintViolation(Throwable throwable) {
         Throwable current = throwable;
         while (current != null) {

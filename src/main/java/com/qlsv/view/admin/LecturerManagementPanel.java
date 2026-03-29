@@ -1,3 +1,6 @@
+/**
+ * Màn hình quản trị cho quản lý giảng viên.
+ */
 package com.qlsv.view.admin;
 
 import com.qlsv.controller.CourseSectionController;
@@ -58,6 +61,9 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
     private boolean filterReady;
     private List<Subject> pendingSelectedSubjects = List.of();
 
+    /**
+     * Khởi tạo quản lý giảng viên.
+     */
     public LecturerManagementPanel() {
         super("Quan ly giang vien");
         filterTypeComboBox.setSelectedItem(FILTER_ALL);
@@ -67,11 +73,17 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
         refreshData();
     }
 
+    /**
+     * Trả về column names.
+     */
     @Override
     protected String[] getColumnNames() {
         return new String[]{"ID", "Mã giảng viên", "Họ và tên", "Giới tính", "Ngày sinh", "Email", "Khoa", "Trạng thái"};
     }
 
+    /**
+     * Thiết lập tùy biến thao tác nút.
+     */
     @Override
     protected void configureCustomActionButtons(JPanel actionPanel) {
         JButton changePasswordButton = new JButton("Đổi MK");
@@ -117,6 +129,9 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
         };
     }
 
+    /**
+     * Trả về trạng thái trống thông báo.
+     */
     @Override
     protected String getEmptyStateMessage() {
         return filterReady
@@ -161,6 +176,9 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
         });
     }
 
+    /**
+     * Tạo hộp thoại chi tiết.
+     */
     @Override
     protected BaseDetailDialog createDetailDialog(javax.swing.JComponent detailPanel) {
         return new LecturerDetailDialog(detailPanel);
@@ -284,12 +302,18 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
         }
     }
 
+    /**
+     * Xử lý reset lọc.
+     */
     private void resetFilter() {
         filterTypeComboBox.setSelectedItem(FILTER_ALL);
         reloadFilterValues();
         refreshData();
     }
 
+    /**
+     * Kiểm tra valid lọc selection.
+     */
     private boolean hasValidFilterSelection() {
         String filterType = (String) filterTypeComboBox.getSelectedItem();
         if (FILTER_ALL.equals(filterType)) {
@@ -299,6 +323,9 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
         return selectedOption != null && selectedOption.value() != null;
     }
 
+    /**
+     * Trả về lọc value đã chọn.
+     */
     private <T> T getSelectedFilterValue(Class<T> type) {
         FilterOption<?> selectedOption = (FilterOption<?>) filterValueComboBox.getSelectedItem();
         if (selectedOption == null || selectedOption.value() == null || !type.isInstance(selectedOption.value())) {
@@ -342,6 +369,9 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
         }
     }
 
+    /**
+     * Áp dụng kiểu cho nút thao tác.
+     */
     private void styleActionButton(JButton button, java.awt.Color background) {
         button.setFocusPainted(false);
         button.setBorderPainted(false);

@@ -1,3 +1,6 @@
+/**
+ * Màn hình sinh viên cho đã đăng ký môn học.
+ */
 package com.qlsv.view.student;
 
 import com.qlsv.controller.EnrollmentController;
@@ -28,6 +31,9 @@ public class StudentRegisteredSubjectsPanel extends BasePanel {
     private final EnrollmentController enrollmentController = new EnrollmentController();
     private final DefaultTableModel tableModel = new DefaultTableModel(
             new String[]{"Học phần", "Môn học", "Tín chỉ", "Giảng viên", "Trạng thái", "Lịch học"}, 0) {
+        /**
+         * Xác định ô có cho phép chỉnh sửa hay không.
+         */
         @Override
         public boolean isCellEditable(int row, int column) {
             return false;
@@ -38,12 +44,18 @@ public class StudentRegisteredSubjectsPanel extends BasePanel {
     private DashboardCard totalSubjectsCard;
     private DashboardCard totalCreditsCard;
 
+    /**
+     * Khởi tạo sinh viên đã đăng ký môn học.
+     */
     public StudentRegisteredSubjectsPanel() {
         setBackground(AppColors.CONTENT_BACKGROUND);
         initComponents();
         reloadData();
     }
 
+    /**
+     * Khởi tạo các thành phần giao diện.
+     */
     private void initComponents() {
         JLabel titleLabel = new JLabel("Học phần đã đăng ký");
         titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 22f));
@@ -85,6 +97,9 @@ public class StudentRegisteredSubjectsPanel extends BasePanel {
         add(tablePanel, BorderLayout.CENTER);
     }
 
+    /**
+     * Làm mới dữ liệu đang hiển thị.
+     */
     @Override
     public void reloadData() {
         try {
@@ -112,6 +127,9 @@ public class StudentRegisteredSubjectsPanel extends BasePanel {
         }
     }
 
+    /**
+     * Tính tổng credits.
+     */
     private int calculateTotalCredits(List<Enrollment> enrollments) {
         int total = 0;
         for (Enrollment enrollment : enrollments) {
@@ -124,6 +142,9 @@ public class StudentRegisteredSubjectsPanel extends BasePanel {
         return total;
     }
 
+    /**
+     * Tạo card bảng.
+     */
     private JPanel createTableCard(String title, JLabel summaryLabel, JScrollPane scrollPane) {
         JPanel panel = new JPanel(new BorderLayout(0, 12));
         panel.setOpaque(true);
@@ -155,6 +176,9 @@ public class StudentRegisteredSubjectsPanel extends BasePanel {
         return panel;
     }
 
+    /**
+     * Thiết lập bảng.
+     */
     private void configureTable(JTable table) {
         table.setRowHeight(28);
         table.setFillsViewportHeight(true);
@@ -169,6 +193,9 @@ public class StudentRegisteredSubjectsPanel extends BasePanel {
         table.getTableHeader().setPreferredSize(new Dimension(0, 32));
     }
 
+    /**
+     * Áp dụng kiểu cho nút neutral.
+     */
     private void styleNeutralButton(JButton button) {
         button.setFocusPainted(false);
         button.setBorderPainted(false);

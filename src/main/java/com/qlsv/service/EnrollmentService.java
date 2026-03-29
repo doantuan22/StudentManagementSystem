@@ -1,3 +1,6 @@
+/**
+ * Xử lý nghiệp vụ đăng ký.
+ */
 package com.qlsv.service;
 
 import com.qlsv.config.JpaBootstrap;
@@ -151,6 +154,9 @@ public class EnrollmentService {
         );
     }
 
+    /**
+     * Cập nhật and return.
+     */
     private Enrollment updateAndReturn(Enrollment enrollment) {
         enrollmentDAO.update(enrollment);
         return enrollment;

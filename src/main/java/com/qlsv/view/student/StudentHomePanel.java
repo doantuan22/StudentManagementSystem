@@ -1,3 +1,6 @@
+/**
+ * Màn hình sinh viên cho tổng quan.
+ */
 package com.qlsv.view.student;
 
 import com.qlsv.controller.DisplayField;
@@ -36,6 +39,9 @@ public class StudentHomePanel extends BasePanel {
     private final DefaultTableModel scheduleTableModel = new DefaultTableModel(
             new String[]{"Học phần", "Thứ", "Tiết", "Phòng"}, 0
     ) {
+        /**
+         * Xác định ô có cho phép chỉnh sửa hay không.
+         */
         @Override
         public boolean isCellEditable(int row, int column) {
             return false;
@@ -43,6 +49,9 @@ public class StudentHomePanel extends BasePanel {
     };
     private final JTextArea scoreSummaryTextArea = new JTextArea();
 
+    /**
+     * Khởi tạo tổng quan sinh viên.
+     */
     public StudentHomePanel() {
         setBackground(AppColors.CONTENT_BACKGROUND);
         initComponents();
@@ -156,6 +165,9 @@ public class StudentHomePanel extends BasePanel {
         infoFieldsPanel.repaint();
     }
 
+    /**
+     * Thêm trường.
+     */
     private void addField(JPanel panel, String label, String value) {
         JLabel labelComponent = new JLabel(label);
         labelComponent.setFont(labelComponent.getFont().deriveFont(Font.BOLD, 12f));

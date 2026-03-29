@@ -1,5 +1,11 @@
+/**
+ * Gói dữ liệu hiển thị cho sinh viên hiển thị.
+ */
 package com.qlsv.dto;
 
+/**
+ * Xử lý sinh viên hiển thị dto.
+ */
 public record StudentDisplayDto(
         Long id,
         String studentCode,

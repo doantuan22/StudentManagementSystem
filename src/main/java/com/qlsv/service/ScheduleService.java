@@ -1,3 +1,6 @@
+/**
+ * Xử lý nghiệp vụ lịch.
+ */
 package com.qlsv.service;
 
 import com.qlsv.config.JpaBootstrap;
@@ -111,11 +114,17 @@ public class ScheduleService {
         );
     }
 
+    /**
+     * Cập nhật and return.
+     */
     private Schedule updateAndReturn(Schedule schedule) {
         scheduleDAO.update(schedule);
         return schedule;
     }
 
+    /**
+     * Kiểm tra dữ liệu hiện tại.
+     */
     private CourseSection validate(Schedule schedule) {
         if (schedule.getCourseSection() == null || schedule.getCourseSection().getId() == null) {
             throw new ValidationException("Lịch học phải gắn với một học phần.");
@@ -136,6 +145,9 @@ public class ScheduleService {
                 .orElseThrow(() -> new ValidationException("Học phần của lịch học không tồn tại."));
     }
 
+    /**
+     * Kiểm tra lịch conflicts.
+     */
     private void validateScheduleConflicts(Schedule schedule, CourseSection courseSection) {
         if (scheduleDAO.hasRoomScheduleConflict(
                 schedule.getRoom().getId(),

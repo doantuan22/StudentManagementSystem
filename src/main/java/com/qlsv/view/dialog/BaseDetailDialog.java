@@ -1,3 +1,6 @@
+/**
+ * Hộp thoại cơ sở chi tiết dialog.
+ */
 package com.qlsv.view.dialog;
 
 import com.qlsv.view.common.AppColors;
@@ -13,10 +16,16 @@ import java.awt.Frame;
 
 public class BaseDetailDialog extends JDialog {
 
+    /**
+     * Khởi tạo cơ sở chi tiết.
+     */
     public BaseDetailDialog(String title, JComponent content) {
         this(title, content, 800, 600);
     }
 
+    /**
+     * Khởi tạo cơ sở chi tiết.
+     */
     public BaseDetailDialog(String title, JComponent content, int width, int height) {
         super((Frame) null, title, false);
         setDefaultCloseOperation(HIDE_ON_CLOSE);
@@ -37,6 +46,9 @@ public class BaseDetailDialog extends JDialog {
         AppTheme.applyTree(this);
     }
 
+    /**
+     * Mở hộp thoại.
+     */
     public void openDialog() {
         setLocationRelativeTo(null);
         if (!isVisible()) {

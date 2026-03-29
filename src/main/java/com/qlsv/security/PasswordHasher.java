@@ -1,3 +1,6 @@
+/**
+ * Băm và đối chiếu mật khẩu người dùng.
+ */
 package com.qlsv.security;
 
 import com.qlsv.exception.AppException;
@@ -8,6 +11,9 @@ import java.security.NoSuchAlgorithmException;
 
 public final class PasswordHasher {
 
+    /**
+     * Khởi tạo mật khẩu hasher.
+     */
     private PasswordHasher() {
     }
 

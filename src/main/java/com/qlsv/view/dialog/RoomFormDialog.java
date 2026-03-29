@@ -1,3 +1,6 @@
+/**
+ * Hộp thoại phòng biểu mẫu dialog.
+ */
 package com.qlsv.view.dialog;
 
 import com.qlsv.view.common.AppColors;
@@ -25,17 +28,26 @@ public class RoomFormDialog extends JDialog {
 
     private RoomFormResult result;
 
+    /**
+     * Khởi tạo phòng biểu mẫu.
+     */
     private RoomFormDialog(Component parent, RoomFormModel model) {
         super(resolveOwner(parent), model.title(), Dialog.ModalityType.APPLICATION_MODAL);
         initComponents(model);
     }
 
+    /**
+     * Hiển thị hộp thoại.
+     */
     public static RoomFormResult showDialog(Component parent, RoomFormModel model) {
         RoomFormDialog dialog = new RoomFormDialog(parent, model);
         dialog.setVisible(true);
         return dialog.result;
     }
 
+    /**
+     * Khởi tạo các thành phần giao diện.
+     */
     private void initComponents(RoomFormModel model) {
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
@@ -94,6 +106,9 @@ public class RoomFormDialog extends JDialog {
         SwingUtilities.invokeLater(() -> roomCodeField.requestFocusInWindow());
     }
 
+    /**
+     * Tạo trường.
+     */
     private JPanel createField(String labelText, Component inputComponent) {
         JPanel panel = new JPanel(new BorderLayout(0, 6));
         panel.setOpaque(false);
@@ -105,6 +120,9 @@ public class RoomFormDialog extends JDialog {
         return panel;
     }
 
+    /**
+     * Áp dụng kiểu cho trường văn bản.
+     */
     private JTextField styleTextField(JTextField textField) {
         textField.setFont(textField.getFont().deriveFont(Font.PLAIN, 13.5f));
         textField.setBorder(BorderFactory.createCompoundBorder(
@@ -114,6 +132,9 @@ public class RoomFormDialog extends JDialog {
         return textField;
     }
 
+    /**
+     * Áp dụng kiểu cho nút primary.
+     */
     private void stylePrimaryButton(JButton button) {
         button.setFocusPainted(false);
         button.setBorderPainted(false);
@@ -124,6 +145,9 @@ public class RoomFormDialog extends JDialog {
         button.setBorder(BorderFactory.createEmptyBorder(10, 18, 10, 18));
     }
 
+    /**
+     * Áp dụng kiểu cho nút secondary.
+     */
     private void styleSecondaryButton(JButton button) {
         button.setFocusPainted(false);
         button.setBorderPainted(false);
@@ -134,11 +158,17 @@ public class RoomFormDialog extends JDialog {
         button.setBorder(BorderFactory.createEmptyBorder(10, 18, 10, 18));
     }
 
+    /**
+     * Xử lý lưu.
+     */
     private void handleSave() {
         result = new RoomFormResult(roomCodeField.getText(), roomNameField.getText());
         dispose();
     }
 
+    /**
+     * Xác định owner.
+     */
     private static Window resolveOwner(Component parent) {
         if (parent == null) {
             return null;
@@ -146,9 +176,15 @@ public class RoomFormDialog extends JDialog {
         return SwingUtilities.getWindowAncestor(parent);
     }
 
+    /**
+     * Xử lý model phòng biểu mẫu.
+     */
     public record RoomFormModel(String title, String roomCode, String roomName) {
     }
 
+    /**
+     * Xử lý phòng kết quả biểu mẫu.
+     */
     public record RoomFormResult(String roomCode, String roomName) {
     }
 }

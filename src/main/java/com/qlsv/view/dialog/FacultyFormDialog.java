@@ -1,3 +1,6 @@
+/**
+ * Hộp thoại khoa biểu mẫu dialog.
+ */
 package com.qlsv.view.dialog;
 
 import com.qlsv.view.common.AppColors;
@@ -30,17 +33,26 @@ public class FacultyFormDialog extends JDialog {
 
     private FacultyFormResult result;
 
+    /**
+     * Khởi tạo khoa biểu mẫu.
+     */
     private FacultyFormDialog(Component parent, FacultyFormModel model) {
         super(resolveOwner(parent), model.title(), Dialog.ModalityType.APPLICATION_MODAL);
         initComponents(model);
     }
 
+    /**
+     * Hiển thị hộp thoại.
+     */
     public static FacultyFormResult showDialog(Component parent, FacultyFormModel model) {
         FacultyFormDialog dialog = new FacultyFormDialog(parent, model);
         dialog.setVisible(true);
         return dialog.result;
     }
 
+    /**
+     * Khởi tạo các thành phần giao diện.
+     */
     private void initComponents(FacultyFormModel model) {
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
@@ -108,6 +120,9 @@ public class FacultyFormDialog extends JDialog {
         SwingUtilities.invokeLater(() -> facultyCodeField.requestFocusInWindow());
     }
 
+    /**
+     * Tạo trường.
+     */
     private JPanel createField(String labelText, Component inputComponent) {
         JPanel panel = new JPanel(new BorderLayout(0, 6));
         panel.setOpaque(false);
@@ -121,6 +136,9 @@ public class FacultyFormDialog extends JDialog {
         return panel;
     }
 
+    /**
+     * Áp dụng kiểu cho trường văn bản.
+     */
     private JTextField styleTextField(JTextField textField) {
         textField.setFont(textField.getFont().deriveFont(Font.PLAIN, 13.5f));
         textField.setBorder(BorderFactory.createCompoundBorder(
@@ -130,6 +148,9 @@ public class FacultyFormDialog extends JDialog {
         return textField;
     }
 
+    /**
+     * Tạo description scroll pane.
+     */
     private JScrollPane createDescriptionScrollPane() {
         descriptionArea.setLineWrap(true);
         descriptionArea.setWrapStyleWord(true);
@@ -142,6 +163,9 @@ public class FacultyFormDialog extends JDialog {
         return scrollPane;
     }
 
+    /**
+     * Áp dụng kiểu cho nút primary.
+     */
     private void stylePrimaryButton(JButton button) {
         button.setFocusPainted(false);
         button.setBorderPainted(false);
@@ -152,6 +176,9 @@ public class FacultyFormDialog extends JDialog {
         button.setBorder(BorderFactory.createEmptyBorder(10, 18, 10, 18));
     }
 
+    /**
+     * Áp dụng kiểu cho nút secondary.
+     */
     private void styleSecondaryButton(JButton button) {
         button.setFocusPainted(false);
         button.setBorderPainted(false);
@@ -162,6 +189,9 @@ public class FacultyFormDialog extends JDialog {
         button.setBorder(BorderFactory.createEmptyBorder(10, 18, 10, 18));
     }
 
+    /**
+     * Xử lý lưu.
+     */
     private void handleSave() {
         result = new FacultyFormResult(
                 facultyCodeField.getText(),
@@ -171,6 +201,9 @@ public class FacultyFormDialog extends JDialog {
         dispose();
     }
 
+    /**
+     * Xác định owner.
+     */
     private static Window resolveOwner(Component parent) {
         if (parent == null) {
             return null;
@@ -178,9 +211,15 @@ public class FacultyFormDialog extends JDialog {
         return SwingUtilities.getWindowAncestor(parent);
     }
 
+    /**
+     * Xử lý model khoa biểu mẫu.
+     */
     public record FacultyFormModel(String title, String facultyCode, String facultyName, String description) {
     }
 
+    /**
+     * Xử lý khoa kết quả biểu mẫu.
+     */
     public record FacultyFormResult(String facultyCode, String facultyName, String description) {
     }
 }

@@ -1,3 +1,6 @@
+/**
+ * Màn hình quản trị cho quản lý sinh viên.
+ */
 package com.qlsv.view.admin;
 
 import com.qlsv.controller.DisplayField;
@@ -54,6 +57,9 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
 
     private boolean filterReady;
 
+    /**
+     * Khởi tạo quản lý sinh viên.
+     */
     public StudentManagementPanel() {
         super("Quản lý sinh viên");
         filterTypeComboBox.setSelectedItem(FILTER_ALL);
@@ -64,11 +70,17 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
         refreshData();
     }
 
+    /**
+     * Trả về column names.
+     */
     @Override
     protected String[] getColumnNames() {
         return new String[]{"ID", "Mã sinh viên", "Họ và tên", "Email", "Lớp", "Khoa", "Niên khóa", "Trạng thái"};
     }
 
+    /**
+     * Thiết lập tùy biến thao tác nút.
+     */
     @Override
     protected void configureCustomActionButtons(JPanel actionPanel) {
         JButton changePasswordButton = new JButton("Đổi MK");
@@ -77,11 +89,17 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
         changePasswordButton.addActionListener(event -> openAdminChangePasswordDialog());
     }
 
+    /**
+     * Làm mới dữ liệu đang hiển thị.
+     */
     @Override
     public void reloadData() {
         refreshData();
     }
 
+    /**
+     * Cập nhật visible.
+     */
     @Override
     public void setVisible(boolean visible) {
         boolean wasVisible = isVisible();
@@ -145,6 +163,9 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
         );
     }
 
+    /**
+     * Trả về trạng thái trống thông báo.
+     */
     @Override
     protected String getEmptyStateMessage() {
         return filterReady
@@ -185,6 +206,9 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
                 .toArray(String[][]::new));
     }
 
+    /**
+     * Tạo hộp thoại chi tiết.
+     */
     @Override
     protected BaseDetailDialog createDetailDialog(javax.swing.JComponent detailPanel) {
         return new StudentDetailDialog(detailPanel);
@@ -237,16 +261,25 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
         );
     }
 
+    /**
+     * Lưu entity.
+     */
     @Override
     protected void saveEntity(Student item) {
         screenController.saveStudent(item);
     }
 
+    /**
+     * Xóa entity.
+     */
     @Override
     protected void deleteEntity(Student item) {
         screenController.deleteStudent(item);
     }
 
+    /**
+     * Tạo panel lọc.
+     */
     private JPanel buildFilterPanel() {
         JButton applyButton = new JButton("Áp dụng");
         JButton resetButton = new JButton("Đặt lại");
@@ -312,6 +345,9 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
         return filterPanel;
     }
 
+    /**
+     * Thiết lập bảng layout.
+     */
     private void configureTableLayout() {
         JTable table = getTable();
         table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
@@ -352,12 +388,18 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
         }
     }
 
+    /**
+     * Xử lý reset lọc.
+     */
     private void resetFilter() {
         filterTypeComboBox.setSelectedItem(FILTER_ALL);
         reloadFilterValues();
         refreshData();
     }
 
+    /**
+     * Kiểm tra valid lọc selection.
+     */
     private boolean hasValidFilterSelection() {
         String filterType = (String) filterTypeComboBox.getSelectedItem();
         if (FILTER_ALL.equals(filterType)) {
@@ -367,6 +409,9 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
         return selectedOption != null && selectedOption.value() != null;
     }
 
+    /**
+     * Trả về lọc value đã chọn.
+     */
     private <T> T getSelectedFilterValue(Class<T> type) {
         FilterOption<?> selectedOption = (FilterOption<?>) filterValueComboBox.getSelectedItem();
         if (selectedOption == null || selectedOption.value() == null || !type.isInstance(selectedOption.value())) {
@@ -410,6 +455,9 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
         }
     }
 
+    /**
+     * Áp dụng kiểu cho nút thao tác.
+     */
     private void styleActionButton(JButton button, java.awt.Color background) {
         button.setFocusPainted(false);
         button.setBorderPainted(false);

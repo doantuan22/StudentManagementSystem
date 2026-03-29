@@ -1,3 +1,6 @@
+/**
+ * Thiết lập theme giao diện dùng chung.
+ */
 package com.qlsv.view.common;
 
 import javax.swing.AbstractButton;
@@ -69,9 +72,15 @@ public final class AppTheme {
     private static final String TABLE_HOVER_ROW = "appTheme.tableHoverRow";
     private static boolean installed;
 
+    /**
+     * Khởi tạo app theme.
+     */
     private AppTheme() {
     }
 
+    /**
+     * Xử lý install.
+     */
     public static synchronized void install() {
         if (installed) {
             return;
@@ -91,6 +100,9 @@ public final class AppTheme {
         installed = true;
     }
 
+    /**
+     * Xử lý apply tree.
+     */
     public static void applyTree(Component root) {
         if (root == null) {
             return;
@@ -103,6 +115,9 @@ public final class AppTheme {
         }
     }
 
+    /**
+     * Áp dụng kiểu cho phần title.
+     */
     public static void styleSectionTitle(JLabel label) {
         if (label == null) {
             return;
@@ -111,6 +126,9 @@ public final class AppTheme {
         label.setForeground(AppColors.CARD_VALUE_TEXT);
     }
 
+    /**
+     * Tạo card border.
+     */
     public static Border createCardBorder() {
         return BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(AppColors.CARD_BORDER),
@@ -118,6 +136,9 @@ public final class AppTheme {
         );
     }
 
+    /**
+     * Xử lý apply component.
+     */
     private static void applyComponent(Component component) {
         if (component instanceof AbstractButton button) {
             styleButton(button);
@@ -152,6 +173,9 @@ public final class AppTheme {
         }
     }
 
+    /**
+     * Áp dụng kiểu cho nút.
+     */
     private static void styleButton(AbstractButton button) {
         if (Boolean.TRUE.equals(button.getClientProperty(BUTTON_STYLED))) {
             return;
@@ -185,6 +209,9 @@ public final class AppTheme {
         button.putClientProperty(BUTTON_STYLED, Boolean.TRUE);
     }
 
+    /**
+     * Áp dụng kiểu cho input.
+     */
     private static void styleInput(JTextField field) {
         if (Boolean.TRUE.equals(field.getClientProperty(INPUT_STYLED))) {
             return;
@@ -206,11 +233,17 @@ public final class AppTheme {
         }
 
         field.addFocusListener(new FocusAdapter() {
+            /**
+             * Xử lý focus gained.
+             */
             @Override
             public void focusGained(FocusEvent event) {
                 field.repaint();
             }
 
+            /**
+             * Xử lý focus lost.
+             */
             @Override
             public void focusLost(FocusEvent event) {
                 field.repaint();
@@ -220,6 +253,9 @@ public final class AppTheme {
         field.putClientProperty(INPUT_STYLED, Boolean.TRUE);
     }
 
+    /**
+     * Áp dụng kiểu cho chọn box.
+     */
     private static void styleComboBox(JComboBox<?> comboBox) {
         if (Boolean.TRUE.equals(comboBox.getClientProperty(COMBO_STYLED))) {
             return;
@@ -243,11 +279,17 @@ public final class AppTheme {
         }
 
         comboBox.addFocusListener(new FocusAdapter() {
+            /**
+             * Xử lý focus gained.
+             */
             @Override
             public void focusGained(FocusEvent event) {
                 comboBox.repaint();
             }
 
+            /**
+             * Xử lý focus lost.
+             */
             @Override
             public void focusLost(FocusEvent event) {
                 comboBox.repaint();
@@ -267,6 +309,9 @@ public final class AppTheme {
         comboBox.putClientProperty(COMBO_STYLED, Boolean.TRUE);
     }
 
+    /**
+     * Chuẩn hóa chọn box size.
+     */
     private static void normalizeComboBoxSize(JComboBox<?> comboBox) {
         Integer explicitWidth = (Integer) comboBox.getClientProperty(COMBO_EXPLICIT_WIDTH);
         int normalizedWidth;
@@ -285,6 +330,9 @@ public final class AppTheme {
         comboBox.setMinimumSize(new Dimension(Math.max(COMBO_MIN_WIDTH, Math.min(minimumWidth, normalizedWidth)), CONTROL_HEIGHT));
     }
 
+    /**
+     * Xử lý measure chọn box content width.
+     */
     private static int measureComboBoxContentWidth(JComboBox<?> comboBox) {
         if (comboBox.getFont() == null) {
             return COMBO_BASE_WIDTH;
@@ -308,6 +356,9 @@ public final class AppTheme {
         return maxTextWidth + 54;
     }
 
+    /**
+     * Áp dụng kiểu cho bảng.
+     */
     private static void styleTable(JTable table) {
         if (Boolean.TRUE.equals(table.getClientProperty(TABLE_STYLED))) {
             return;
@@ -325,6 +376,9 @@ public final class AppTheme {
         table.setIntercellSpacing(new Dimension(0, 1));
 
         DefaultTableCellRenderer cellRenderer = new DefaultTableCellRenderer() {
+            /**
+             * Trả về bảng cell renderer component.
+             */
             @Override
             public Component getTableCellRendererComponent(JTable currentTable, Object value, boolean selected,
                                                            boolean hasFocus, int row, int column) {
@@ -369,6 +423,9 @@ public final class AppTheme {
         }
 
         table.addMouseMotionListener(new MouseMotionAdapter() {
+            /**
+             * Xử lý mouse moved.
+             */
             @Override
             public void mouseMoved(MouseEvent event) {
                 int hoverRow = table.rowAtPoint(event.getPoint());
@@ -379,6 +436,9 @@ public final class AppTheme {
             }
         });
         table.addMouseListener(new MouseAdapter() {
+            /**
+             * Xử lý mouse exited.
+             */
             @Override
             public void mouseExited(MouseEvent event) {
                 table.putClientProperty(TABLE_HOVER_ROW, -1);
@@ -389,6 +449,9 @@ public final class AppTheme {
         table.putClientProperty(TABLE_STYLED, Boolean.TRUE);
     }
 
+    /**
+     * Áp dụng kiểu cho scroll pane.
+     */
     private static void styleScrollPane(JScrollPane scrollPane) {
         scrollPane.setBorder(BorderFactory.createLineBorder(AppColors.CARD_BORDER));
         JViewport viewport = scrollPane.getViewport();
@@ -397,6 +460,9 @@ public final class AppTheme {
         }
     }
 
+    /**
+     * Áp dụng kiểu cho panel.
+     */
     private static void stylePanel(JPanel panel) {
         if (Boolean.TRUE.equals(panel.getClientProperty(PANEL_STYLED))) {
             return;
@@ -418,6 +484,9 @@ public final class AppTheme {
         panel.putClientProperty(PANEL_STYLED, Boolean.TRUE);
     }
 
+    /**
+     * Áp dụng kiểu cho label.
+     */
     private static void styleLabel(JLabel label) {
         if (Boolean.TRUE.equals(label.getClientProperty(LABEL_STYLED))) {
             return;
@@ -440,6 +509,9 @@ public final class AppTheme {
         label.putClientProperty(LABEL_STYLED, Boolean.TRUE);
     }
 
+    /**
+     * Kiểm tra panel card.
+     */
     private static boolean isCardPanel(JPanel panel) {
         Border border = panel.getBorder();
         if (!(border instanceof CompoundBorder compoundBorder)) {
@@ -459,10 +531,16 @@ public final class AppTheme {
                 && !(SwingUtilities.getAncestorOfClass(SidebarMenu.class, panel) != null);
     }
 
+    /**
+     * Kiểm tra nút thanh bên.
+     */
     private static boolean isSidebarButton(AbstractButton button) {
         return SwingUtilities.getAncestorOfClass(SidebarMenu.class, button) != null;
     }
 
+    /**
+     * Xác định nút màu sắc.
+     */
     private static Color resolveButtonColor(String text, Color currentColor) {
         if (currentColor != null
                 && !currentColor.equals(UIManager.getColor("Button.background"))
@@ -487,10 +565,16 @@ public final class AppTheme {
         return AppColors.BUTTON_NEUTRAL;
     }
 
+    /**
+     * Xác định văn bản màu sắc.
+     */
     private static Color resolveTextColor(Color background) {
         return isDark(background) ? AppColors.BUTTON_TEXT : AppColors.CARD_VALUE_TEXT;
     }
 
+    /**
+     * Kiểm tra dark.
+     */
     private static boolean isDark(Color color) {
         int brightness = (int) Math.sqrt(
                 color.getRed() * color.getRed() * .241
@@ -499,6 +583,9 @@ public final class AppTheme {
         return brightness < 160;
     }
 
+    /**
+     * Xử lý adjust.
+     */
     private static Color adjust(Color color, float factor) {
         int red = Math.min(255, Math.max(0, Math.round(color.getRed() * factor)));
         int green = Math.min(255, Math.max(0, Math.round(color.getGreen() * factor)));
@@ -507,6 +594,9 @@ public final class AppTheme {
     }
 
     private static final class ThemeEventListener implements AWTEventListener {
+        /**
+         * Xử lý event dispatched.
+         */
         @Override
         public void eventDispatched(AWTEvent event) {
             if (event instanceof WindowEvent windowEvent
@@ -522,6 +612,9 @@ public final class AppTheme {
     }
 
     private static final class AppButtonUI extends BasicButtonUI {
+        /**
+         * Xử lý paint.
+         */
         @Override
         public void paint(Graphics graphics, JComponent component) {
             AbstractButton button = (AbstractButton) component;
@@ -554,11 +647,17 @@ public final class AppTheme {
     private static final class FocusBorder extends AbstractBorder {
         private static final Insets INSETS = new Insets(9, 12, 9, 12);
 
+        /**
+         * Trả về border insets.
+         */
         @Override
         public Insets getBorderInsets(Component component) {
             return INSETS;
         }
 
+        /**
+         * Trả về border insets.
+         */
         @Override
         public Insets getBorderInsets(Component component, Insets insets) {
             insets.top = INSETS.top;
@@ -568,6 +667,9 @@ public final class AppTheme {
             return insets;
         }
 
+        /**
+         * Xử lý paint border.
+         */
         @Override
         public void paintBorder(Component component, Graphics graphics, int x, int y, int width, int height) {
             Graphics2D graphics2D = (Graphics2D) graphics.create();
@@ -581,6 +683,9 @@ public final class AppTheme {
     }
 
     private static final class AppComboBoxUI extends BasicComboBoxUI {
+        /**
+         * Tạo nút arrow.
+         */
         @Override
         protected JButton createArrowButton() {
             JButton button = new JButton("▾");
@@ -596,11 +701,17 @@ public final class AppTheme {
     private static final class AppComboBoxRenderer extends DefaultListCellRenderer {
         private final ListCellRenderer<Object> delegate;
 
+        /**
+         * Xử lý app chọn box renderer.
+         */
         private AppComboBoxRenderer(ListCellRenderer<Object> delegate) {
             this.delegate = delegate;
             setBorder(BorderFactory.createEmptyBorder(6, 10, 6, 10));
         }
 
+        /**
+         * Trả về danh sách cell renderer component.
+         */
         @Override
         public Component getListCellRendererComponent(javax.swing.JList<?> list, Object value, int index,
                                                       boolean isSelected, boolean cellHasFocus) {

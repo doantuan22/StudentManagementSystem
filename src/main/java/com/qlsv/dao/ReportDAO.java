@@ -1,3 +1,6 @@
+/**
+ * Truy vấn dữ liệu báo cáo bằng JPA.
+ */
 package com.qlsv.dao;
 
 import com.qlsv.config.JpaBootstrap;
@@ -96,10 +99,16 @@ public class ReportDAO {
         ));
     }
 
+    /**
+     * Xử lý count.
+     */
     private long count(EntityManager entityManager, String jpql) {
         return entityManager.createQuery(jpql, Long.class).getSingleResult();
     }
 
+    /**
+     * Thực thi read.
+     */
     private <T> T executeRead(String errorMessage, Function<EntityManager, T> action) {
         try {
             return JpaBootstrap.executeWithEntityManager(action);

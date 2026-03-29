@@ -1,3 +1,6 @@
+/**
+ * Xử lý nghiệp vụ lớp.
+ */
 package com.qlsv.service;
 
 import com.qlsv.config.JpaBootstrap;
@@ -71,11 +74,17 @@ public class ClassRoomService {
         );
     }
 
+    /**
+     * Cập nhật and return.
+     */
     private ClassRoom updateAndReturn(ClassRoom classRoom) {
         classRoomDAO.update(classRoom);
         return classRoom;
     }
 
+    /**
+     * Kiểm tra dữ liệu hiện tại.
+     */
     private void validate(ClassRoom classRoom) {
         ValidationUtil.requireWithinLength(classRoom.getClassCode(), 50, "Mã lớp");
         ValidationUtil.requireNotBlank(classRoom.getClassName(), "Tên lớp không được để trống.");

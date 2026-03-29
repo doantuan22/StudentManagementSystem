@@ -1,3 +1,6 @@
+/**
+ * Mô tả thực thể lớp của hệ thống.
+ */
 package com.qlsv.model;
 
 import jakarta.persistence.Column;
@@ -33,9 +36,15 @@ public class ClassRoom {
     @JoinColumn(name = "faculty_id", nullable = false)
     private Faculty faculty;
 
+    /**
+     * Khởi tạo lớp.
+     */
     public ClassRoom() {
     }
 
+    /**
+     * Khởi tạo lớp.
+     */
     public ClassRoom(Long id, String classCode, String className, String academicYear, Faculty faculty) {
         this.id = id;
         this.classCode = classCode;
@@ -44,51 +53,87 @@ public class ClassRoom {
         this.faculty = faculty;
     }
 
+    /**
+     * Trả về id.
+     */
     public Long getId() {
         return id;
     }
 
+    /**
+     * Cập nhật id.
+     */
     public void setId(Long id) {
         this.id = id;
     }
 
+    /**
+     * Trả về lớp mã.
+     */
     public String getClassCode() {
         return classCode;
     }
 
+    /**
+     * Cập nhật lớp mã.
+     */
     public void setClassCode(String classCode) {
         this.classCode = classCode;
     }
 
+    /**
+     * Trả về lớp tên.
+     */
     public String getClassName() {
         return className;
     }
 
+    /**
+     * Cập nhật lớp tên.
+     */
     public void setClassName(String className) {
         this.className = className;
     }
 
+    /**
+     * Trả về niên khóa.
+     */
     public String getAcademicYear() {
         return academicYear;
     }
 
+    /**
+     * Cập nhật niên khóa.
+     */
     public void setAcademicYear(String academicYear) {
         this.academicYear = academicYear;
     }
 
+    /**
+     * Trả về khoa.
+     */
     public Faculty getFaculty() {
         return faculty;
     }
 
+    /**
+     * Cập nhật khoa.
+     */
     public void setFaculty(Faculty faculty) {
         this.faculty = faculty;
     }
 
+    /**
+     * Trả về chuỗi hiển thị của đối tượng.
+     */
     @Override
     public String toString() {
         return classCode + " - " + className;
     }
 
+    /**
+     * So sánh đối tượng theo định danh phù hợp.
+     */
     @Override
     public boolean equals(Object object) {
         if (this == object) {
@@ -103,6 +148,9 @@ public class ClassRoom {
         return Objects.equals(classCode, classRoom.classCode);
     }
 
+    /**
+     * Tạo mã băm cho đối tượng.
+     */
     @Override
     public int hashCode() {
         return Objects.hash(id != null ? id : classCode);

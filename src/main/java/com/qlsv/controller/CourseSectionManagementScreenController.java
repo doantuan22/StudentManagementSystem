@@ -1,3 +1,6 @@
+/**
+ * Điều phối dữ liệu cho quản lý học phần màn hình.
+ */
 package com.qlsv.controller;
 
 import com.qlsv.dto.CourseSectionDisplayDto;
@@ -72,14 +75,23 @@ public class CourseSectionManagementScreenController {
         return DisplayDtoMapper.toCourseSectionDisplayDto(courseSection);
     }
 
+    /**
+     * Nạp học phần.
+     */
     public List<CourseSection> loadCourseSections() {
         return courseSectionController.getAllCourseSectionsForSelection();
     }
 
+    /**
+     * Nạp môn học.
+     */
     public List<Subject> loadSubjects() {
         return subjectController.getSubjectsForSelection();
     }
 
+    /**
+     * Nạp giảng viên.
+     */
     public List<Lecturer> loadLecturers() {
         return lecturerController.getLecturersForSelection();
     }
@@ -102,10 +114,16 @@ public class CourseSectionManagementScreenController {
         return lecturersBySubjectId;
     }
 
+    /**
+     * Nạp khoa.
+     */
     public List<Faculty> loadFaculties() {
         return facultyController.getFacultiesForSelection();
     }
 
+    /**
+     * Nạp phòng.
+     */
     public List<Room> loadRooms() {
         return roomController.getRoomsForSelection();
     }
@@ -138,6 +156,9 @@ public class CourseSectionManagementScreenController {
         courseSectionController.deleteCourseSection(courseSection.getId());
     }
 
+    /**
+     * Xử lý học phần biểu mẫu dữ liệu.
+     */
     public record CourseSectionFormData(
             String sectionCode,
             Subject subject,

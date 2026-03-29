@@ -1,3 +1,6 @@
+/**
+ * Xuất dữ liệu bảng Swing ra tệp PDF.
+ */
 package com.qlsv.utils;
 
 import com.itextpdf.text.Document;
@@ -20,9 +23,15 @@ import java.nio.file.Files;
 
 public final class PDFExportUtil {
 
+    /**
+     * Khởi tạo PDF xuất.
+     */
     private PDFExportUtil() {
     }
 
+    /**
+     * Xử lý bảng xuất.
+     */
     public static void exportTable(String title, JTable table, File file) {
         try {
             if (file.getParentFile() != null) {

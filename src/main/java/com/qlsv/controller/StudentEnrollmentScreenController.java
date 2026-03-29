@@ -1,3 +1,6 @@
+/**
+ * Điều phối dữ liệu cho sinh viên đăng ký màn hình.
+ */
 package com.qlsv.controller;
 
 import com.qlsv.dto.CourseSectionDisplayDto;
@@ -22,6 +25,9 @@ public class StudentEnrollmentScreenController {
     private final EnrollmentController enrollmentController = new EnrollmentController();
     private final CourseSectionController courseSectionController = new CourseSectionController();
 
+    /**
+     * Nạp dữ liệu.
+     */
     public StudentEnrollmentDataDto loadData(String keyword, String semesterFilter) {
         List<CourseSection> allCourseSections = courseSectionController.getAllCourseSectionsForSelection();
         List<Enrollment> currentEnrollments = enrollmentController.getCurrentStudentEnrollments();
@@ -42,14 +48,23 @@ public class StudentEnrollmentScreenController {
         );
     }
 
+    /**
+     * Đăng ký học phần.
+     */
     public void registerCourseSection(CourseSection selectedCourseSection) {
         enrollmentController.registerCurrentStudent(selectedCourseSection.getId());
     }
 
+    /**
+     * Kiểm tra khả năng cel đăng ký.
+     */
     public void cancelEnrollment(Enrollment enrollment) {
         enrollmentController.cancelCurrentStudentEnrollment(enrollment.getId());
     }
 
+    /**
+     * Tạo học kỳ options.
+     */
     private List<String> buildSemesterOptions(List<CourseSection> courseSections) {
         Set<String> options = new LinkedHashSet<>();
         options.add(ALL_SEMESTERS);
@@ -57,6 +72,9 @@ public class StudentEnrollmentScreenController {
         return new ArrayList<>(options);
     }
 
+    /**
+     * Lọc học phần.
+     */
     private List<CourseSection> filterCourseSections(List<CourseSection> allCourseSections, String keyword, String semesterFilter) {
         String normalizedKeyword = keyword == null ? "" : keyword.trim().toLowerCase(Locale.ROOT);
         String normalizedSemester = semesterFilter == null || semesterFilter.isBlank()
@@ -80,6 +98,9 @@ public class StudentEnrollmentScreenController {
         return displayedCourseSections;
     }
 
+    /**
+     * Tạo khóa học rows.
+     */
     private List<CourseSectionDisplayDto> buildCourseRows(List<CourseSection> displayedCourseSections) {
         List<CourseSectionDisplayDto> rows = new ArrayList<>();
         for (CourseSection courseSection : displayedCourseSections) {
@@ -90,6 +111,9 @@ public class StudentEnrollmentScreenController {
         return rows;
     }
 
+    /**
+     * Tạo đăng ký rows.
+     */
     private List<EnrollmentDisplayDto> buildEnrollmentRows(List<Enrollment> currentEnrollments) {
         List<EnrollmentDisplayDto> rows = new ArrayList<>();
         for (Enrollment enrollment : currentEnrollments) {
@@ -98,6 +122,9 @@ public class StudentEnrollmentScreenController {
         return rows;
     }
 
+    /**
+     * Xử lý contains ignore case.
+     */
     private boolean containsIgnoreCase(String source, String keyword) {
         return source != null && source.toLowerCase(Locale.ROOT).contains(keyword);
     }

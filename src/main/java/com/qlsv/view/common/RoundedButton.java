@@ -1,3 +1,6 @@
+/**
+ * Nút bo góc dùng cho màn hình đăng nhập.
+ */
 package com.qlsv.view.common;
 
 import javax.swing.JButton;
@@ -10,6 +13,9 @@ import java.awt.RenderingHints;
 public class RoundedButton extends JButton {
     private final int radius;
 
+    /**
+     * Khởi tạo nút bo góc.
+     */
     public RoundedButton(String text, int radius) {
         super(text);
         this.radius = radius;
@@ -22,6 +28,9 @@ public class RoundedButton extends JButton {
         setFont(getFont().deriveFont(Font.BOLD, 14f));
     }
 
+    /**
+     * Xử lý paint component.
+     */
     @Override
     protected void paintComponent(Graphics graphics) {
         Graphics2D graphics2D = (Graphics2D) graphics.create();

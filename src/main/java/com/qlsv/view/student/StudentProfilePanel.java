@@ -1,3 +1,6 @@
+/**
+ * Màn hình sinh viên cho hồ sơ.
+ */
 package com.qlsv.view.student;
 
 import com.qlsv.controller.StudentProfileScreenController;
@@ -51,6 +54,9 @@ public class StudentProfilePanel extends BasePanel {
     private JTextField phoneField;
     private JTextArea addressArea;
 
+    /**
+     * Khởi tạo hồ sơ sinh viên.
+     */
     public StudentProfilePanel() {
         setBackground(AppColors.CONTENT_BACKGROUND);
         initComponents();
@@ -77,6 +83,9 @@ public class StudentProfilePanel extends BasePanel {
         add(scrollPane, BorderLayout.CENTER);
     }
 
+    /**
+     * Làm mới dữ liệu đang hiển thị.
+     */
     @Override
     public void reloadData() {
         try {
@@ -129,6 +138,9 @@ public class StudentProfilePanel extends BasePanel {
         return card;
     }
 
+    /**
+     * Tạo hero đầu trang.
+     */
     private JPanel buildHeroHeader() {
         JPanel headerPanel = new JPanel(new GridBagLayout());
         headerPanel.setOpaque(false);
@@ -172,6 +184,9 @@ public class StudentProfilePanel extends BasePanel {
         return headerPanel;
     }
 
+    /**
+     * Tạo panel tóm tắt.
+     */
     private JPanel buildSummaryPanel() {
         JPanel summaryPanel = new JPanel(new GridBagLayout());
         summaryPanel.setOpaque(false);
@@ -249,6 +264,9 @@ public class StudentProfilePanel extends BasePanel {
         return sectionsPanel;
     }
 
+    /**
+     * Thêm tóm tắt badge.
+     */
     private void addSummaryBadge(JPanel summaryPanel, GridBagConstraints template, int x, int y, JPanel badgePanel) {
         GridBagConstraints gbc = (GridBagConstraints) template.clone();
         gbc.gridx = x;
@@ -257,6 +275,9 @@ public class StudentProfilePanel extends BasePanel {
         summaryPanel.add(badgePanel, gbc);
     }
 
+    /**
+     * Tạo card học vụ.
+     */
     private JPanel buildAcademicCard() {
         JPanel card = createSectionCard(
                 "Thông tin học tập",
@@ -354,6 +375,9 @@ public class StudentProfilePanel extends BasePanel {
         return card;
     }
 
+    /**
+     * Tạo card phần.
+     */
     private JPanel createSectionCard(String title, String subtitle, Color background) {
         JPanel card = createCard(background);
 
@@ -376,6 +400,9 @@ public class StudentProfilePanel extends BasePanel {
         return card;
     }
 
+    /**
+     * Tạo card.
+     */
     private JPanel createCard(Color background) {
         JPanel card = new JPanel(new BorderLayout(0, 14));
         card.setOpaque(true);
@@ -388,6 +415,9 @@ public class StudentProfilePanel extends BasePanel {
         return card;
     }
 
+    /**
+     * Tạo panel trường.
+     */
     private JPanel createFieldsPanel() {
         JPanel fieldsPanel = new JPanel();
         fieldsPanel.setOpaque(false);
@@ -396,6 +426,9 @@ public class StudentProfilePanel extends BasePanel {
         return fieldsPanel;
     }
 
+    /**
+     * Tạo trường read only.
+     */
     private JPanel createReadOnlyField(String label, String value) {
         JPanel fieldPanel = new JPanel(new BorderLayout(0, 4));
         fieldPanel.setOpaque(false);
@@ -415,6 +448,9 @@ public class StudentProfilePanel extends BasePanel {
         return fieldPanel;
     }
 
+    /**
+     * Tạo trường input.
+     */
     private JPanel createInputField(String label, Component inputComponent) {
         JPanel fieldPanel = new JPanel(new BorderLayout(0, 6));
         fieldPanel.setOpaque(false);
@@ -429,6 +465,9 @@ public class StudentProfilePanel extends BasePanel {
         return fieldPanel;
     }
 
+    /**
+     * Tạo badge.
+     */
     private JPanel createBadge(String title, String value) {
         JPanel badgePanel = new JPanel(new BorderLayout(0, 4));
         badgePanel.setOpaque(true);
@@ -452,6 +491,9 @@ public class StudentProfilePanel extends BasePanel {
         return badgePanel;
     }
 
+    /**
+     * Tạo label note.
+     */
     private JLabel createNoteLabel(String text) {
         JLabel label = new JLabel(toHtml(text));
         label.setFont(label.getFont().deriveFont(Font.PLAIN, 13f));
@@ -459,6 +501,9 @@ public class StudentProfilePanel extends BasePanel {
         return label;
     }
 
+    /**
+     * Tạo trường văn bản.
+     */
     private JTextField createTextField(String value) {
         JTextField textField = new JTextField(value == null ? "" : value);
         textField.setMinimumSize(new Dimension(140, INPUT_HEIGHT));
@@ -471,6 +516,9 @@ public class StudentProfilePanel extends BasePanel {
         return textField;
     }
 
+    /**
+     * Tạo văn bản area.
+     */
     private JTextArea createTextArea(String value) {
         JTextArea textArea = new JTextArea(value == null ? "" : value, 4, 20);
         textArea.setLineWrap(true);
@@ -480,6 +528,9 @@ public class StudentProfilePanel extends BasePanel {
         return textArea;
     }
 
+    /**
+     * Tạo văn bản area scroll pane.
+     */
     private JScrollPane createTextAreaScrollPane(JTextArea textArea) {
         JScrollPane scrollPane = new JScrollPane(textArea);
         scrollPane.setBorder(BorderFactory.createLineBorder(AppColors.INPUT_BORDER));
@@ -531,6 +582,9 @@ public class StudentProfilePanel extends BasePanel {
         }
     }
 
+    /**
+     * Áp dụng kiểu cho nút filled.
+     */
     private void styleFilledButton(JButton button, Color background) {
         button.setFocusPainted(false);
         button.setBorderPainted(false);
@@ -542,6 +596,9 @@ public class StudentProfilePanel extends BasePanel {
         button.setAlignmentX(Component.RIGHT_ALIGNMENT);
     }
 
+    /**
+     * Xử lý to html.
+     */
     private String toHtml(String text) {
         return "<html><div>" + text + "</div></html>";
     }

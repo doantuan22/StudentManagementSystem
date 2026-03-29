@@ -1,3 +1,6 @@
+/**
+ * Truy vấn dữ liệu phòng bằng JPA.
+ */
 package com.qlsv.dao;
 
 import com.qlsv.config.JpaBootstrap;
@@ -50,6 +53,9 @@ public class RoomDAO {
                 entityManager.createQuery("""
                                 SELECT r
                                 FROM Room r
+                                /**
+                                 * Xử lý lower.
+                                 */
                                 WHERE LOWER(r.roomCode) LIKE :keyword
                                    OR LOWER(r.roomName) LIKE :keyword
                                 ORDER BY r.id
@@ -116,11 +122,17 @@ public class RoomDAO {
         );
     }
 
+    /**
+     * Sao chép state.
+     */
     private void copyState(Room source, Room target) {
         target.setRoomCode(source.getRoomCode());
         target.setRoomName(source.getRoomName());
     }
 
+    /**
+     * Thực thi read.
+     */
     private <T> T executeRead(String errorMessage, Function<EntityManager, T> action) {
         try {
             return JpaBootstrap.executeWithEntityManager(action);
@@ -129,6 +141,9 @@ public class RoomDAO {
         }
     }
 
+    /**
+     * Thực thi write.
+     */
     private <T> T executeWrite(String errorMessage, String constraintMessage, Function<EntityManager, T> action) {
         try {
             return JpaBootstrap.executeInCurrentTransaction(action);
@@ -140,6 +155,9 @@ public class RoomDAO {
         }
     }
 
+    /**
+     * Kiểm tra constraint violation.
+     */
     private boolean isConstraintViolation(Throwable throwable) {
         Throwable current = throwable;
         while (current != null) {

@@ -1,3 +1,6 @@
+/**
+ * Mô tả thành phần lọc option của ứng dụng.
+ */
 package com.qlsv.view.common;
 
 /**
@@ -6,6 +9,9 @@ package com.qlsv.view.common;
  */
 public record FilterOption<T>(String label, T value) {
 
+    /**
+     * Trả về chuỗi hiển thị của đối tượng.
+     */
     @Override
     public String toString() {
         return label;

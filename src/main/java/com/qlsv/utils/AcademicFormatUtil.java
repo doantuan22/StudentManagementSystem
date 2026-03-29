@@ -1,3 +1,6 @@
+/**
+ * Chuẩn hóa và định dạng thông tin học vụ.
+ */
 package com.qlsv.utils;
 
 import com.qlsv.exception.ValidationException;
@@ -13,6 +16,9 @@ public final class AcademicFormatUtil {
             Pattern.compile("^(\\d{4})(?:\\s*-\\s*|\\s+)(\\d{4})$");
     private static final List<String> FIXED_SEMESTERS = List.of("HK1", "HK2", "HK3");
 
+    /**
+     * Khởi tạo học vụ định dạng.
+     */
     private AcademicFormatUtil() {
     }
 
@@ -116,10 +122,16 @@ public final class AcademicFormatUtil {
         return value == null ? "" : value.trim();
     }
 
+    /**
+     * Trả về fixed semesters.
+     */
     public static List<String> getFixedSemesters() {
         return FIXED_SEMESTERS;
     }
 
+    /**
+     * Chuẩn hóa niên khóa for đối chiếu.
+     */
     private static String normalizeAcademicYearForCompare(String value) {
         String normalizedValue = tryNormalizeAcademicYear(value);
         if (normalizedValue != null) {

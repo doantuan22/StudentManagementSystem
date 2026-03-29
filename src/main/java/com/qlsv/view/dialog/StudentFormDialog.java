@@ -1,3 +1,6 @@
+/**
+ * Hộp thoại sinh viên biểu mẫu dialog.
+ */
 package com.qlsv.view.dialog;
 
 import com.qlsv.model.ClassRoom;
@@ -59,6 +62,9 @@ public class StudentFormDialog extends JDialog {
 
     private StudentFormResult result;
 
+    /**
+     * Khởi tạo sinh viên biểu mẫu.
+     */
     private StudentFormDialog(Component parent, StudentFormModel model) {
         super(resolveOwner(parent), model.title(), Dialog.ModalityType.APPLICATION_MODAL);
         this.allClassRooms = model.classRooms();
@@ -66,12 +72,18 @@ public class StudentFormDialog extends JDialog {
         initComponents(model);
     }
 
+    /**
+     * Hiển thị hộp thoại.
+     */
     public static StudentFormResult showDialog(Component parent, StudentFormModel model) {
         StudentFormDialog dialog = new StudentFormDialog(parent, model);
         dialog.setVisible(true);
         return dialog.result;
     }
 
+    /**
+     * Khởi tạo các thành phần giao diện.
+     */
     private void initComponents(StudentFormModel model) {
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
@@ -139,6 +151,9 @@ public class StudentFormDialog extends JDialog {
         setLocationRelativeTo(getOwner());
     }
 
+    /**
+     * Xử lý model bind.
+     */
     private void bindModel(StudentFormModel model) {
         studentCodeField.setText(model.studentCode());
         fullNameField.setText(model.fullName());
@@ -163,6 +178,9 @@ public class StudentFormDialog extends JDialog {
         SwingUtilities.invokeLater(() -> studentCodeField.requestFocusInWindow());
     }
 
+    /**
+     * Tạo basic thông tin phần.
+     */
     private JPanel createBasicInfoSection() {
         JPanel contentPanel = createFieldGridPanel();
         contentPanel.add(createField("Mã sinh viên", styleTextField(studentCodeField)), fieldConstraints(0, 0));
@@ -172,6 +190,9 @@ public class StudentFormDialog extends JDialog {
         return createSection("Thông tin cơ bản", "Nhóm thông tin nhân thân và định danh.", contentPanel);
     }
 
+    /**
+     * Tạo học vụ thông tin phần.
+     */
     private JPanel createAcademicInfoSection() {
         JPanel contentPanel = createFieldGridPanel();
         contentPanel.add(createField("Khoa", styleComboBox(facultyComboBox)), fieldConstraints(0, 0));
@@ -181,6 +202,9 @@ public class StudentFormDialog extends JDialog {
         return createSection("Thông tin học vụ", "Thông tin khoa, lớp và trạng thái học tập.", contentPanel);
     }
 
+    /**
+     * Tạo contact thông tin phần.
+     */
     private JPanel createContactInfoSection() {
         JPanel contentPanel = createFieldGridPanel();
         contentPanel.add(createField("Email", styleTextField(emailField)), fieldConstraints(0, 0));
@@ -189,6 +213,9 @@ public class StudentFormDialog extends JDialog {
         return createSection("Liên hệ", "Thông tin liên lạc của sinh viên.", contentPanel);
     }
 
+    /**
+     * Tạo phần.
+     */
     private JPanel createSection(String title, String subtitle, JComponent content) {
         JPanel panel = new JPanel(new BorderLayout(0, 16));
         panel.setOpaque(true);
@@ -219,16 +246,25 @@ public class StudentFormDialog extends JDialog {
         return panel;
     }
 
+    /**
+     * Tạo panel trường grid.
+     */
     private JPanel createFieldGridPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setOpaque(false);
         return panel;
     }
 
+    /**
+     * Xử lý trường constraints.
+     */
     private GridBagConstraints fieldConstraints(int x, int y) {
         return fieldConstraints(x, y, 1);
     }
 
+    /**
+     * Xử lý trường constraints.
+     */
     private GridBagConstraints fieldConstraints(int x, int y, int width) {
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.gridx = x;
@@ -241,6 +277,9 @@ public class StudentFormDialog extends JDialog {
         return constraints;
     }
 
+    /**
+     * Tạo trường.
+     */
     private JPanel createField(String labelText, JComponent inputComponent) {
         JPanel panel = new JPanel(new BorderLayout(0, 6));
         panel.setOpaque(false);
@@ -255,6 +294,9 @@ public class StudentFormDialog extends JDialog {
         return panel;
     }
 
+    /**
+     * Tạo địa chỉ scroll pane.
+     */
     private JScrollPane createAddressScrollPane() {
         addressArea.setLineWrap(true);
         addressArea.setWrapStyleWord(true);
@@ -270,6 +312,9 @@ public class StudentFormDialog extends JDialog {
         return scrollPane;
     }
 
+    /**
+     * Áp dụng kiểu cho trường văn bản.
+     */
     private JTextField styleTextField(JTextField textField) {
         textField.setFont(textField.getFont().deriveFont(Font.PLAIN, 13.5f));
         textField.setBorder(BorderFactory.createCompoundBorder(
@@ -281,6 +326,9 @@ public class StudentFormDialog extends JDialog {
         return textField;
     }
 
+    /**
+     * Áp dụng kiểu cho chọn box.
+     */
     private <T> JComboBox<T> styleComboBox(JComboBox<T> comboBox) {
         comboBox.setFont(comboBox.getFont().deriveFont(Font.PLAIN, 13.5f));
         comboBox.setBorder(BorderFactory.createLineBorder(AppColors.INPUT_BORDER));
@@ -289,6 +337,9 @@ public class StudentFormDialog extends JDialog {
         return comboBox;
     }
 
+    /**
+     * Áp dụng kiểu cho nút primary.
+     */
     private void stylePrimaryButton(JButton button) {
         button.setFocusPainted(false);
         button.setBorderPainted(false);
@@ -299,6 +350,9 @@ public class StudentFormDialog extends JDialog {
         button.setBorder(BorderFactory.createEmptyBorder(10, 18, 10, 18));
     }
 
+    /**
+     * Áp dụng kiểu cho nút secondary.
+     */
     private void styleSecondaryButton(JButton button) {
         button.setFocusPainted(false);
         button.setBorderPainted(false);
@@ -309,6 +363,9 @@ public class StudentFormDialog extends JDialog {
         button.setBorder(BorderFactory.createEmptyBorder(10, 18, 10, 18));
     }
 
+    /**
+     * Làm mới lớp options.
+     */
     private void reloadClassRoomOptions(ClassRoom selectedClassRoom) {
         Faculty selectedFaculty = (Faculty) facultyComboBox.getSelectedItem();
         classRoomComboBox.removeAllItems();
@@ -326,6 +383,9 @@ public class StudentFormDialog extends JDialog {
         }
     }
 
+    /**
+     * Xử lý select trạng thái.
+     */
     private void selectStatus(String statusCode) {
         for (int index = 0; index < statusComboBox.getItemCount(); index++) {
             FilterOption<String> option = statusComboBox.getItemAt(index);
@@ -337,6 +397,9 @@ public class StudentFormDialog extends JDialog {
         statusComboBox.setSelectedIndex(0);
     }
 
+    /**
+     * Xử lý lưu.
+     */
     private void handleSave() {
         FilterOption<String> selectedStatus = (FilterOption<String>) statusComboBox.getSelectedItem();
         result = new StudentFormResult(
@@ -355,6 +418,9 @@ public class StudentFormDialog extends JDialog {
         dispose();
     }
 
+    /**
+     * Xác định owner.
+     */
     private static Window resolveOwner(Component parent) {
         if (parent == null) {
             return null;
@@ -362,6 +428,9 @@ public class StudentFormDialog extends JDialog {
         return SwingUtilities.getWindowAncestor(parent);
     }
 
+    /**
+     * Xử lý model sinh viên biểu mẫu.
+     */
     public record StudentFormModel(
             String title,
             String studentCode,
@@ -380,6 +449,9 @@ public class StudentFormDialog extends JDialog {
     ) {
     }
 
+    /**
+     * Xử lý sinh viên kết quả biểu mẫu.
+     */
     public record StudentFormResult(
             String studentCode,
             String fullName,

@@ -1,3 +1,6 @@
+/**
+ * Truy vấn dữ liệu khoa bằng JPA.
+ */
 package com.qlsv.dao;
 
 import com.qlsv.config.JpaBootstrap;
@@ -53,6 +56,9 @@ public class FacultyDAO {
                 entityManager.createQuery("""
                                 SELECT f
                                 FROM Faculty f
+                                /**
+                                 * Xử lý lower.
+                                 */
                                 WHERE LOWER(f.facultyCode) = LOWER(:facultyCode)
                                 """, Faculty.class)
                         .setParameter("facultyCode", normalizedCode)
@@ -69,6 +75,9 @@ public class FacultyDAO {
                 entityManager.createQuery("""
                                 SELECT f
                                 FROM Faculty f
+                                /**
+                                 * Xử lý lower.
+                                 */
                                 WHERE LOWER(f.facultyCode) LIKE :keyword
                                    OR LOWER(f.facultyName) LIKE :keyword
                                 ORDER BY f.id
@@ -135,12 +144,18 @@ public class FacultyDAO {
         );
     }
 
+    /**
+     * Sao chép state.
+     */
     private void copyState(Faculty source, Faculty target) {
         target.setFacultyCode(source.getFacultyCode());
         target.setFacultyName(source.getFacultyName());
         target.setDescription(source.getDescription());
     }
 
+    /**
+     * Thực thi read.
+     */
     private <T> T executeRead(String errorMessage, Function<EntityManager, T> action) {
         try {
             return JpaBootstrap.executeWithEntityManager(action);
@@ -149,6 +164,9 @@ public class FacultyDAO {
         }
     }
 
+    /**
+     * Thực thi write.
+     */
     private <T> T executeWrite(String errorMessage, String constraintMessage, Function<EntityManager, T> action) {
         try {
             return JpaBootstrap.executeInCurrentTransaction(action);
@@ -160,6 +178,9 @@ public class FacultyDAO {
         }
     }
 
+    /**
+     * Kiểm tra constraint violation.
+     */
     private boolean isConstraintViolation(Throwable throwable) {
         Throwable current = throwable;
         while (current != null) {

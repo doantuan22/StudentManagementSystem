@@ -1,3 +1,6 @@
+/**
+ * Hộp thoại đổi mật khẩu xác thực.
+ */
 package com.qlsv.view.auth;
 
 import com.qlsv.view.common.AppColors;
@@ -26,6 +29,9 @@ public class ChangePasswordDialog extends JDialog {
 
     private PasswordChangeRequest result;
 
+    /**
+     * Khởi tạo đổi mật khẩu.
+     */
     private ChangePasswordDialog(Component parent, String title, boolean requireCurrentPassword) {
         super(resolveOwner(parent), title, Dialog.ModalityType.APPLICATION_MODAL);
         this.requireCurrentPassword = requireCurrentPassword;
@@ -110,6 +116,9 @@ public class ChangePasswordDialog extends JDialog {
         });
     }
 
+    /**
+     * Tạo trường mật khẩu.
+     */
     private JPanel createPasswordField(String label, JPasswordField field) {
         field.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(AppColors.INPUT_BORDER),
@@ -126,6 +135,9 @@ public class ChangePasswordDialog extends JDialog {
         return panel;
     }
 
+    /**
+     * Áp dụng kiểu cho nút.
+     */
     private void styleButton(JButton button, java.awt.Color background) {
         button.setFocusPainted(false);
         button.setBorderPainted(false);
@@ -140,6 +152,9 @@ public class ChangePasswordDialog extends JDialog {
      */
     private void handleConfirm() {
         result = new PasswordChangeRequest(
+                /**
+                 * Xử lý string.
+                 */
                 requireCurrentPassword ? new String(currentPasswordField.getPassword()) : "",
                 new String(newPasswordField.getPassword()),
                 new String(confirmPasswordField.getPassword())
@@ -147,6 +162,9 @@ public class ChangePasswordDialog extends JDialog {
         dispose();
     }
 
+    /**
+     * Xác định owner.
+     */
     private static Window resolveOwner(Component parent) {
         if (parent == null) {
             return null;
@@ -154,6 +172,9 @@ public class ChangePasswordDialog extends JDialog {
         return SwingUtilities.getWindowAncestor(parent);
     }
 
+    /**
+     * Xử lý yêu cầu đổi mật khẩu.
+     */
     public record PasswordChangeRequest(String currentPassword, String newPassword, String confirmPassword) {
     }
 }

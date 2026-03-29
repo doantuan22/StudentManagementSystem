@@ -1,5 +1,11 @@
+/**
+ * Gói dữ liệu hiển thị cho điểm hiển thị.
+ */
 package com.qlsv.dto;
 
+/**
+ * Xử lý điểm hiển thị dto.
+ */
 public record ScoreDisplayDto(
         Long id,
         String studentCode,

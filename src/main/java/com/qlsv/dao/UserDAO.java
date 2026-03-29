@@ -1,3 +1,6 @@
+/**
+ * Truy vấn dữ liệu người dùng bằng JPA.
+ */
 package com.qlsv.dao;
 
 import com.qlsv.config.JpaBootstrap;
@@ -57,6 +60,9 @@ public class UserDAO {
         String normalizedKeyword = "%" + (keyword == null ? "" : keyword.trim().toLowerCase()) + "%";
         return executeRead("Không thể tìm kiếm người dùng.", entityManager ->
                 entityManager.createQuery(FETCH_BASE + """
+                                /**
+                                 * Xử lý lower.
+                                 */
                                 WHERE LOWER(u.username) LIKE :keyword
                                    OR LOWER(u.fullName) LIKE :keyword
                                    OR LOWER(COALESCE(u.email, '')) LIKE :keyword
@@ -142,6 +148,9 @@ public class UserDAO {
         );
     }
 
+    /**
+     * Tìm dữ liệu theo id.
+     */
     private Optional<User> findById(EntityManager entityManager, Long id) {
         return entityManager.createQuery(FETCH_BASE + " WHERE u.id = :id", User.class)
                 .setParameter("id", id)
@@ -149,6 +158,9 @@ public class UserDAO {
                 .findFirst();
     }
 
+    /**
+     * Tìm dữ liệu theo username.
+     */
     private Optional<User> findByUsername(EntityManager entityManager, String username) {
         return entityManager.createQuery(FETCH_BASE + " WHERE LOWER(u.username) = LOWER(:username)", User.class)
                 .setParameter("username", username == null ? "" : username.trim())
@@ -156,6 +168,9 @@ public class UserDAO {
                 .findFirst();
     }
 
+    /**
+     * Xử lý insert.
+     */
     private User insert(EntityManager entityManager, User user) {
         User entity = new User();
         copyState(entityManager, user, entity);
@@ -166,6 +181,9 @@ public class UserDAO {
         return user;
     }
 
+    /**
+     * Cập nhật dữ liệu hiện tại.
+     */
     private boolean update(EntityManager entityManager, User user) {
         User entity = entityManager.find(User.class, user.getId());
         if (entity == null) {
@@ -176,6 +194,9 @@ public class UserDAO {
         return true;
     }
 
+    /**
+     * Cập nhật họ tên.
+     */
     private boolean updateFullName(EntityManager entityManager, Long userId, String fullName) {
         User entity = entityManager.find(User.class, userId);
         if (entity == null) {
@@ -186,6 +207,9 @@ public class UserDAO {
         return true;
     }
 
+    /**
+     * Cập nhật email.
+     */
     private boolean updateEmail(EntityManager entityManager, Long userId, String email) {
         User entity = entityManager.find(User.class, userId);
         if (entity == null) {
@@ -196,6 +220,9 @@ public class UserDAO {
         return true;
     }
 
+    /**
+     * Cập nhật mật khẩu băm.
+     */
     private boolean updatePasswordHash(EntityManager entityManager, Long userId, String passwordHash) {
         User entity = entityManager.find(User.class, userId);
         if (entity == null) {
@@ -206,6 +233,9 @@ public class UserDAO {
         return true;
     }
 
+    /**
+     * Sao chép state.
+     */
     private void copyState(EntityManager entityManager, User source, User target) {
         target.setUsername(source.getUsername());
         target.setPasswordHash(source.getPasswordHash());
@@ -215,6 +245,9 @@ public class UserDAO {
         target.setRoleEntity(resolveRoleEntity(entityManager, source.getRoleEntity(), source.getRole()));
     }
 
+    /**
+     * Xác định vai trò entity.
+     */
     private RoleEntity resolveRoleEntity(EntityManager entityManager, RoleEntity roleEntity, Role role) {
         Role resolvedRole = role != null ? role : roleEntity == null ? null : roleEntity.toRoleEnum();
         if (resolvedRole == null) {
@@ -223,6 +256,9 @@ public class UserDAO {
         return entityManager.createQuery("""
                         SELECT r
                         FROM RoleEntity r
+                        /**
+                         * Xử lý upper.
+                         */
                         WHERE UPPER(r.roleCode) = UPPER(:roleCode)
                         """, RoleEntity.class)
                 .setParameter("roleCode", resolvedRole.getCode())
@@ -231,6 +267,9 @@ public class UserDAO {
                 .orElseThrow(() -> new AppException("Không tìm thấy vai trò " + resolvedRole.getCode() + " trong bảng roles."));
     }
 
+    /**
+     * Thực thi read.
+     */
     private <T> T executeRead(String errorMessage, Function<EntityManager, T> action) {
         try {
             return JpaBootstrap.executeWithEntityManager(action);
@@ -239,6 +278,9 @@ public class UserDAO {
         }
     }
 
+    /**
+     * Thực thi write.
+     */
     private <T> T executeWrite(String errorMessage, String constraintMessage, Function<EntityManager, T> action) {
         try {
             return JpaBootstrap.executeInCurrentTransaction(action);
@@ -250,6 +292,9 @@ public class UserDAO {
         }
     }
 
+    /**
+     * Kiểm tra constraint violation.
+     */
     private boolean isConstraintViolation(Throwable throwable) {
         Throwable current = throwable;
         while (current != null) {

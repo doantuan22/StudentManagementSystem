@@ -1,3 +1,6 @@
+/**
+ * Điều phối đăng nhập, đăng xuất và phiên người dùng.
+ */
 package com.qlsv.security;
 
 import com.qlsv.config.SessionManager;
@@ -6,6 +9,9 @@ import com.qlsv.model.User;
 
 public final class AuthManager {
 
+    /**
+     * Khởi tạo xác thực manager.
+     */
     private AuthManager() {
     }
 

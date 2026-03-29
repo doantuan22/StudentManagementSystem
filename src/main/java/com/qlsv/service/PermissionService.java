@@ -1,3 +1,6 @@
+/**
+ * Xử lý nghiệp vụ quyền.
+ */
 package com.qlsv.service;
 
 import com.qlsv.config.SessionManager;
@@ -8,12 +11,18 @@ import com.qlsv.security.AuthManager;
 
 public class PermissionService {
 
+    /**
+     * Bắt buộc đăng nhập.
+     */
     public void requireLogin() {
         if (!SessionManager.isLoggedIn()) {
             throw new AuthenticationException("Bạn cần đăng nhập để sử dụng chức năng này.");
         }
     }
 
+    /**
+     * Bắt buộc quyền.
+     */
     public void requirePermission(String permission) {
         requireLogin();
         // Kiểm tra quyền tập trung để service và UI cùng dùng một quy tắc.
@@ -22,10 +31,16 @@ public class PermissionService {
         }
     }
 
+    /**
+     * Kiểm tra quyền.
+     */
     public boolean hasPermission(String permission) {
         return AuthManager.hasPermission(permission);
     }
 
+    /**
+     * Bắt buộc any vai trò.
+     */
     public void requireAnyRole(Role... roles) {
         requireLogin();
         if (!AuthManager.hasAnyRole(roles)) {

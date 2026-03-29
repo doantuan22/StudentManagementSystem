@@ -1,3 +1,6 @@
+/**
+ * Khai báo bảng màu giao diện của ứng dụng.
+ */
 package com.qlsv.view.common;
 
 import java.awt.Color;
@@ -40,6 +43,9 @@ public final class AppColors {
     public static final Color STAT_CARD_SECTIONS = new Color(245, 158, 11);
     public static final Color STAT_CARD_ENROLLMENTS = new Color(225, 29, 72);
 
+    /**
+     * Khởi tạo app màu sắc.
+     */
     private AppColors() {
     }
 }

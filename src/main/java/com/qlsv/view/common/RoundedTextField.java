@@ -1,3 +1,6 @@
+/**
+ * Ô nhập bo góc dùng cho màn hình đăng nhập.
+ */
 package com.qlsv.view.common;
 
 import javax.swing.JTextField;
@@ -14,6 +17,9 @@ public class RoundedTextField extends JTextField {
     private final int radius;
     private boolean focused;
 
+    /**
+     * Khởi tạo trường bo góc văn bản.
+     */
     public RoundedTextField(int radius) {
         super();
         this.radius = radius;
@@ -21,12 +27,18 @@ public class RoundedTextField extends JTextField {
         setBackground(Color.WHITE);
         setBorder(new EmptyBorder(8, 14, 8, 14));
         addFocusListener(new FocusAdapter() {
+            /**
+             * Xử lý focus gained.
+             */
             @Override
             public void focusGained(FocusEvent event) {
                 focused = true;
                 repaint();
             }
 
+            /**
+             * Xử lý focus lost.
+             */
             @Override
             public void focusLost(FocusEvent event) {
                 focused = false;
@@ -35,6 +47,9 @@ public class RoundedTextField extends JTextField {
         });
     }
 
+    /**
+     * Xử lý paint component.
+     */
     @Override
     protected void paintComponent(Graphics graphics) {
         Graphics2D graphics2D = (Graphics2D) graphics.create();
@@ -45,6 +60,9 @@ public class RoundedTextField extends JTextField {
         super.paintComponent(graphics);
     }
 
+    /**
+     * Xử lý paint border.
+     */
     @Override
     protected void paintBorder(Graphics graphics) {
         Graphics2D graphics2D = (Graphics2D) graphics.create();

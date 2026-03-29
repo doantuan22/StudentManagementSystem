@@ -1,3 +1,6 @@
+/**
+ * Màn hình quản trị cho quản lý báo cáo.
+ */
 package com.qlsv.view.admin;
 
 import com.qlsv.controller.ClassRoomController;
@@ -58,6 +61,9 @@ public class ReportManagementPanel extends BasePanel {
     });
     private final JComboBox<Object> filterComboBox = new JComboBox<>();
     private final DefaultTableModel tableModel = new DefaultTableModel() {
+        /**
+         * Xác định ô có cho phép chỉnh sửa hay không.
+         */
         @Override
         public boolean isCellEditable(int row, int column) {
             return false;
@@ -77,6 +83,9 @@ public class ReportManagementPanel extends BasePanel {
 
     private ReportDetailDialog detailDialog;
 
+    /**
+     * Khởi tạo quản lý báo cáo.
+     */
     public ReportManagementPanel() {
         setOpaque(true);
         setBackground(AppColors.CONTENT_BACKGROUND);
@@ -85,18 +94,27 @@ public class ReportManagementPanel extends BasePanel {
         loadStatistics();
     }
 
+    /**
+     * Làm mới dữ liệu đang hiển thị.
+     */
     @Override
     public void reloadData() {
         refreshFilterOptions();
         loadStatistics();
     }
 
+    /**
+     * Giải phóng tài nguyên khi thành phần bị gỡ.
+     */
     @Override
     public void removeNotify() {
         disposeDetailDialog();
         super.removeNotify();
     }
 
+    /**
+     * Khởi tạo các thành phần giao diện.
+     */
     private void initComponents() {
         JLabel titleLabel = new JLabel("Quản lý báo cáo & thống kê");
         titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 22f));
@@ -150,6 +168,9 @@ public class ReportManagementPanel extends BasePanel {
             }
         });
         table.addMouseListener(new MouseAdapter() {
+            /**
+             * Xử lý thao tác nhấp chuột trên giao diện.
+             */
             @Override
             public void mouseClicked(MouseEvent event) {
                 if (event.getClickCount() == 2 && table.getSelectedRow() >= 0) {
@@ -202,6 +223,9 @@ public class ReportManagementPanel extends BasePanel {
         add(tablePanel, BorderLayout.CENTER);
     }
 
+    /**
+     * Xử lý refresh lọc options.
+     */
     private void refreshFilterOptions() {
         try {
             filterComboBox.removeAllItems();
@@ -225,6 +249,9 @@ public class ReportManagementPanel extends BasePanel {
         }
     }
 
+    /**
+     * Nạp báo cáo.
+     */
     private void loadReport() {
         try {
             String reportType = (String) reportTypeComboBox.getSelectedItem();
@@ -277,6 +304,9 @@ public class ReportManagementPanel extends BasePanel {
         }
     }
 
+    /**
+     * Nạp thống kê.
+     */
     private void loadStatistics() {
         try {
             SystemStatistics statistics = reportController.getSystemStatistics();
@@ -289,6 +319,9 @@ public class ReportManagementPanel extends BasePanel {
         }
     }
 
+    /**
+     * Xử lý bảng xuất hiện tại.
+     */
     private void exportCurrentTable() {
         if (table.getRowCount() == 0) {
             DialogUtil.showError(this, "Không có dữ liệu để xuất PDF.");
@@ -311,6 +344,9 @@ public class ReportManagementPanel extends BasePanel {
         }
     }
 
+    /**
+     * Cập nhật báo cáo thông tin.
+     */
     private void updateReportInfo(int rowCount) {
         Object selectedFilter = filterComboBox.getSelectedItem();
         String filterText = selectedFilter == null ? "Chưa chọn" : selectedFilter.toString();
@@ -325,6 +361,9 @@ public class ReportManagementPanel extends BasePanel {
         });
     }
 
+    /**
+     * Xử lý bảng selection changed.
+     */
     private void handleTableSelectionChanged() {
         if (table.getSelectedRow() < 0) {
             hideDetailDialog();
@@ -333,6 +372,9 @@ public class ReportManagementPanel extends BasePanel {
         showDetailDialog();
     }
 
+    /**
+     * Hiển thị hộp thoại chi tiết.
+     */
     private void showDetailDialog() {
         if (detailDialog == null) {
             detailDialog = new ReportDetailDialog(reportInfoPanel);
@@ -340,12 +382,18 @@ public class ReportManagementPanel extends BasePanel {
         detailDialog.openDialog();
     }
 
+    /**
+     * Ẩn hộp thoại chi tiết.
+     */
     private void hideDetailDialog() {
         if (detailDialog != null) {
             detailDialog.setVisible(false);
         }
     }
 
+    /**
+     * Giải phóng hộp thoại chi tiết.
+     */
     private void disposeDetailDialog() {
         if (detailDialog != null) {
             detailDialog.dispose();
@@ -353,6 +401,9 @@ public class ReportManagementPanel extends BasePanel {
         }
     }
 
+    /**
+     * Tạo card surface.
+     */
     private JPanel createSurfaceCard(BorderLayout layout) {
         JPanel panel = new JPanel(layout);
         panel.setOpaque(true);
@@ -364,6 +415,9 @@ public class ReportManagementPanel extends BasePanel {
         return panel;
     }
 
+    /**
+     * Thiết lập bảng.
+     */
     private void configureTable(JTable table) {
         table.setRowHeight(34);
         table.setFillsViewportHeight(true);
@@ -378,6 +432,9 @@ public class ReportManagementPanel extends BasePanel {
         table.getTableHeader().setPreferredSize(new Dimension(0, 32));
     }
 
+    /**
+     * Áp dụng kiểu cho nút thao tác.
+     */
     private void styleActionButton(JButton button, Color background) {
         button.setFocusPainted(false);
         button.setBorderPainted(false);

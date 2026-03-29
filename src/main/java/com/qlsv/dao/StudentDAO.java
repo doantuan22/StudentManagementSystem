@@ -1,3 +1,6 @@
+/**
+ * Truy vấn dữ liệu sinh viên bằng JPA.
+ */
 package com.qlsv.dao;
 
 import com.qlsv.config.JpaBootstrap;
@@ -112,6 +115,9 @@ public class StudentDAO {
             List<String> rawAcademicYears = entityManager.createQuery("""
                             SELECT DISTINCT s.academicYear
                             FROM Student s
+                            /**
+                             * Xử lý trim.
+                             */
                             WHERE s.academicYear IS NOT NULL AND TRIM(s.academicYear) <> ''
                             ORDER BY s.academicYear
                             """, String.class)
@@ -128,6 +134,9 @@ public class StudentDAO {
         });
     }
 
+    /**
+     * Tìm kiếm theo keyword.
+     */
     public List<Student> searchByKeyword(String keyword) {
         return searchByCriteria(keyword, null, null, null);
     }
@@ -215,11 +224,17 @@ public class StudentDAO {
         });
     }
 
+    /**
+     * Bắt buộc theo id.
+     */
     public Student requireById(Long id) {
         return findById(id)
                 .orElseThrow(() -> new AppException("Không tìm thấy sinh viên theo mã định danh."));
     }
 
+    /**
+     * Thực thi read.
+     */
     private <T> T executeRead(String errorMessage, Function<EntityManager, T> action) {
         try {
             return JpaBootstrap.executeWithEntityManager(action);
@@ -228,6 +243,9 @@ public class StudentDAO {
         }
     }
 
+    /**
+     * Thực thi write.
+     */
     private <T> T executeWrite(String errorMessage, Function<EntityManager, T> action) {
         try {
             return JpaBootstrap.executeInCurrentTransaction(action);
@@ -236,6 +254,9 @@ public class StudentDAO {
         }
     }
 
+    /**
+     * Sao chép state.
+     */
     private void copyState(EntityManager entityManager, Student source, Student target) {
         target.setUser(resolveUserReference(entityManager, source.getUserId()));
         target.setStudentCode(source.getStudentCode());
@@ -251,6 +272,9 @@ public class StudentDAO {
         target.setClassRoom(resolveClassRoomReference(entityManager, source.getClassRoom()));
     }
 
+    /**
+     * Xác định khoa reference.
+     */
     private Faculty resolveFacultyReference(EntityManager entityManager, Faculty faculty) {
         if (faculty == null || faculty.getId() == null) {
             return null;
@@ -258,6 +282,9 @@ public class StudentDAO {
         return entityManager.getReference(Faculty.class, faculty.getId());
     }
 
+    /**
+     * Xác định lớp reference.
+     */
     private ClassRoom resolveClassRoomReference(EntityManager entityManager, ClassRoom classRoom) {
         if (classRoom == null || classRoom.getId() == null) {
             return null;
@@ -265,6 +292,9 @@ public class StudentDAO {
         return entityManager.getReference(ClassRoom.class, classRoom.getId());
     }
 
+    /**
+     * Xác định người dùng reference.
+     */
     private User resolveUserReference(EntityManager entityManager, Long userId) {
         if (userId == null) {
             return null;
@@ -272,6 +302,9 @@ public class StudentDAO {
         return entityManager.getReference(User.class, userId);
     }
 
+    /**
+     * Tạo tìm kiếm query.
+     */
     private TypedQuery<Student> buildSearchQuery(EntityManager entityManager,
                                                  String keyword,
                                                  Long facultyId,
@@ -289,6 +322,9 @@ public class StudentDAO {
             jpql.append("""
                      AND (
                             LOWER(s.studentCode) LIKE :keyword
+                         /**
+                          * Xử lý lower.
+                          */
                          OR LOWER(s.fullName) LIKE :keyword
                          OR LOWER(s.email) LIKE :keyword
                      )
@@ -310,6 +346,9 @@ public class StudentDAO {
         return query;
     }
 
+    /**
+     * Chuẩn hóa dữ liệu hiện tại.
+     */
     private String normalize(String value) {
         return value == null ? "" : value.trim();
     }

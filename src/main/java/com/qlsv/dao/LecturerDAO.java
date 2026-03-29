@@ -1,3 +1,6 @@
+/**
+ * Truy vấn dữ liệu giảng viên bằng JPA.
+ */
 package com.qlsv.dao;
 
 import com.qlsv.config.JpaBootstrap;
@@ -70,6 +73,9 @@ public class LecturerDAO {
         String normalizedKeyword = "%" + (keyword == null ? "" : keyword.trim().toLowerCase()) + "%";
         return executeRead("Không thể tìm kiếm giảng viên.", entityManager ->
                 entityManager.createQuery(FETCH_BASE + """
+                                /**
+                                 * Xử lý lower.
+                                 */
                                 WHERE LOWER(l.lecturerCode) LIKE :keyword
                                    OR LOWER(l.fullName) LIKE :keyword
                                    OR LOWER(COALESCE(l.email, '')) LIKE :keyword
@@ -122,6 +128,9 @@ public class LecturerDAO {
         );
     }
 
+    /**
+     * Tìm dữ liệu theo id.
+     */
     private Optional<Lecturer> findById(EntityManager entityManager, Long id) {
         return entityManager.createQuery(FETCH_BASE + " WHERE l.id = :id", Lecturer.class)
                 .setParameter("id", id)
@@ -129,6 +138,9 @@ public class LecturerDAO {
                 .findFirst();
     }
 
+    /**
+     * Xử lý insert.
+     */
     private Lecturer insert(EntityManager entityManager, Lecturer lecturer) {
         Lecturer entity = new Lecturer();
         copyState(entityManager, lecturer, entity);
@@ -138,6 +150,9 @@ public class LecturerDAO {
         return lecturer;
     }
 
+    /**
+     * Cập nhật dữ liệu hiện tại.
+     */
     private boolean update(EntityManager entityManager, Lecturer lecturer) {
         Lecturer entity = entityManager.find(Lecturer.class, lecturer.getId());
         if (entity == null) {
@@ -148,6 +163,9 @@ public class LecturerDAO {
         return true;
     }
 
+    /**
+     * Sao chép state.
+     */
     private void copyState(EntityManager entityManager, Lecturer source, Lecturer target) {
         target.setUser(resolveUserReference(entityManager, source.getUserId()));
         target.setLecturerCode(source.getLecturerCode());
@@ -161,6 +179,9 @@ public class LecturerDAO {
         target.setStatus(source.getStatus());
     }
 
+    /**
+     * Xác định khoa reference.
+     */
     private Faculty resolveFacultyReference(EntityManager entityManager, Faculty faculty) {
         if (faculty == null || faculty.getId() == null) {
             return null;
@@ -168,6 +189,9 @@ public class LecturerDAO {
         return entityManager.getReference(Faculty.class, faculty.getId());
     }
 
+    /**
+     * Xác định người dùng reference.
+     */
     private User resolveUserReference(EntityManager entityManager, Long userId) {
         if (userId == null) {
             return null;
@@ -175,6 +199,9 @@ public class LecturerDAO {
         return entityManager.getReference(User.class, userId);
     }
 
+    /**
+     * Thực thi read.
+     */
     private <T> T executeRead(String errorMessage, Function<EntityManager, T> action) {
         try {
             return JpaBootstrap.executeWithEntityManager(action);
@@ -183,6 +210,9 @@ public class LecturerDAO {
         }
     }
 
+    /**
+     * Thực thi write.
+     */
     private <T> T executeWrite(String errorMessage, String constraintMessage, Function<EntityManager, T> action) {
         try {
             return JpaBootstrap.executeInCurrentTransaction(action);
@@ -194,6 +224,9 @@ public class LecturerDAO {
         }
     }
 
+    /**
+     * Kiểm tra constraint violation.
+     */
     private boolean isConstraintViolation(Throwable throwable) {
         Throwable current = throwable;
         while (current != null) {

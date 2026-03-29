@@ -1,3 +1,6 @@
+/**
+ * Màn hình quản trị cho thống kê hệ thống.
+ */
     package com.qlsv.view.admin;
 
     import com.qlsv.controller.ReportController;
@@ -22,6 +25,9 @@
         private final DashboardCard sectionsCard = new DashboardCard("Tổng học phần", AppColors.STAT_CARD_SECTIONS);
         private final DashboardCard enrollmentsCard = new DashboardCard("Tổng đăng ký học phần", AppColors.STAT_CARD_ENROLLMENTS);
 
+        /**
+         * Khởi tạo thống kê hệ thống.
+         */
         public SystemStatisticsPanel() {
             setOpaque(false);
             setBorder(BorderFactory.createEmptyBorder(4, 0, 0, 0));
@@ -39,6 +45,9 @@
             add(gridPanel, BorderLayout.CENTER);
             reloadStatistics();
         }
+        /**
+         * Chuẩn hóa card size.
+         */
         private void normalizeCardSize(JPanel panel) {
             int maxWidth = 0;
             int maxHeight = 0;
@@ -56,6 +65,9 @@
             }
         }
 
+        /**
+         * Làm mới thống kê.
+         */
         public final void reloadStatistics() {
             try {
                 SystemStatistics systemStatistics = reportController.getSystemStatistics();

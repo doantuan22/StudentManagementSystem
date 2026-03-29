@@ -1,3 +1,6 @@
+/**
+ * Màn hình sinh viên cho điểm.
+ */
 package com.qlsv.view.student;
 
 import com.qlsv.controller.ScoreController;
@@ -36,6 +39,9 @@ public class StudentScorePanel extends BasePanel {
     private List<Score> currentScores;
     private final DefaultTableModel tableModel = new DefaultTableModel(
             new String[]{"Học phần", "Môn học", "QT", "GK", "CK", "Tổng kết", "Kết quả"}, 0) {
+        /**
+         * Xác định ô có cho phép chỉnh sửa hay không.
+         */
         @Override
         public boolean isCellEditable(int row, int column) {
             return false;
@@ -47,12 +53,18 @@ public class StudentScorePanel extends BasePanel {
     private DashboardCard failCard;
     private final JLabel summaryLabel = new JLabel("Đang tải bảng điểm...");
 
+    /**
+     * Khởi tạo điểm sinh viên.
+     */
     public StudentScorePanel() {
         setBackground(AppColors.CONTENT_BACKGROUND);
         initComponents();
         reloadData();
     }
 
+    /**
+     * Khởi tạo các thành phần giao diện.
+     */
     private void initComponents() {
         JLabel titleLabel = new JLabel("Kết quả học tập");
         titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 22f));
@@ -105,6 +117,9 @@ public class StudentScorePanel extends BasePanel {
         add(tablePanel, BorderLayout.CENTER);
     }
 
+    /**
+     * Làm mới dữ liệu đang hiển thị.
+     */
     @Override
     public void reloadData() {
         try {
@@ -135,6 +150,9 @@ public class StudentScorePanel extends BasePanel {
         }
     }
 
+    /**
+     * Tính trung bình điểm.
+     */
     private String calculateAverageScore(List<Score> scores) {
         double total = 0;
         int count = 0;
@@ -150,6 +168,9 @@ public class StudentScorePanel extends BasePanel {
         return String.format("%.2f", total / count);
     }
 
+    /**
+     * Tạo card bảng.
+     */
     private JPanel createTableCard(String title, JLabel summaryLabel, JScrollPane scrollPane) {
         JPanel panel = new JPanel(new BorderLayout(0, 12));
         panel.setOpaque(true);
@@ -181,6 +202,9 @@ public class StudentScorePanel extends BasePanel {
         return panel;
     }
 
+    /**
+     * Thiết lập bảng.
+     */
     private void configureTable(JTable table) {
         table.setRowHeight(28);
         table.setFillsViewportHeight(true);
@@ -195,6 +219,9 @@ public class StudentScorePanel extends BasePanel {
         table.getTableHeader().setPreferredSize(new Dimension(0, 32));
     }
 
+    /**
+     * Áp dụng kiểu cho nút neutral.
+     */
     private void styleNeutralButton(JButton button) {
         button.setFocusPainted(false);
         button.setBorderPainted(false);
@@ -205,6 +232,9 @@ public class StudentScorePanel extends BasePanel {
         button.setBorder(BorderFactory.createEmptyBorder(9, 16, 9, 16));
     }
 
+    /**
+     * Áp dụng kiểu cho nút primary.
+     */
     private void stylePrimaryButton(JButton button) {
         button.setFocusPainted(false);
         button.setBorderPainted(false);
@@ -215,6 +245,9 @@ public class StudentScorePanel extends BasePanel {
         button.setBorder(BorderFactory.createEmptyBorder(9, 16, 9, 16));
     }
 
+    /**
+     * Xử lý phân tích điểm.
+     */
     private void handleAnalyzeScores(JButton analyzeButton, JButton reloadButton) {
         if (currentScores == null || currentScores.isEmpty()) {
             DialogUtil.showInfo(this, "Không có dữ liệu điểm để phân tích.");
@@ -227,11 +260,17 @@ public class StudentScorePanel extends BasePanel {
         analyzeButton.setText("Đang phân tích...");
 
         new SwingWorker<String, Void>() {
+            /**
+             * Xử lý do in background.
+             */
             @Override
             protected String doInBackground() {
                 return groqService.analyzeScores(currentScores);
             }
 
+            /**
+             * Xử lý done.
+             */
             @Override
             protected void done() {
                 try {
@@ -248,6 +287,9 @@ public class StudentScorePanel extends BasePanel {
         }.execute();
     }
 
+    /**
+     * Hiển thị hộp thoại phân tích.
+     */
     private void showAnalysisDialog(String text) {
         JDialog dialog = new JDialog(javax.swing.SwingUtilities.getWindowAncestor(this), "Phân tích kết quả học tập AI", JDialog.ModalityType.APPLICATION_MODAL);
         dialog.setLayout(new BorderLayout());

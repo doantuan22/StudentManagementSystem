@@ -1,3 +1,6 @@
+/**
+ * Khối hiển thị chi tiết dạng cặp nhãn và giá trị.
+ */
 package com.qlsv.view.common;
 
 import javax.swing.BorderFactory;
@@ -15,6 +18,9 @@ public class DetailSectionPanel extends JPanel {
     private final JLabel titleLabel;
     private final JPanel bodyPanel = new JPanel(new BorderLayout());
 
+    /**
+     * Khởi tạo chi tiết phần.
+     */
     public DetailSectionPanel(String title, String emptyMessage) {
         setLayout(new BorderLayout(0, 14));
         setOpaque(true);
@@ -32,10 +38,16 @@ public class DetailSectionPanel extends JPanel {
         showMessage(emptyMessage);
     }
 
+    /**
+     * Cập nhật phần title.
+     */
     public void setSectionTitle(String title) {
         titleLabel.setText(title);
     }
 
+    /**
+     * Hiển thị thông báo.
+     */
     public void showMessage(String message) {
         JPanel messagePanel = new JPanel(new BorderLayout());
         messagePanel.setOpaque(false);
@@ -52,6 +64,9 @@ public class DetailSectionPanel extends JPanel {
         repaint();
     }
 
+    /**
+     * Hiển thị trường.
+     */
     public void showFields(String[][] fields) {
         JPanel gridPanel = new JPanel(new GridLayout(0, 2, 14, 14));
         gridPanel.setOpaque(false);
@@ -73,6 +88,9 @@ public class DetailSectionPanel extends JPanel {
         repaint();
     }
 
+    /**
+     * Tạo card trường.
+     */
     private JPanel createFieldCard(String label, String value) {
         JPanel cardPanel = new JPanel(new BorderLayout(0, 6));
         cardPanel.setOpaque(true);
@@ -95,6 +113,9 @@ public class DetailSectionPanel extends JPanel {
         return cardPanel;
     }
 
+    /**
+     * Xử lý to html.
+     */
     private String toHtml(String value) {
         String escapedValue = value == null ? "" : value
                 .replace("&", "&amp;")

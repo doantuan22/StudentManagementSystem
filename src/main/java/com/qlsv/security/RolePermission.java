@@ -1,3 +1,6 @@
+/**
+ * Khai báo quyền theo vai trò của hệ thống.
+ */
 package com.qlsv.security;
 
 import com.qlsv.model.Role;
@@ -29,9 +32,15 @@ public final class RolePermission {
 
     private static final Map<Role, Set<String>> PERMISSION_MAP = buildPermissionMap();
 
+    /**
+     * Khởi tạo vai trò quyền.
+     */
     private RolePermission() {
     }
 
+    /**
+     * Tạo quyền ánh xạ.
+     */
     private static Map<Role, Set<String>> buildPermissionMap() {
         Map<Role, Set<String>> permissionMap = new EnumMap<>(Role.class);
         permissionMap.put(Role.ADMIN, Set.of(
@@ -68,6 +77,9 @@ public final class RolePermission {
         return permissionMap;
     }
 
+    /**
+     * Kiểm tra quyền.
+     */
     public static boolean hasPermission(Role role, String permission) {
         if (role == null || permission == null) {
             return false;
@@ -75,6 +87,9 @@ public final class RolePermission {
         return PERMISSION_MAP.getOrDefault(role, Set.of()).contains(permission);
     }
 
+    /**
+     * Trả về permissions.
+     */
     public static Set<String> getPermissions(Role role) {
         return PERMISSION_MAP.getOrDefault(role, Set.of());
     }

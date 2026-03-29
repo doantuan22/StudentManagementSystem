@@ -1,3 +1,6 @@
+/**
+ * Truy vấn dữ liệu giảng viên môn học bằng JPA.
+ */
 package com.qlsv.dao;
 
 import com.qlsv.config.JpaBootstrap;
@@ -60,6 +63,9 @@ public class LecturerSubjectDAO {
     public boolean exists(Long lecturerId, Long subjectId) {
         return executeRead("KhÃ´ng thá»ƒ kiá»ƒm tra whitelist giáº£ng viÃªn - mÃ´n há»c.", entityManager -> {
             Long total = entityManager.createQuery("""
+                            /**
+                             * Xử lý count.
+                             */
                             SELECT COUNT(ls)
                             FROM LecturerSubject ls
                             WHERE ls.lecturer.id = :lecturerId
@@ -160,6 +166,9 @@ public class LecturerSubjectDAO {
         });
     }
 
+    /**
+     * Xử lý to long.
+     */
     private Long toLong(Object value) {
         if (value == null) {
             return null;
@@ -170,6 +179,9 @@ public class LecturerSubjectDAO {
         return Long.parseLong(String.valueOf(value));
     }
 
+    /**
+     * Thực thi read.
+     */
     private <T> T executeRead(String errorMessage, Function<EntityManager, T> action) {
         try {
             return JpaBootstrap.executeWithEntityManager(action);
@@ -178,6 +190,9 @@ public class LecturerSubjectDAO {
         }
     }
 
+    /**
+     * Thực thi write.
+     */
     private <T> T executeWrite(String errorMessage, Function<EntityManager, T> action) {
         try {
             return JpaBootstrap.executeInCurrentTransaction(action);

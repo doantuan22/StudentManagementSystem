@@ -1,3 +1,6 @@
+/**
+ * Xử lý nghiệp vụ giảng viên môn học.
+ */
 package com.qlsv.service;
 
 import com.qlsv.config.JpaBootstrap;
@@ -19,6 +22,9 @@ public class LecturerSubjectService {
     private final LecturerSubjectDAO lecturerSubjectDAO = new LecturerSubjectDAO();
     private final PermissionService permissionService = new PermissionService();
 
+    /**
+     * Trả về môn học theo giảng viên.
+     */
     public List<Subject> getSubjectsByLecturer(Long lecturerId) {
         permissionService.requireLogin();
         List<LecturerSubject> rows = lecturerSubjectDAO.findByLecturerId(lecturerId);
@@ -31,6 +37,9 @@ public class LecturerSubjectService {
         return subjects;
     }
 
+    /**
+     * Trả về giảng viên theo môn học.
+     */
     public List<Lecturer> getLecturersBySubject(Long subjectId) {
         permissionService.requireLogin();
         List<LecturerSubject> rows = lecturerSubjectDAO.findBySubjectId(subjectId);
@@ -43,11 +52,17 @@ public class LecturerSubjectService {
         return lecturers;
     }
 
+    /**
+     * Xử lý exists.
+     */
     public boolean exists(Long lecturerId, Long subjectId) {
         permissionService.requireLogin();
         return lecturerSubjectDAO.exists(lecturerId, subjectId);
     }
 
+    /**
+     * Lưu môn học for giảng viên.
+     */
     public void saveSubjectsForLecturer(Long lecturerId, List<Subject> subjects) {
         permissionService.requirePermission(RolePermission.MANAGE_LECTURERS);
         JpaBootstrap.executeInTransaction(
@@ -60,6 +75,9 @@ public class LecturerSubjectService {
         );
     }
 
+    /**
+     * Xử lý backfill from học phần if needed.
+     */
     public int backfillFromCourseSectionsIfNeeded() {
         permissionService.requirePermission(RolePermission.MANAGE_LECTURERS);
         if (backfillAttempted) {
@@ -78,6 +96,9 @@ public class LecturerSubjectService {
         }
     }
 
+    /**
+     * Tách môn học ids.
+     */
     private List<Long> extractSubjectIds(List<Subject> subjects) {
         Set<Long> subjectIds = new LinkedHashSet<>();
         if (subjects != null) {

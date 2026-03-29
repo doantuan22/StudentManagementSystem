@@ -1,3 +1,6 @@
+/**
+ * Hộp thoại đăng ký biểu mẫu dialog.
+ */
 package com.qlsv.view.dialog;
 
 import com.qlsv.model.CourseSection;
@@ -64,6 +67,9 @@ public class EnrollmentFormDialog extends JDialog {
 
     private EnrollmentFormResult result;
 
+    /**
+     * Khởi tạo đăng ký biểu mẫu.
+     */
     private EnrollmentFormDialog(Component parent, EnrollmentFormModel model) {
         super(resolveOwner(parent), model.title(), Dialog.ModalityType.APPLICATION_MODAL);
         this.allStudents = model.students();
@@ -167,6 +173,9 @@ public class EnrollmentFormDialog extends JDialog {
         SwingUtilities.invokeLater(() -> studentSearchField.requestFocusInWindow());
     }
 
+    /**
+     * Tạo sinh viên phần.
+     */
     private JPanel createStudentSection() {
         suggestionList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         suggestionList.setVisibleRowCount(12);
@@ -201,6 +210,9 @@ public class EnrollmentFormDialog extends JDialog {
         return createSection("Sinh viên", "Tìm nhanh theo mã hoặc họ tên rồi chọn từ danh sách gợi ý.", contentPanel);
     }
 
+    /**
+     * Tạo đăng ký phần.
+     */
     private JPanel createEnrollmentSection() {
         JPanel contentPanel = createFieldGridPanel();
         contentPanel.add(createField("Học phần", styleComboBox(courseSectionComboBox)), fieldConstraints(0, 0, 2));
@@ -213,21 +225,33 @@ public class EnrollmentFormDialog extends JDialog {
      */
     private void registerStudentPickerBehavior() {
         studentSearchField.getDocument().addDocumentListener(new DocumentListener() {
+            /**
+             * Phản ứng khi nội dung vừa được chèn.
+             */
             @Override
             public void insertUpdate(DocumentEvent event) {
                 handleSearchChange();
             }
 
+            /**
+             * Phản ứng khi nội dung vừa bị xóa.
+             */
             @Override
             public void removeUpdate(DocumentEvent event) {
                 handleSearchChange();
             }
 
+            /**
+             * Phản ứng khi thuộc tính tài liệu thay đổi.
+             */
             @Override
             public void changedUpdate(DocumentEvent event) {
                 handleSearchChange();
             }
 
+            /**
+             * Xử lý tìm kiếm đổi.
+             */
             private void handleSearchChange() {
                 if (!applyingSelection) {
                     selectedStudent = null;
@@ -239,6 +263,9 @@ public class EnrollmentFormDialog extends JDialog {
         });
 
         suggestionList.addMouseListener(new MouseAdapter() {
+            /**
+             * Xử lý thao tác nhấp chuột trên giao diện.
+             */
             @Override
             public void mouseClicked(MouseEvent event) {
                 if (event.getClickCount() == 2) {
@@ -248,6 +275,9 @@ public class EnrollmentFormDialog extends JDialog {
         });
 
         suggestionList.addKeyListener(new KeyAdapter() {
+            /**
+             * Xử lý key pressed.
+             */
             @Override
             public void keyPressed(KeyEvent event) {
                 if (event.getKeyCode() == KeyEvent.VK_ENTER) {
@@ -291,6 +321,9 @@ public class EnrollmentFormDialog extends JDialog {
         updateSelectedStudentLabel();
     }
 
+    /**
+     * Cập nhật label sinh viên đã chọn.
+     */
     private void updateSelectedStudentLabel() {
         selectedStudentLabel.setText(selectedStudent == null
                 ? "Chưa chọn sinh viên"
@@ -315,6 +348,9 @@ public class EnrollmentFormDialog extends JDialog {
         dispose();
     }
 
+    /**
+     * Tạo phần.
+     */
     private JPanel createSection(String title, String subtitle, JComponent content) {
         JPanel panel = new JPanel(new BorderLayout(0, 16));
         panel.setOpaque(true);
@@ -345,12 +381,18 @@ public class EnrollmentFormDialog extends JDialog {
         return panel;
     }
 
+    /**
+     * Tạo panel trường grid.
+     */
     private JPanel createFieldGridPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setOpaque(false);
         return panel;
     }
 
+    /**
+     * Xử lý trường constraints.
+     */
     private GridBagConstraints fieldConstraints(int x, int y, int width) {
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.gridx = x;
@@ -363,6 +405,9 @@ public class EnrollmentFormDialog extends JDialog {
         return constraints;
     }
 
+    /**
+     * Tạo trường.
+     */
     private JPanel createField(String labelText, Component inputComponent) {
         JPanel panel = new JPanel(new BorderLayout(0, 6));
         panel.setOpaque(false);
@@ -377,6 +422,9 @@ public class EnrollmentFormDialog extends JDialog {
         return panel;
     }
 
+    /**
+     * Áp dụng kiểu cho trường văn bản.
+     */
     private JTextField styleTextField(JTextField textField) {
         textField.setFont(textField.getFont().deriveFont(Font.PLAIN, 13.5f));
         textField.setBorder(BorderFactory.createCompoundBorder(
@@ -387,6 +435,9 @@ public class EnrollmentFormDialog extends JDialog {
         return textField;
     }
 
+    /**
+     * Áp dụng kiểu cho chọn box.
+     */
     private <T> JComboBox<T> styleComboBox(JComboBox<T> comboBox) {
         comboBox.setFont(comboBox.getFont().deriveFont(Font.PLAIN, 13.5f));
         comboBox.setBorder(BorderFactory.createLineBorder(AppColors.INPUT_BORDER));
@@ -395,6 +446,9 @@ public class EnrollmentFormDialog extends JDialog {
         return comboBox;
     }
 
+    /**
+     * Áp dụng kiểu cho nút primary.
+     */
     private void stylePrimaryButton(JButton button) {
         button.setFocusPainted(false);
         button.setBorderPainted(false);
@@ -405,6 +459,9 @@ public class EnrollmentFormDialog extends JDialog {
         button.setBorder(BorderFactory.createEmptyBorder(10, 18, 10, 18));
     }
 
+    /**
+     * Áp dụng kiểu cho nút secondary.
+     */
     private void styleSecondaryButton(JButton button) {
         button.setFocusPainted(false);
         button.setBorderPainted(false);
@@ -415,6 +472,9 @@ public class EnrollmentFormDialog extends JDialog {
         button.setBorder(BorderFactory.createEmptyBorder(10, 18, 10, 18));
     }
 
+    /**
+     * Xử lý select trạng thái.
+     */
     private void selectStatus(String statusCode) {
         for (int index = 0; index < statusComboBox.getItemCount(); index++) {
             FilterOption<String> option = statusComboBox.getItemAt(index);
@@ -442,6 +502,9 @@ public class EnrollmentFormDialog extends JDialog {
                 .toList();
     }
 
+    /**
+     * Định dạng sinh viên hiển thị.
+     */
     private String formatStudentDisplay(Student student) {
         if (student == null) {
             return "";
@@ -449,6 +512,9 @@ public class EnrollmentFormDialog extends JDialog {
         return student.getStudentCode() + " - " + student.getFullName();
     }
 
+    /**
+     * Chuẩn hóa tìm kiếm văn bản.
+     */
     private String normalizeSearchText(String value) {
         if (value == null) {
             return "";
@@ -458,6 +524,9 @@ public class EnrollmentFormDialog extends JDialog {
         return normalized.toLowerCase(Locale.ROOT).trim();
     }
 
+    /**
+     * Xác định owner.
+     */
     private static Window resolveOwner(Component parent) {
         if (parent == null) {
             return null;
@@ -465,6 +534,9 @@ public class EnrollmentFormDialog extends JDialog {
         return SwingUtilities.getWindowAncestor(parent);
     }
 
+    /**
+     * Xử lý model đăng ký biểu mẫu.
+     */
     public record EnrollmentFormModel(
             String title,
             List<Student> students,
@@ -475,6 +547,9 @@ public class EnrollmentFormDialog extends JDialog {
     ) {
     }
 
+    /**
+     * Xử lý đăng ký kết quả biểu mẫu.
+     */
     public record EnrollmentFormResult(Student student, CourseSection courseSection, String status) {
     }
 }

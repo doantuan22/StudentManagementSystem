@@ -1,3 +1,6 @@
+/**
+ * Điều phối dữ liệu cho tổng quan sinh viên màn hình.
+ */
 package com.qlsv.controller;
 
 import com.qlsv.dto.DisplayDtoMapper;
@@ -20,6 +23,9 @@ public class StudentHomeScreenController {
     private final ScoreController scoreController = new ScoreController();
     private final ScheduleController scheduleController = new ScheduleController();
 
+    /**
+     * Nạp dữ liệu tổng quan.
+     */
     public StudentHomeDto loadHomeData() {
         Student student = studentController.getCurrentStudent();
         List<Enrollment> enrollments = enrollmentController.getCurrentStudentEnrollments();
@@ -57,6 +63,9 @@ public class StudentHomeScreenController {
         );
     }
 
+    /**
+     * Tính tổng credits.
+     */
     private int calculateTotalCredits(List<Enrollment> enrollments) {
         int total = 0;
         for (Enrollment enrollment : enrollments) {
@@ -69,6 +78,9 @@ public class StudentHomeScreenController {
         return total;
     }
 
+    /**
+     * Tạo tóm tắt điểm.
+     */
     private String buildScoreSummary(List<Score> scores) {
         long passCount = scores.stream().filter(score -> "PASS".equalsIgnoreCase(score.getResult())).count();
         long failCount = scores.stream().filter(score -> "FAIL".equalsIgnoreCase(score.getResult())).count();
@@ -80,6 +92,9 @@ public class StudentHomeScreenController {
                 + "- Gợi ý: theo dõi kỹ các học phần có điểm tổng kết thấp để chủ động cải thiện kết quả học tập.";
     }
 
+    /**
+     * Định dạng trung bình điểm.
+     */
     private String formatAverageScore(List<Score> scores) {
         double sum = 0;
         int count = 0;

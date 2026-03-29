@@ -5,4 +5,5 @@
 --           Hay dam bao da backup truoc khi chay.
 -- ============================================================
 
+-- Xóa schema cũ của hệ thống quản lý sinh viên để chuẩn bị tạo lại.
 DROP DATABASE IF EXISTS student_management;

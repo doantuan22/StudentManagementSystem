@@ -1,3 +1,6 @@
+/**
+ * Khung giao diện cơ sở dùng chung cho toàn ứng dụng.
+ */
 package com.qlsv.view.common;
 
 import com.qlsv.config.AppConfig;
@@ -15,6 +18,9 @@ import java.awt.FlowLayout;
 
 public class BaseFrame extends JFrame {
 
+    /**
+     * Khởi tạo cơ sở.
+     */
     protected BaseFrame(String title) {
         super(title);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -24,12 +30,18 @@ public class BaseFrame extends JFrame {
         getContentPane().setBackground(AppColors.CONTENT_BACKGROUND);
     }
 
+    /**
+     * Thêm notify.
+     */
     @Override
     public void addNotify() {
         super.addNotify();
         AppTheme.applyTree(this);
     }
 
+    /**
+     * Tạo đầu trang.
+     */
     protected JPanel createHeader(String userInfo, JButton logoutButton) {
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setBorder(BorderFactory.createEmptyBorder(12, 16, 12, 16));
@@ -54,6 +66,9 @@ public class BaseFrame extends JFrame {
         return headerPanel;
     }
 
+    /**
+     * Tạo cuối trang.
+     */
     protected JPanel createFooter(String statusText) {
         JPanel footerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 8));
         footerPanel.setOpaque(true);
@@ -68,6 +83,9 @@ public class BaseFrame extends JFrame {
         return footerPanel;
     }
 
+    /**
+     * Tạo nút menu.
+     */
     protected JButton createMenuButton(String text) {
         JButton button = new JButton(text);
         button.setFocusPainted(false);
@@ -75,6 +93,9 @@ public class BaseFrame extends JFrame {
         return button;
     }
 
+    /**
+     * Áp dụng kiểu cho nút đầu trang thao tác.
+     */
     protected void styleHeaderActionButton(JButton button) {
         button.setBackground(AppColors.SIDEBAR_BUTTON_HOVER);
         button.setBorder(BorderFactory.createEmptyBorder(8, 14, 8, 14));

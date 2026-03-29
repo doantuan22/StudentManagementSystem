@@ -1,3 +1,6 @@
+/**
+ * Điều phối dữ liệu cho quản lý sinh viên màn hình.
+ */
 package com.qlsv.controller;
 
 import com.qlsv.dto.DisplayDtoMapper;
@@ -86,6 +89,9 @@ public class StudentManagementScreenController {
         return DisplayDtoMapper.toStudentDisplayDto(student);
     }
 
+    /**
+     * Tạo chi tiết trường.
+     */
     public List<DisplayField> buildDetailFields(Student student) {
         if (student == null) {
             return List.of();
@@ -107,10 +113,16 @@ public class StudentManagementScreenController {
         );
     }
 
+    /**
+     * Nạp khoa.
+     */
     public List<Faculty> loadFaculties() {
         return facultyController.getFacultiesForSelection();
     }
 
+    /**
+     * Nạp lớp phòng.
+     */
     public List<ClassRoom> loadClassRooms() {
         return classRoomController.getClassRoomsForSelection();
     }
@@ -169,6 +181,9 @@ public class StudentManagementScreenController {
         studentController.deleteStudent(student.getId());
     }
 
+    /**
+     * Xử lý sinh viên biểu mẫu dữ liệu.
+     */
     public record StudentFormData(
             String studentCode,
             String fullName,

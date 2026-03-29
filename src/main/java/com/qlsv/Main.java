@@ -1,3 +1,6 @@
+/**
+ * Khởi động ứng dụng desktop và kiểm tra trạng thái ban đầu.
+ */
 package com.qlsv;
 
 import com.qlsv.config.JpaBootstrap;

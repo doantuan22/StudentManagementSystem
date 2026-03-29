@@ -1,3 +1,6 @@
+/**
+ * Thẻ thống kê dùng trong các màn hình dashboard.
+ */
 package com.qlsv.view.common;
 
 import javax.swing.BorderFactory;
@@ -13,6 +16,9 @@ public class DashboardCard extends JPanel {
 
     private final JLabel valueLabel = new JLabel("-");
 
+    /**
+     * Khởi tạo card dashboard.
+     */
     public DashboardCard(String title, Color accentColor) {
         setLayout(new BorderLayout(0, 14));
         setOpaque(true);
@@ -46,10 +52,16 @@ public class DashboardCard extends JPanel {
         add(contentPanel, BorderLayout.CENTER);
     }
 
+    /**
+     * Cập nhật value.
+     */
     public void setValue(String value) {
         valueLabel.setText(value == null || value.isBlank() ? "-" : value);
     }
 
+    /**
+     * Xử lý to html.
+     */
     private String toHtml(String text) {
         return "<html><div style='width:180px;line-height:1.35;'>" + text + "</div></html>";
     }

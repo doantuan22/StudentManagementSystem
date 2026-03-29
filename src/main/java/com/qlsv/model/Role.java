@@ -1,3 +1,6 @@
+/**
+ * Mô tả thực thể vai trò của hệ thống.
+ */
 package com.qlsv.model;
 
 public enum Role {
@@ -8,19 +11,31 @@ public enum Role {
     private final String code;
     private final String displayName;
 
+    /**
+     * Khởi tạo vai trò.
+     */
     Role(String code, String displayName) {
         this.code = code;
         this.displayName = displayName;
     }
 
+    /**
+     * Trả về mã.
+     */
     public String getCode() {
         return code;
     }
 
+    /**
+     * Trả về hiển thị tên.
+     */
     public String getDisplayName() {
         return displayName;
     }
 
+    /**
+     * Xử lý from mã.
+     */
     public static Role fromCode(String code) {
         if (code == null) {
             return null;

@@ -1,3 +1,6 @@
+/**
+ * Xử lý nghiệp vụ điểm.
+ */
 package com.qlsv.service;
 
 import com.qlsv.config.JpaBootstrap;
@@ -137,11 +140,17 @@ public class ScoreService {
         );
     }
 
+    /**
+     * Cập nhật and return.
+     */
     private Score updateAndReturn(Score score) {
         scoreDAO.update(score);
         return score;
     }
 
+    /**
+     * Kiểm tra dữ liệu hiện tại.
+     */
     private Enrollment validate(Score score) {
         if (score.getEnrollment() == null || score.getEnrollment().getId() == null) {
             throw new ValidationException("Điểm phải gắn với một đăng ký học phần.");
@@ -156,6 +165,9 @@ public class ScoreService {
         return enrollment;
     }
 
+    /**
+     * Xử lý enforce giảng viên scope.
+     */
     private void enforceLecturerScope(Score score) {
         if (!AuthManager.hasRole(Role.LECTURER)) {
             return;
@@ -168,6 +180,9 @@ public class ScoreService {
         }
     }
 
+    /**
+     * Tạo compatibility placeholder.
+     */
     private Score createCompatibilityPlaceholder(Enrollment enrollment) {
         Score score = new Score();
         score.setEnrollment(enrollment);

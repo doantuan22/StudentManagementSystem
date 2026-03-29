@@ -1,3 +1,6 @@
+/**
+ * Truy vấn dữ liệu môn học bằng JPA.
+ */
 package com.qlsv.dao;
 
 import com.qlsv.config.JpaBootstrap;
@@ -60,6 +63,9 @@ public class SubjectDAO {
         String normalizedKeyword = "%" + (keyword == null ? "" : keyword.trim().toLowerCase()) + "%";
         return executeRead("Không thể tìm kiếm môn học.", entityManager ->
                 entityManager.createQuery(FETCH_BASE + """
+                                /**
+                                 * Xử lý lower.
+                                 */
                                 WHERE LOWER(s.subjectCode) LIKE :keyword
                                    OR LOWER(s.subjectName) LIKE :keyword
                                 ORDER BY s.id
@@ -126,6 +132,9 @@ public class SubjectDAO {
         );
     }
 
+    /**
+     * Sao chép state.
+     */
     private void copyState(EntityManager entityManager, Subject source, Subject target) {
         target.setSubjectCode(source.getSubjectCode());
         target.setSubjectName(source.getSubjectName());
@@ -134,6 +143,9 @@ public class SubjectDAO {
         target.setFaculty(resolveFacultyReference(entityManager, source.getFaculty()));
     }
 
+    /**
+     * Xác định khoa reference.
+     */
     private Faculty resolveFacultyReference(EntityManager entityManager, Faculty faculty) {
         if (faculty == null || faculty.getId() == null) {
             return null;
@@ -141,6 +153,9 @@ public class SubjectDAO {
         return entityManager.getReference(Faculty.class, faculty.getId());
     }
 
+    /**
+     * Thực thi read.
+     */
     private <T> T executeRead(String errorMessage, Function<EntityManager, T> action) {
         try {
             return JpaBootstrap.executeWithEntityManager(action);
@@ -149,6 +164,9 @@ public class SubjectDAO {
         }
     }
 
+    /**
+     * Thực thi write.
+     */
     private <T> T executeWrite(String errorMessage, String constraintMessage, Function<EntityManager, T> action) {
         try {
             return JpaBootstrap.executeInCurrentTransaction(action);
@@ -160,6 +178,9 @@ public class SubjectDAO {
         }
     }
 
+    /**
+     * Kiểm tra constraint violation.
+     */
     private boolean isConstraintViolation(Throwable throwable) {
         Throwable current = throwable;
         while (current != null) {

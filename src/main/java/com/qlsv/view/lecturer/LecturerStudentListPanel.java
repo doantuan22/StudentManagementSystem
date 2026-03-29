@@ -1,3 +1,6 @@
+/**
+ * Màn hình giảng viên cho danh sách sinh viên.
+ */
 package com.qlsv.view.lecturer;
 
 import com.qlsv.controller.CourseSectionController;
@@ -50,6 +53,9 @@ public class LecturerStudentListPanel extends BasePanel {
 
     private final DefaultTableModel tableModel = new DefaultTableModel(
             new String[]{"Học phần", "Mã sinh viên", "Sinh viên", "Email", "Trạng thái đăng ký"}, 0) {
+        /**
+         * Xác định ô có cho phép chỉnh sửa hay không.
+         */
         @Override
         public boolean isCellEditable(int row, int column) {
             return false;
@@ -72,6 +78,9 @@ public class LecturerStudentListPanel extends BasePanel {
     private SwingWorker<LoadResult, Void> loadWorker;
     private boolean loadingData;
 
+    /**
+     * Khởi tạo giảng viên danh sách sinh viên.
+     */
     public LecturerStudentListPanel() {
         configureTable();
 
@@ -81,6 +90,9 @@ public class LecturerStudentListPanel extends BasePanel {
             }
         });
         table.addMouseListener(new MouseAdapter() {
+            /**
+             * Xử lý thao tác nhấp chuột trên giao diện.
+             */
             @Override
             public void mouseClicked(MouseEvent event) {
                 if (event.getClickCount() == 2 && table.getSelectedRow() >= 0) {
@@ -171,12 +183,18 @@ public class LecturerStudentListPanel extends BasePanel {
         reloadData();
     }
 
+    /**
+     * Giải phóng tài nguyên khi thành phần bị gỡ.
+     */
     @Override
     public void removeNotify() {
         disposeDetailDialog();
         super.removeNotify();
     }
 
+    /**
+     * Xử lý bảng selection changed.
+     */
     private void handleTableSelectionChanged() {
         updateDetailPanel();
         if (table.getSelectedRow() < 0) {
@@ -186,6 +204,9 @@ public class LecturerStudentListPanel extends BasePanel {
         showDetailDialog();
     }
 
+    /**
+     * Thiết lập bảng.
+     */
     private void configureTable() {
         table.setRowHeight(28);
         table.setFillsViewportHeight(true);
@@ -208,6 +229,9 @@ public class LecturerStudentListPanel extends BasePanel {
         table.getColumnModel().getColumn(4).setPreferredWidth(150);
     }
 
+    /**
+     * Tạo card phần.
+     */
     private JPanel createSectionCard(BorderLayout layout) {
         JPanel panel = new JPanel(layout);
         panel.setOpaque(true);
@@ -219,6 +243,9 @@ public class LecturerStudentListPanel extends BasePanel {
         return panel;
     }
 
+    /**
+     * Tạo phần title.
+     */
     private JLabel createSectionTitle(String text) {
         JLabel label = new JLabel(text);
         label.setFont(label.getFont().deriveFont(Font.BOLD, 16f));
@@ -226,6 +253,9 @@ public class LecturerStudentListPanel extends BasePanel {
         return label;
     }
 
+    /**
+     * Tạo bảng scroll pane.
+     */
     private JScrollPane createTableScrollPane(JTable table) {
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(BorderFactory.createLineBorder(AppColors.CARD_BORDER));
@@ -238,6 +268,9 @@ public class LecturerStudentListPanel extends BasePanel {
         return scrollPane;
     }
 
+    /**
+     * Áp dụng kiểu cho nút primary.
+     */
     private void stylePrimaryButton(JButton button) {
         button.setFocusPainted(false);
         button.setBorderPainted(false);
@@ -248,6 +281,9 @@ public class LecturerStudentListPanel extends BasePanel {
         button.setBorder(BorderFactory.createEmptyBorder(9, 16, 9, 16));
     }
 
+    /**
+     * Áp dụng kiểu cho nút secondary.
+     */
     private void styleSecondaryButton(JButton button) {
         button.setFocusPainted(false);
         button.setBorderPainted(false);
@@ -258,6 +294,9 @@ public class LecturerStudentListPanel extends BasePanel {
         button.setBorder(BorderFactory.createEmptyBorder(9, 16, 9, 16));
     }
 
+    /**
+     * Cập nhật panel chi tiết.
+     */
     private void updateDetailPanel() {
         Enrollment selectedEnrollment = getSelectedEnrollment();
         if (selectedEnrollment == null || selectedEnrollment.getStudent() == null) {
@@ -280,6 +319,9 @@ public class LecturerStudentListPanel extends BasePanel {
         });
     }
 
+    /**
+     * Hiển thị hộp thoại chi tiết.
+     */
     private void showDetailDialog() {
         if (detailDialog == null) {
             detailDialog = new LecturerStudentDetailDialog(detailSectionPanel);
@@ -287,12 +329,18 @@ public class LecturerStudentListPanel extends BasePanel {
         detailDialog.openDialog();
     }
 
+    /**
+     * Ẩn hộp thoại chi tiết.
+     */
     private void hideDetailDialog() {
         if (detailDialog != null) {
             detailDialog.setVisible(false);
         }
     }
 
+    /**
+     * Giải phóng hộp thoại chi tiết.
+     */
     private void disposeDetailDialog() {
         if (detailDialog != null) {
             detailDialog.dispose();
@@ -300,6 +348,9 @@ public class LecturerStudentListPanel extends BasePanel {
         }
     }
 
+    /**
+     * Làm mới dữ liệu đang hiển thị.
+     */
     @Override
     public void reloadData() {
         if (loadWorker != null && !loadWorker.isDone()) {
@@ -310,6 +361,9 @@ public class LecturerStudentListPanel extends BasePanel {
         setLoadingState(true, "Đang tải danh sách sinh viên...");
 
         loadWorker = new SwingWorker<>() {
+            /**
+             * Xử lý do in background.
+             */
             @Override
             protected LoadResult doInBackground() {
                 Lecturer lecturer = lecturerController.getCurrentLecturer();
@@ -318,6 +372,9 @@ public class LecturerStudentListPanel extends BasePanel {
                 return new LoadResult(sections, enrollments, preferredCourseSectionId);
             }
 
+            /**
+             * Xử lý done.
+             */
             @Override
             protected void done() {
                 try {
@@ -341,6 +398,9 @@ public class LecturerStudentListPanel extends BasePanel {
         loadWorker.execute();
     }
 
+    /**
+     * Lọc dữ liệu.
+     */
     private void filterData() {
         Long preferredEnrollmentId = getSelectedEnrollmentId();
         Object selected = courseComboBox.getSelectedItem();
@@ -376,6 +436,9 @@ public class LecturerStudentListPanel extends BasePanel {
         updateDetailPanel();
     }
 
+    /**
+     * Xử lý xuất to PDF.
+     */
     private void exportToPdf() {
         if (table.getRowCount() == 0) {
             DialogUtil.showError(this, "Không có dữ liệu để xuất PDF.");
@@ -403,16 +466,25 @@ public class LecturerStudentListPanel extends BasePanel {
 
     private static final class ResponsiveTable extends JTable {
 
+        /**
+         * Xử lý bảng responsive.
+         */
         private ResponsiveTable(DefaultTableModel model) {
             super(model);
         }
 
+        /**
+         * Trả về scrollable tracks viewport width.
+         */
         @Override
         public boolean getScrollableTracksViewportWidth() {
             return getPreferredSize().width < getParent().getWidth();
         }
     }
 
+    /**
+     * Trả về đăng ký đã chọn.
+     */
     private Enrollment getSelectedEnrollment() {
         int selectedRow = table.getSelectedRow();
         if (selectedRow < 0 || selectedRow >= visibleEnrollments.size()) {
@@ -421,11 +493,17 @@ public class LecturerStudentListPanel extends BasePanel {
         return visibleEnrollments.get(selectedRow);
     }
 
+    /**
+     * Trả về đăng ký id đã chọn.
+     */
     private Long getSelectedEnrollmentId() {
         Enrollment selectedEnrollment = getSelectedEnrollment();
         return selectedEnrollment == null ? null : selectedEnrollment.getId();
     }
 
+    /**
+     * Trả về học phần id đã chọn.
+     */
     private Long getSelectedCourseSectionId() {
         Object selectedItem = courseComboBox.getSelectedItem();
         if (selectedItem instanceof CourseSection section) {
@@ -434,6 +512,9 @@ public class LecturerStudentListPanel extends BasePanel {
         return null;
     }
 
+    /**
+     * Xử lý bind học phần.
+     */
     private void bindCourseSections(List<CourseSection> sections, Long preferredCourseSectionId) {
         courseComboBox.removeAllItems();
         courseComboBox.addItem("Tất cả học phần");
@@ -459,6 +540,9 @@ public class LecturerStudentListPanel extends BasePanel {
         courseComboBox.setSelectedIndex(0);
     }
 
+    /**
+     * Xử lý restore đã chọn đăng ký.
+     */
     private void restoreSelectedEnrollment(Long preferredEnrollmentId) {
         if (preferredEnrollmentId == null) {
             table.clearSelection();
@@ -479,6 +563,9 @@ public class LecturerStudentListPanel extends BasePanel {
         table.clearSelection();
     }
 
+    /**
+     * Cập nhật tải state.
+     */
     private void setLoadingState(boolean loading, String message) {
         loadingData = loading;
         courseComboBox.setEnabled(!loading);
@@ -488,6 +575,9 @@ public class LecturerStudentListPanel extends BasePanel {
         summaryLabel.setText(message);
     }
 
+    /**
+     * Xử lý nạp kết quả.
+     */
     private record LoadResult(
             List<CourseSection> sections,
             List<Enrollment> enrollments,

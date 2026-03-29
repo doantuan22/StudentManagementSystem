@@ -1,3 +1,6 @@
+/**
+ * Màn hình sinh viên cho đăng ký.
+ */
 package com.qlsv.view.student;
 
 import com.qlsv.controller.StudentEnrollmentScreenController;
@@ -55,6 +58,9 @@ public class StudentEnrollmentPanel extends BasePanel {
 
     private final DefaultTableModel courseSectionTableModel = new DefaultTableModel(
             new String[]{"ID", "Học phần", "Môn học", "Tín chỉ", "Sĩ số", "Giảng viên", "Học kỳ", "Năm học", "Lịch"}, 0) {
+        /**
+         * Xác định ô có cho phép chỉnh sửa hay không.
+         */
         @Override
         public boolean isCellEditable(int row, int column) {
             return false;
@@ -63,6 +69,9 @@ public class StudentEnrollmentPanel extends BasePanel {
 
     private final DefaultTableModel enrollmentTableModel = new DefaultTableModel(
             new String[]{"ID", "Học phần", "Môn học", "Giảng viên", "Trạng thái", "Đăng ký lúc"}, 0) {
+        /**
+         * Xác định ô có cho phép chỉnh sửa hay không.
+         */
         @Override
         public boolean isCellEditable(int row, int column) {
             return false;
@@ -72,6 +81,9 @@ public class StudentEnrollmentPanel extends BasePanel {
     private final JTable courseSectionTable = new JTable(courseSectionTableModel);
     private final JTable enrollmentTable = new JTable(enrollmentTableModel);
 
+    /**
+     * Khởi tạo sinh viên đăng ký.
+     */
     public StudentEnrollmentPanel() {
         setOpaque(true);
         setBackground(AppColors.CONTENT_BACKGROUND);
@@ -79,6 +91,9 @@ public class StudentEnrollmentPanel extends BasePanel {
         reloadData();
     }
 
+    /**
+     * Khởi tạo các thành phần giao diện.
+     */
     private void initComponents() {
         JLabel titleLabel = new JLabel("Đăng ký học phần");
         titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 22f));
@@ -206,6 +221,9 @@ public class StudentEnrollmentPanel extends BasePanel {
         SwingUtilities.invokeLater(() -> splitPane.setDividerLocation(0.58));
     }
 
+    /**
+     * Đăng ký học phần đã chọn.
+     */
     private void registerSelectedCourseSection() {
         int selectedRow = courseSectionTable.getSelectedRow();
         if (selectedRow < 0 || selectedRow >= displayedCourseSections.size()) {
@@ -221,6 +239,9 @@ public class StudentEnrollmentPanel extends BasePanel {
         }
     }
 
+    /**
+     * Kiểm tra khả năng cel đã chọn đăng ký.
+     */
     private void cancelSelectedEnrollment() {
         int selectedRow = enrollmentTable.getSelectedRow();
         if (selectedRow < 0 || selectedRow >= currentEnrollments.size()) {
@@ -236,6 +257,9 @@ public class StudentEnrollmentPanel extends BasePanel {
         }
     }
 
+    /**
+     * Làm mới dữ liệu đang hiển thị.
+     */
     @Override
     public void reloadData() {
         try {
@@ -262,6 +286,9 @@ public class StudentEnrollmentPanel extends BasePanel {
         }
     }
 
+    /**
+     * Đồng bộ học kỳ options.
+     */
     private void syncSemesterOptions(List<String> semesterOptions) {
         Object selected = semesterFilterComboBox.getSelectedItem();
         semesterFilterComboBox.removeAllItems();
@@ -274,6 +301,9 @@ public class StudentEnrollmentPanel extends BasePanel {
         semesterFilterComboBox.setSelectedItem(exists ? preferred : ALL_SEMESTERS);
     }
 
+    /**
+     * Xử lý bảng refill khóa học.
+     */
     private void refillCourseTable(List<CourseSectionDisplayDto> rows) {
         courseSectionTableModel.setRowCount(0);
         for (CourseSectionDisplayDto row : rows) {
@@ -291,6 +321,9 @@ public class StudentEnrollmentPanel extends BasePanel {
         }
     }
 
+    /**
+     * Xử lý bảng refill đăng ký.
+     */
     private void refillEnrollmentTable(List<EnrollmentDisplayDto> rows) {
         enrollmentTableModel.setRowCount(0);
         for (EnrollmentDisplayDto row : rows) {
@@ -305,6 +338,9 @@ public class StudentEnrollmentPanel extends BasePanel {
         }
     }
 
+    /**
+     * Tạo label caption.
+     */
     private JLabel createCaptionLabel(String text) {
         JLabel label = new JLabel(text);
         label.setForeground(AppColors.CARD_TITLE_TEXT);
@@ -312,6 +348,9 @@ public class StudentEnrollmentPanel extends BasePanel {
         return label;
     }
 
+    /**
+     * Tạo card surface.
+     */
     private JPanel createSurfaceCard(BorderLayout layout) {
         JPanel panel = new JPanel(layout);
         panel.setOpaque(true);
@@ -323,6 +362,9 @@ public class StudentEnrollmentPanel extends BasePanel {
         return panel;
     }
 
+    /**
+     * Tạo panel phần.
+     */
     private JPanel createSectionPanel(String title, String description, JLabel summaryLabel, JComponent content) {
         JPanel panel = createSurfaceCard(new BorderLayout(0, 12));
 
@@ -355,6 +397,9 @@ public class StudentEnrollmentPanel extends BasePanel {
         return panel;
     }
 
+    /**
+     * Tạo bảng scroll pane.
+     */
     private JScrollPane createTableScrollPane(JTable table) {
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(BorderFactory.createLineBorder(AppColors.CARD_BORDER));
@@ -367,6 +412,9 @@ public class StudentEnrollmentPanel extends BasePanel {
         return scrollPane;
     }
 
+    /**
+     * Thiết lập bảng.
+     */
     private void configureTable(JTable table) {
         table.setRowHeight(34);
         table.setFillsViewportHeight(true);
@@ -382,6 +430,9 @@ public class StudentEnrollmentPanel extends BasePanel {
         table.getTableHeader().setPreferredSize(new Dimension(0, 32));
     }
 
+    /**
+     * Thiết lập học phần columns.
+     */
     private void configureCourseSectionColumns() {
         TableColumnModel columnModel = courseSectionTable.getColumnModel();
         int[] widths = {70, 130, 250, 80, 100, 180, 110, 110, 240};
@@ -390,6 +441,9 @@ public class StudentEnrollmentPanel extends BasePanel {
         }
     }
 
+    /**
+     * Thiết lập đăng ký columns.
+     */
     private void configureEnrollmentColumns() {
         TableColumnModel columnModel = enrollmentTable.getColumnModel();
         int[] widths = {70, 130, 260, 180, 130, 170};
@@ -398,6 +452,9 @@ public class StudentEnrollmentPanel extends BasePanel {
         }
     }
 
+    /**
+     * Ẩn column.
+     */
     private void hideColumn(JTable table, int columnIndex) {
         if (table.getColumnModel().getColumnCount() <= columnIndex) {
             return;
@@ -407,6 +464,9 @@ public class StudentEnrollmentPanel extends BasePanel {
         table.getColumnModel().getColumn(columnIndex).setPreferredWidth(0);
     }
 
+    /**
+     * Áp dụng kiểu cho trường văn bản.
+     */
     private void styleTextField(JTextField textField, int preferredWidth) {
         textField.setPreferredSize(new Dimension(preferredWidth, 38));
         textField.setBorder(BorderFactory.createCompoundBorder(
@@ -416,11 +476,17 @@ public class StudentEnrollmentPanel extends BasePanel {
         textField.setFont(textField.getFont().deriveFont(Font.PLAIN, 13.5f));
     }
 
+    /**
+     * Áp dụng kiểu cho chọn box.
+     */
     private void styleComboBox(JComboBox<String> comboBox, int preferredWidth) {
         comboBox.setPreferredSize(new Dimension(preferredWidth, 38));
         comboBox.setFont(comboBox.getFont().deriveFont(Font.PLAIN, 13.5f));
     }
 
+    /**
+     * Áp dụng kiểu cho nút thao tác.
+     */
     private void styleActionButton(JButton button, Color background) {
         button.setFocusPainted(false);
         button.setBorderPainted(false);

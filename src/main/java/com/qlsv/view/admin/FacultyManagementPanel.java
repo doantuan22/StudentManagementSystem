@@ -1,3 +1,6 @@
+/**
+ * Màn hình quản trị cho khoa management.
+ */
 package com.qlsv.view.admin;
 
 import com.qlsv.controller.FacultyController;
@@ -26,6 +29,9 @@ public class FacultyManagementPanel extends AbstractCrudPanel<Faculty> {
 
     private boolean filterReady;
 
+    /**
+     * Khởi tạo khoa management.
+     */
     public FacultyManagementPanel() {
         super("Quản lý khoa");
         filterTypeComboBox.setSelectedItem(FILTER_ALL);
@@ -34,11 +40,17 @@ public class FacultyManagementPanel extends AbstractCrudPanel<Faculty> {
         refreshData();
     }
 
+    /**
+     * Trả về column names.
+     */
     @Override
     protected String[] getColumnNames() {
         return new String[]{"ID", "Mã khoa", "Tên khoa", "Mô tả"};
     }
 
+    /**
+     * Nạp items.
+     */
     @Override
     protected List<Faculty> loadItems() {
         if (!filterReady) {
@@ -54,11 +66,17 @@ public class FacultyManagementPanel extends AbstractCrudPanel<Faculty> {
         return facultyCode == null ? List.of() : facultyController.getFacultiesByCode(facultyCode);
     }
 
+    /**
+     * Xử lý to row.
+     */
     @Override
     protected Object[] toRow(Faculty item) {
         return new Object[]{item.getId(), item.getFacultyCode(), item.getFacultyName(), item.getDescription()};
     }
 
+    /**
+     * Trả về trạng thái trống thông báo.
+     */
     @Override
     protected String getEmptyStateMessage() {
         return filterReady
@@ -66,6 +84,9 @@ public class FacultyManagementPanel extends AbstractCrudPanel<Faculty> {
                 : "Vui lòng chọn điều kiện lọc để hiển thị danh sách khoa.";
     }
 
+    /**
+     * Xử lý prompt for entity.
+     */
     @Override
     protected Faculty promptForEntity(Faculty existingItem) {
         FacultyFormDialog.FacultyFormResult formResult = FacultyFormDialog.showDialog(
@@ -88,16 +109,25 @@ public class FacultyManagementPanel extends AbstractCrudPanel<Faculty> {
         return faculty;
     }
 
+    /**
+     * Lưu entity.
+     */
     @Override
     protected void saveEntity(Faculty item) {
         facultyController.saveFaculty(item);
     }
 
+    /**
+     * Xóa entity.
+     */
     @Override
     protected void deleteEntity(Faculty item) {
         facultyController.deleteFaculty(item.getId());
     }
 
+    /**
+     * Tạo panel lọc.
+     */
     private JPanel buildFilterPanel() {
         JButton applyButton = new JButton("Áp dụng");
         JButton resetButton = new JButton("Đặt lại");
@@ -123,6 +153,9 @@ public class FacultyManagementPanel extends AbstractCrudPanel<Faculty> {
         return filterPanel;
     }
 
+    /**
+     * Làm mới lọc values.
+     */
     private void reloadFilterValues() {
         String filterType = (String) filterTypeComboBox.getSelectedItem();
         filterReady = FILTER_ALL.equals(filterType);
@@ -140,12 +173,18 @@ public class FacultyManagementPanel extends AbstractCrudPanel<Faculty> {
         }
     }
 
+    /**
+     * Xử lý reset lọc.
+     */
     private void resetFilter() {
         filterTypeComboBox.setSelectedItem(FILTER_ALL);
         reloadFilterValues();
         refreshData();
     }
 
+    /**
+     * Kiểm tra valid lọc selection.
+     */
     private boolean hasValidFilterSelection() {
         String filterType = (String) filterTypeComboBox.getSelectedItem();
         if (FILTER_ALL.equals(filterType)) {
@@ -155,6 +194,9 @@ public class FacultyManagementPanel extends AbstractCrudPanel<Faculty> {
         return selectedOption != null && selectedOption.value() != null;
     }
 
+    /**
+     * Trả về lọc value đã chọn.
+     */
     private <T> T getSelectedFilterValue(Class<T> type) {
         FilterOption<?> selectedOption = (FilterOption<?>) filterValueComboBox.getSelectedItem();
         if (selectedOption == null || selectedOption.value() == null || !type.isInstance(selectedOption.value())) {

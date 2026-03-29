@@ -37,10 +37,6 @@ public class EnrollmentController {
         return enrollmentService.findByFacultyId(facultyId);
     }
 
-    public List<Enrollment> getEnrollmentsByStudent(Long studentId) {
-        return enrollmentService.findByStudentId(studentId);
-    }
-
     public Enrollment saveEnrollment(Enrollment enrollment) {
         return enrollmentService.save(enrollment);
     }

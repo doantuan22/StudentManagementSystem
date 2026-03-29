@@ -24,7 +24,7 @@ VALUES (1, 'ADMIN',    'Quản trị viên'),
 -- ------------------------------------------------------------
 INSERT INTO users (id, username, password_hash, full_name, email, role_id, active)
 VALUES
-    (1,  'admin',     '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Nguyễn Hoàng Anh', 'admin@sms.edu.vn',   1, TRUE),
+    (1,  'admin',     '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Lê Văn Lân', 'admin@sms.edu.vn',   1, TRUE),
     (2,  'gv001',     '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Nguyễn Văn Minh',  'nv.minh@sms.edu.vn', 2, TRUE),
     (3,  'gv002',     '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Lê Thị Lan',       'lt.lan@sms.edu.vn',  2, TRUE),
     (4,  'gv003',     '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Trần Văn Hùng',    'tv.hung@sms.edu.vn', 2, TRUE),

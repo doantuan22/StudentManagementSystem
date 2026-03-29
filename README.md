@@ -1,1195 +1,916 @@
-# HỆ THỐNG QUẢN LÝ SINH VIÊN
-
-## 1. Tổng Quan Project
-
-### 1.1. Mục tiêu phần mềm
-
-Đây là đồ án xây dựng hệ thống quản lý sinh viên dạng ứng dụng desktop, phục vụ 3 nhóm người dùng chính:
-
-- `ADMIN`: quản trị dữ liệu hệ thống, danh mục, học phần, lịch học, điểm, báo cáo.
-- `GIẢNG VIÊN`: xem học phần phụ trách, xem sinh viên đăng ký, nhập/sửa điểm, xem lịch dạy, cập nhật hồ sơ cá nhân.
-- `SINH VIÊN`: xem hồ sơ, đăng ký học phần, xem học phần đã đăng ký, xem điểm, xem lịch học.
-
-Phần mềm tập trung quản lý các nghiệp vụ cốt lõi trong môi trường đào tạo:
-
-- Quản lý khoa, lớp hành chính, phòng học, môn học.
-- Quản lý giảng viên, sinh viên và tài khoản đăng nhập.
-- Mở học phần theo học kỳ, năm học.
-- Xếp lịch học theo phòng, thứ, tiết.
-- Đăng ký học phần cho sinh viên.
-- Nhập, cập nhật và theo dõi điểm.
-- Tổng hợp báo cáo và thống kê.
-
-### 1.2. Công nghệ sử dụng
-
-| Thành phần | Công nghệ |
-|---|---|
-| Ngôn ngữ | Java 17 |
-| Giao diện desktop | Java Swing |
-| Quản lý phụ thuộc | Maven |
-| ORM / Persistence | JPA (Jakarta Persistence 3.1) |
-| ORM Provider | Hibernate 6.4.10.Final |
-| CSDL | MySQL 8 |
-| Driver CSDL | mysql-connector-j 8.3.0 |
-| Logging runtime | slf4j-simple 2.0.13 |
-| Xuất PDF | iTextPDF 5.5.13.3 |
-| Chọn ngày | JCalendar 1.4 |
-| API ngoài tùy chọn | Groq API để phân tích điểm bằng AI |
-
-### 1.3. Kiến trúc tổng thể
-
-Project tổ chức theo hướng phân lớp rõ ràng:
-
-`View -> Controller -> Service -> DAO -> JPA/Hibernate -> MySQL`
-
-Mô tả ngắn:
-
-- `View`: các màn hình Swing, dialog, bảng dữ liệu, form nhập liệu.
-- `Controller`: lớp trung gian giữa UI và service, điều phối dữ liệu cho từng màn hình.
-- `Service`: xử lý nghiệp vụ, phân quyền, validate dữ liệu, transaction.
-- `DAO`: truy vấn dữ liệu bằng JPA/JPQL, insert/update/delete.
-- `DB`: MySQL, script schema/seed/verify nằm trong thư mục `database/`.
-
-Ngoài ra còn có các lớp hỗ trợ:
-
-- `config`: nạp cấu hình, bootstrap JPA, session người dùng.
-- `security`: phân quyền theo role, băm mật khẩu, quản lý đăng nhập.
-- `dto`: DTO phục vụ hiển thị dữ liệu trên UI.
-- `utils`: validate, format, dialog, export PDF, hỗ trợ bảng.
-
-## 2. Cấu Trúc Project
-
-### 2.1. Cấu trúc thư mục chính
-
-```text
-StudentManagementSystem/
-├─ database/                  # Script tạo, seed, verify database
-├─ docs/                      # Tài liệu mô tả/use case/wireframe
-├─ lib/                       # Một số file jar đính kèm
-├─ src/main/java/com/qlsv/
-│  ├─ config/                 # Cấu hình app, JPA, session, DB bootstrap
-│  ├─ controller/             # Controller nghiệp vụ và controller cho màn hình
-│  ├─ dao/                    # Truy cập dữ liệu bằng JPA/JPQL
-│  ├─ dto/                    # DTO hiển thị
-│  ├─ exception/              # Exception tùy biến
-│  ├─ model/                  # Entity/domain model
-│  ├─ navigation/             # Điều hướng giữa login/dashboard
-│  ├─ security/               # Role, permission, hash mật khẩu
-│  ├─ service/                # Nghiệp vụ
-│  ├─ utils/                  # Hàm tiện ích
-│  └─ view/                   # Toàn bộ giao diện Swing
-│     ├─ admin/
-│     ├─ auth/
-│     ├─ common/
-│     ├─ dialog/
-│     ├─ lecturer/
-│     └─ student/
-├─ src/main/resources/
-│  ├─ META-INF/persistence.xml
-│  └─ application.properties
-└─ pom.xml
-```
-
-### 2.2. Vai trò từng package/layer
-
-#### `com.qlsv`
-
-- Chứa `Main.java`, là entry point khởi động ứng dụng.
-
-#### `com.qlsv.config`
-
-- `AppConfig`: đọc `application.properties`.
-- `JpaBootstrap`: khởi tạo `EntityManagerFactory`, cung cấp helper cho read/write transaction.
-- `SessionManager`: lưu user đang đăng nhập.
-- `DBConnection`: lớp JDBC cũ, hiện giữ lại cho mục đích diagnostic/bootstrap.
-- `StudentJpaMigrationVerifier`: class smoke test cho luồng Student khi migrate sang JPA.
-
-#### `com.qlsv.model`
-
-- Chứa entity/domain model chính: `User`, `Student`, `Lecturer`, `Faculty`, `Subject`, `CourseSection`, `Schedule`, `Enrollment`, `Score`, `Room`, `ClassRoom`, `RoleEntity`.
-- `Role` là enum vai trò.
-- `SystemStatistics` là model tổng hợp thống kê.
-- `Assignment` hiện mới là placeholder, chưa hoàn thiện.
-
-#### `com.qlsv.dao`
-
-- Tầng truy cập dữ liệu.
-- Dùng `JpaBootstrap.executeWithEntityManager(...)` cho thao tác đọc.
-- Dùng `JpaBootstrap.executeInCurrentTransaction(...)` cho thao tác ghi trong transaction đang mở từ service.
-- Viết JPQL và `JOIN FETCH` để nạp dữ liệu phục vụ màn hình Swing.
-
-#### `com.qlsv.service`
-
-- Chứa logic nghiệp vụ:
-  - kiểm tra đăng nhập,
-  - kiểm tra quyền,
-  - validate dữ liệu,
-  - xử lý trùng lịch,
-  - xử lý trùng đăng ký,
-  - tính điểm tổng kết,
-  - đồng bộ tài khoản `users` khi thêm/sửa sinh viên hoặc giảng viên.
-
-#### `com.qlsv.controller`
-
-- Controller nghiệp vụ đơn giản gọi service.
-- Một số controller chuyên cho màn hình như:
-  - `StudentHomeScreenController`
-  - `StudentEnrollmentScreenController`
-  - `StudentProfileScreenController`
-  - `StudentManagementScreenController`
-  - `ScheduleManagementScreenController`
-  - `ScoreManagementScreenController`
-  - `CourseSectionManagementScreenController`
-  - `EnrollmentManagementScreenController`
-
-#### `com.qlsv.dto`
-
-- DTO phục vụ hiển thị UI, tránh buộc view phụ thuộc hoàn toàn vào entity.
-- Ví dụ: `StudentHomeDto`, `StudentProfileDto`, `CourseSectionDisplayDto`, `EnrollmentDisplayDto`, `ScoreDisplayDto`, `ScheduleDisplayDto`.
-
-#### `com.qlsv.security`
-
-- `RolePermission`: map quyền theo `Role`.
-- `AuthManager`: thao tác đăng nhập/đăng xuất/check role/check permission.
-- `PasswordHasher`: băm mật khẩu SHA-256.
-
-#### `com.qlsv.view`
-
-- `auth`: màn hình đăng nhập, đổi mật khẩu.
-- `admin`: dashboard quản trị và các màn CRUD/báo cáo.
-- `lecturer`: màn giảng viên.
-- `student`: màn sinh viên.
-- `common`: component dùng chung như `BaseFrame`, `BasePanel`, `SidebarMenu`, `DashboardCard`, theme, button, input...
-- `dialog`: form nhập liệu, popup xem chi tiết, confirm dialog...
-
-### 2.3. Entry point và luồng khởi động
-
-#### Entry point
-
-- File chạy chính: `src/main/java/com/qlsv/Main.java`
-
-#### Luồng khởi động
-
-1. `Main.main()` chạy trên `SwingUtilities.invokeLater(...)`.
-2. Cài `LookAndFeel` hệ thống.
-3. Gọi `AppTheme.install()` để áp dụng style chung cho Swing.
-4. Gọi `startApplication(...)`.
-5. `JpaBootstrap.canBootstrap()` kiểm tra có khởi tạo được JPA/Hibernate không.
-6. `JpaBootstrap.hasRequiredSchema()` kiểm tra schema tối thiểu trong database.
-7. Nếu DB ổn, `SwingAppNavigator.showLogin()` mở `LoginFrame`.
-8. Sau khi đăng nhập thành công:
-   - `DashboardController` xác định role.
-   - `SwingAppNavigator` mở dashboard tương ứng:
-     - `AdminDashboardFrame`
-     - `LecturerDashboardFrame`
-     - `StudentDashboardFrame`
-
-### 2.4. Luồng xử lý khi đăng nhập
-
-`LoginFrame -> LoginController -> AuthService -> UserDAO -> PasswordHasher/AuthManager -> SessionManager -> DashboardController -> DashboardFrame`
-
-Chi tiết:
-
-- `LoginFrame` lấy username/password từ form.
-- `LoginController.login(...)` gọi `AuthService.login(...)`.
-- `AuthService`:
-  - validate rỗng,
-  - tìm user theo username,
-  - kiểm tra `active`,
-  - so khớp mật khẩu đã băm,
-  - gọi `AuthManager.login(user)`.
-- `AuthManager` lưu user vào `SessionManager`.
-- `SwingAppNavigator.showDashboard(user)` điều hướng sang dashboard theo role.
-
-## 3. Database Chi Tiết
-
-### 3.1. Tổng quan database
-
-- Tên database: `student_management`
-- Hệ quản trị: MySQL
-- Character set: `utf8mb4`
-- Collation: `utf8mb4_unicode_ci`
-
-Schema SQL hiện có:
-
-- `13` bảng dữ liệu chính
-- `2` view
-- `4` trigger
-- nhiều index hỗ trợ truy vấn
-
-### 3.2. Danh sách bảng
-
-1. `roles`
-2. `faculties`
-3. `rooms`
-4. `users`
-5. `class_rooms`
-6. `subjects`
-7. `lecturers`
-8. `students`
-9. `lecturer_subjects`
-10. `course_sections`
-11. `schedules`
-12. `enrollments`
-13. `scores`
-
-### 3.3. Quan hệ tổng quát giữa các bảng
-
-- `roles (1) -> (n) users`
-- `faculties (1) -> (n) class_rooms`
-- `faculties (1) -> (n) subjects`
-- `faculties (1) -> (n) lecturers`
-- `faculties (1) -> (n) students`
-- `class_rooms (1) -> (n) students`
-- `users (1) -> (0..1) lecturers`
-- `users (1) -> (0..1) students`
-- `lecturers (n) <-> (n) subjects` qua bảng `lecturer_subjects`
-- `subjects (1) -> (n) course_sections`
-- `lecturers (1) -> (n) course_sections`
-- `course_sections (1) -> (n) schedules`
-- `rooms (1) -> (n) schedules`
-- `students (1) -> (n) enrollments`
-- `course_sections (1) -> (n) enrollments`
-- `enrollments (1) -> (0..1) scores`
-
-### 3.4. Chi tiết từng bảng
-
-#### Bảng `roles`
-
-Chức năng: lưu danh mục vai trò đăng nhập.
-
-| Cột | Kiểu | Ý nghĩa | Ràng buộc |
-|---|---|---|---|
-| `id` | `BIGINT` | Khóa định danh vai trò | PK, AUTO_INCREMENT |
-| `role_code` | `VARCHAR(50)` | Mã vai trò (`ADMIN`, `LECTURER`, `STUDENT`) | UNIQUE, NOT NULL |
-| `role_name` | `VARCHAR(100)` | Tên vai trò hiển thị | NOT NULL |
-
-Khóa chính:
-
-- `id`
-
-Khóa ngoại:
-
-- Không có
-
-Quan hệ:
-
-- Một role có nhiều user.
-
-#### Bảng `faculties`
-
-Chức năng: lưu thông tin khoa.
-
-| Cột | Kiểu | Ý nghĩa | Ràng buộc |
-|---|---|---|---|
-| `id` | `BIGINT` | Mã định danh khoa | PK, AUTO_INCREMENT |
-| `faculty_code` | `VARCHAR(50)` | Mã khoa | UNIQUE, NOT NULL |
-| `faculty_name` | `VARCHAR(150)` | Tên khoa | NOT NULL |
-| `description` | `VARCHAR(255)` | Mô tả khoa | NULL |
-| `created_at` | `TIMESTAMP` | Thời điểm tạo | DEFAULT CURRENT_TIMESTAMP |
-
-Khóa chính:
-
-- `id`
-
-Khóa ngoại:
-
-- Không có
-
-Quan hệ:
-
-- Một khoa có nhiều lớp, môn học, giảng viên, sinh viên.
-
-#### Bảng `rooms`
-
-Chức năng: lưu danh mục phòng học.
-
-| Cột | Kiểu | Ý nghĩa | Ràng buộc |
-|---|---|---|---|
-| `id` | `BIGINT` | Mã định danh phòng | PK, AUTO_INCREMENT |
-| `room_code` | `VARCHAR(50)` | Mã phòng | UNIQUE, NOT NULL |
-| `room_name` | `VARCHAR(150)` | Tên phòng | NOT NULL |
-| `created_at` | `TIMESTAMP` | Thời điểm tạo | DEFAULT CURRENT_TIMESTAMP |
-
-Khóa chính:
-
-- `id`
-
-Khóa ngoại:
-
-- Không có
-
-Quan hệ:
-
-- Một phòng có thể được dùng trong nhiều dòng lịch học.
-
-#### Bảng `users`
-
-Chức năng: tài khoản đăng nhập của hệ thống.
-
-| Cột | Kiểu | Ý nghĩa | Ràng buộc |
-|---|---|---|---|
-| `id` | `BIGINT` | Mã định danh tài khoản | PK, AUTO_INCREMENT |
-| `username` | `VARCHAR(50)` | Tên đăng nhập | UNIQUE, NOT NULL |
-| `password_hash` | `VARCHAR(255)` | Mật khẩu đã băm SHA-256 | NOT NULL |
-| `full_name` | `VARCHAR(150)` | Họ tên tài khoản | NOT NULL |
-| `email` | `VARCHAR(150)` | Email tài khoản | NULL |
-| `role_id` | `BIGINT` | Vai trò của tài khoản | FK, NOT NULL |
-| `active` | `BOOLEAN` | Trạng thái hoạt động | DEFAULT TRUE |
-| `created_at` | `TIMESTAMP` | Thời điểm tạo | DEFAULT CURRENT_TIMESTAMP |
-
-Khóa chính:
-
-- `id`
-
-Khóa ngoại:
-
-- `role_id -> roles(id)`
-
-Quan hệ:
-
-- Mỗi user thuộc một role.
-- Một user có thể liên kết 1 sinh viên hoặc 1 giảng viên.
-
-#### Bảng `class_rooms`
-
-Chức năng: lưu lớp hành chính của sinh viên.
-
-| Cột | Kiểu | Ý nghĩa | Ràng buộc |
-|---|---|---|---|
-| `id` | `BIGINT` | Mã định danh lớp | PK, AUTO_INCREMENT |
-| `class_code` | `VARCHAR(50)` | Mã lớp | UNIQUE, NOT NULL |
-| `class_name` | `VARCHAR(150)` | Tên lớp | NOT NULL |
-| `academic_year` | `VARCHAR(50)` | Niên khóa của lớp | NOT NULL |
-| `faculty_id` | `BIGINT` | Khoa quản lý lớp | FK, NOT NULL |
-| `created_at` | `TIMESTAMP` | Thời điểm tạo | DEFAULT CURRENT_TIMESTAMP |
-
-Khóa chính:
-
-- `id`
-
-Khóa ngoại:
-
-- `faculty_id -> faculties(id)`
-
-Quan hệ:
-
-- Một lớp thuộc một khoa.
-- Một lớp có nhiều sinh viên.
-
-#### Bảng `subjects`
-
-Chức năng: lưu danh mục môn học.
-
-| Cột | Kiểu | Ý nghĩa | Ràng buộc |
-|---|---|---|---|
-| `id` | `BIGINT` | Mã định danh môn học | PK, AUTO_INCREMENT |
-| `subject_code` | `VARCHAR(50)` | Mã môn học | UNIQUE, NOT NULL |
-| `subject_name` | `VARCHAR(150)` | Tên môn học | NOT NULL |
-| `credits` | `INT` | Số tín chỉ | NOT NULL, CHECK `> 0` |
-| `faculty_id` | `BIGINT` | Khoa phụ trách môn học | FK, NOT NULL |
-| `description` | `VARCHAR(255)` | Mô tả môn học | NULL |
-| `created_at` | `TIMESTAMP` | Thời điểm tạo | DEFAULT CURRENT_TIMESTAMP |
-
-Khóa chính:
-
-- `id`
-
-Khóa ngoại:
-
-- `faculty_id -> faculties(id)`
-
-Quan hệ:
-
-- Một môn học thuộc một khoa.
-- Một môn học có thể mở nhiều học phần.
-- Một môn học có thể liên kết nhiều giảng viên qua `lecturer_subjects`.
-
-#### Bảng `lecturers`
-
-Chức năng: lưu hồ sơ giảng viên.
-
-| Cột | Kiểu | Ý nghĩa | Ràng buộc |
-|---|---|---|---|
-| `id` | `BIGINT` | Mã định danh giảng viên | PK, AUTO_INCREMENT |
-| `user_id` | `BIGINT` | Tài khoản đăng nhập liên kết | UNIQUE, FK |
-| `lecturer_code` | `VARCHAR(50)` | Mã giảng viên | UNIQUE, NOT NULL |
-| `full_name` | `VARCHAR(150)` | Họ tên giảng viên | NOT NULL |
-| `gender` | `VARCHAR(20)` | Giới tính | NULL |
-| `email` | `VARCHAR(150)` | Email | NULL |
-| `date_of_birth` | `DATE` | Ngày sinh | NULL trong schema, nhưng service yêu cầu có |
-| `phone` | `VARCHAR(30)` | Số điện thoại | NULL |
-| `address` | `VARCHAR(255)` | Địa chỉ | NULL |
-| `faculty_id` | `BIGINT` | Khoa công tác | FK, NOT NULL |
-| `status` | `VARCHAR(30)` | Trạng thái | DEFAULT `'ACTIVE'` |
-| `created_at` | `TIMESTAMP` | Thời điểm tạo | DEFAULT CURRENT_TIMESTAMP |
-
-Khóa chính:
-
-- `id`
-
-Khóa ngoại:
-
-- `user_id -> users(id)`
-- `faculty_id -> faculties(id)`
-
-Quan hệ:
-
-- Một giảng viên thuộc một khoa.
-- Một giảng viên có thể phụ trách nhiều học phần.
-- Một giảng viên có thể dạy nhiều môn qua bảng `lecturer_subjects`.
-
-#### Bảng `students`
-
-Chức năng: lưu hồ sơ sinh viên.
-
-| Cột | Kiểu | Ý nghĩa | Ràng buộc |
-|---|---|---|---|
-| `id` | `BIGINT` | Mã định danh sinh viên | PK, AUTO_INCREMENT |
-| `user_id` | `BIGINT` | Tài khoản đăng nhập liên kết | UNIQUE, FK |
-| `student_code` | `VARCHAR(50)` | Mã sinh viên | UNIQUE, NOT NULL |
-| `full_name` | `VARCHAR(150)` | Họ tên sinh viên | NOT NULL |
-| `gender` | `VARCHAR(20)` | Giới tính | NULL |
-| `date_of_birth` | `DATE` | Ngày sinh | NULL |
-| `email` | `VARCHAR(150)` | Email | NULL |
-| `phone` | `VARCHAR(30)` | Số điện thoại | NULL |
-| `address` | `VARCHAR(255)` | Địa chỉ | NULL |
-| `faculty_id` | `BIGINT` | Khoa quản lý | FK, NOT NULL |
-| `class_room_id` | `BIGINT` | Lớp hành chính | FK, NOT NULL |
-| `academic_year` | `VARCHAR(50)` | Niên khóa | NOT NULL |
-| `status` | `VARCHAR(30)` | Trạng thái | DEFAULT `'ACTIVE'` |
-| `created_at` | `TIMESTAMP` | Thời điểm tạo | DEFAULT CURRENT_TIMESTAMP |
-
-Khóa chính:
-
-- `id`
-
-Khóa ngoại:
-
-- `user_id -> users(id)`
-- `faculty_id -> faculties(id)`
-- `class_room_id -> class_rooms(id)`
-
-Quan hệ:
-
-- Một sinh viên thuộc một khoa, một lớp hành chính.
-- Một sinh viên có nhiều đăng ký học phần.
-
-#### Bảng `lecturer_subjects`
-
-Chức năng: bảng trung gian giảng viên - môn học.
-
-| Cột | Kiểu | Ý nghĩa | Ràng buộc |
-|---|---|---|---|
-| `lecturer_id` | `BIGINT` | Giảng viên | PK kép, FK |
-| `subject_id` | `BIGINT` | Môn học | PK kép, FK |
-
-Khóa chính:
-
-- `(lecturer_id, subject_id)`
-
-Khóa ngoại:
-
-- `lecturer_id -> lecturers(id)`
-- `subject_id -> subjects(id)`
-
-Quan hệ:
-
-- Tạo quan hệ nhiều-nhiều giữa giảng viên và môn học.
-
-Ghi chú hiện trạng:
-
-- Bảng này có trong schema SQL.
-- Tuy nhiên runtime JPA hiện tại chưa map bảng này thành entity hoàn chỉnh.
-- Phân công giảng dạy đang được hệ thống sử dụng chủ yếu qua `course_sections.lecturer_id`.
-
-#### Bảng `course_sections`
-
-Chức năng: lưu học phần mở theo học kỳ/năm học.
-
-| Cột | Kiểu | Ý nghĩa | Ràng buộc |
-|---|---|---|---|
-| `id` | `BIGINT` | Mã định danh học phần | PK, AUTO_INCREMENT |
-| `section_code` | `VARCHAR(50)` | Mã học phần mở | UNIQUE, NOT NULL |
-| `subject_id` | `BIGINT` | Môn học gốc | FK, NOT NULL |
-| `lecturer_id` | `BIGINT` | Giảng viên phụ trách | FK, NOT NULL |
-| `semester` | `VARCHAR(30)` | Học kỳ | NOT NULL |
-| `school_year` | `VARCHAR(30)` | Năm học | NOT NULL |
-| `max_students` | `INT` | Sĩ số tối đa | DEFAULT 50, CHECK `> 0` |
-| `created_at` | `TIMESTAMP` | Thời điểm tạo | DEFAULT CURRENT_TIMESTAMP |
-
-Khóa chính:
-
-- `id`
-
-Khóa ngoại:
-
-- `subject_id -> subjects(id)`
-- `lecturer_id -> lecturers(id)`
-
-Quan hệ:
-
-- Một học phần thuộc một môn học.
-- Một học phần do một giảng viên phụ trách.
-- Một học phần có nhiều lịch học.
-- Một học phần có nhiều đăng ký.
-
-Ghi chú hiện trạng code:
-
-- Entity `CourseSection` có thêm 2 field `room` và `scheduleText` dạng `@Transient`.
-- Hai field này chỉ dùng để tương thích giao diện cũ và được hydrate từ bảng `schedules`.
-
-#### Bảng `schedules`
-
-Chức năng: lưu lịch học/lịch dạy của từng học phần.
-
-| Cột | Kiểu | Ý nghĩa | Ràng buộc |
-|---|---|---|---|
-| `id` | `BIGINT` | Mã định danh lịch học | PK, AUTO_INCREMENT |
-| `course_section_id` | `BIGINT` | Học phần được xếp lịch | FK, NOT NULL |
-| `day_of_week` | `VARCHAR(20)` | Thứ học | NOT NULL |
-| `start_period` | `INT` | Tiết bắt đầu | NOT NULL |
-| `end_period` | `INT` | Tiết kết thúc | NOT NULL |
-| `room_id` | `BIGINT` | Phòng học | FK, NOT NULL |
-| `note` | `VARCHAR(255)` | Ghi chú | NULL |
-| `created_at` | `TIMESTAMP` | Thời điểm tạo | DEFAULT CURRENT_TIMESTAMP |
-
-Khóa chính:
-
-- `id`
-
-Khóa ngoại:
-
-- `course_section_id -> course_sections(id)`
-- `room_id -> rooms(id)`
-
-Ràng buộc:
-
-- UNIQUE `(course_section_id, day_of_week, start_period, room_id)`
-- CHECK `start_period > 0`
-- CHECK `end_period > 0`
-- CHECK `start_period <= end_period`
-
-Quan hệ:
-
-- Một lịch thuộc một học phần.
-- Một phòng có thể xuất hiện trong nhiều lịch khác nhau.
-
-Ghi chú nghiệp vụ:
-
-- Xung đột lịch phòng và lịch giảng viên không chỉ dựa vào UNIQUE, mà còn được kiểm tra thêm ở service/DAO theo khoảng tiết giao nhau.
-
-#### Bảng `enrollments`
-
-Chức năng: lưu đăng ký học phần của sinh viên.
-
-| Cột | Kiểu | Ý nghĩa | Ràng buộc |
-|---|---|---|---|
-| `id` | `BIGINT` | Mã định danh đăng ký | PK, AUTO_INCREMENT |
-| `student_id` | `BIGINT` | Sinh viên đăng ký | FK, NOT NULL |
-| `course_section_id` | `BIGINT` | Học phần đăng ký | FK, NOT NULL |
-| `status` | `VARCHAR(30)` | Trạng thái đăng ký | DEFAULT `'REGISTERED'` |
-| `enrolled_at` | `TIMESTAMP` | Thời điểm đăng ký | DEFAULT CURRENT_TIMESTAMP |
-
-Khóa chính:
-
-- `id`
-
-Khóa ngoại:
-
-- `student_id -> students(id)`
-- `course_section_id -> course_sections(id)`
-
-Ràng buộc:
-
-- UNIQUE `(student_id, course_section_id)`
-
-Quan hệ:
-
-- Một sinh viên có nhiều đăng ký.
-- Một học phần có nhiều sinh viên đăng ký.
-- Một đăng ký có thể có một bản ghi điểm.
-
-#### Bảng `scores`
-
-Chức năng: lưu điểm của từng đăng ký học phần.
-
-| Cột | Kiểu | Ý nghĩa | Ràng buộc |
-|---|---|---|---|
-| `id` | `BIGINT` | Mã định danh điểm | PK, AUTO_INCREMENT |
-| `enrollment_id` | `BIGINT` | Đăng ký tương ứng | UNIQUE, FK, NOT NULL |
-| `process_score` | `DECIMAL(4,2)` | Điểm quá trình | DEFAULT 0, CHECK `0..10` |
-| `midterm_score` | `DECIMAL(4,2)` | Điểm giữa kỳ | DEFAULT 0, CHECK `0..10` |
-| `final_score` | `DECIMAL(4,2)` | Điểm cuối kỳ | DEFAULT 0, CHECK `0..10` |
-| `total_score` | `DECIMAL(4,2)` | Điểm tổng kết | DEFAULT 0, CHECK `0..10` |
-| `result` | `VARCHAR(20)` | Kết quả (`PASS`/`FAIL`) | DEFAULT `'FAIL'` |
-| `updated_at` | `TIMESTAMP` | Thời điểm cập nhật cuối | DEFAULT CURRENT_TIMESTAMP, ON UPDATE CURRENT_TIMESTAMP |
-
-Khóa chính:
-
-- `id`
-
-Khóa ngoại:
-
-- `enrollment_id -> enrollments(id)`
-
-Quan hệ:
-
-- Một đăng ký tương ứng tối đa một bản ghi điểm.
-
-Ghi chú nghiệp vụ:
-
-- Service tự tính `total_score = process*0.3 + midterm*0.2 + final*0.5`.
-- Nếu `total_score >= 5.0` thì `result = PASS`, ngược lại `FAIL`.
-
-### 3.5. View trong database
-
-#### `vw_student_schedules`
-
-Mục đích:
-
-- Gom lịch học theo sinh viên từ các bảng `enrollments`, `students`, `course_sections`, `subjects`, `schedules`, `rooms`.
-
-Các trường trả ra:
-
-- `student_code`
-- `student_name`
-- `section_code`
-- `subject_code`
-- `subject_name`
-- `day_of_week`
-- `start_period`
-- `end_period`
-- `room_code`
-- `room_name`
-
-#### `vw_section_scores`
-
-Mục đích:
-
-- Gom bảng điểm theo học phần từ `enrollments`, `students`, `course_sections`, `scores`.
-
-Các trường trả ra:
-
-- `section_code`
-- `student_code`
-- `student_name`
-- `process_score`
-- `midterm_score`
-- `final_score`
-- `total_score`
-- `result`
-
-### 3.6. Trigger trong database
-
-#### Trigger tự tạo tài khoản
-
-- `trg_lecturers_create_user`
-- `trg_students_create_user`
-
-Chức năng:
-
-- Khi thêm giảng viên/sinh viên mới mà `user_id` đang `NULL`, trigger tự tạo user tương ứng trong bảng `users`.
-- `username` được lấy từ mã giảng viên/mã sinh viên viết thường.
-- Mật khẩu mặc định là `123456` đã băm SHA-256.
-
-#### Trigger đồng bộ user khi cập nhật hồ sơ
-
-- `trg_lecturers_update_user`
-- `trg_students_update_user`
-
-Chức năng:
-
-- Khi sửa mã giảng viên/sinh viên hoặc họ tên, trigger đồng bộ lại `users.username` và `users.full_name`.
-
-### 3.7. Index đáng chú ý
-
-Script có tạo các index quan trọng:
-
-- `idx_students_class_room`
-- `idx_students_faculty`
-- `idx_lecturers_faculty`
-- `idx_subjects_faculty`
-- `idx_course_sections_lecturer`
-- `idx_enrollments_section`
-- `idx_enrollments_student`
-- `idx_scores_enrollment`
-- `idx_schedules_section_day`
-- `idx_schedules_room_day_period`
-
-## 4. Chức Năng Chính
-
-### 4.1. Theo role `ADMIN`
-
-#### Quản lý sinh viên
-
-- Xem danh sách sinh viên.
-- Tìm kiếm theo từ khóa.
-- Lọc theo khoa, lớp, niên khóa.
-- Thêm mới sinh viên.
-- Cập nhật thông tin sinh viên.
-- Xóa sinh viên.
-- Đổi mật khẩu tài khoản sinh viên.
-- Đồng bộ thông tin với bảng `users`.
-
-#### Quản lý giảng viên
-
-- Xem danh sách giảng viên.
-- Lọc theo khoa.
-- Thêm mới giảng viên.
-- Cập nhật giảng viên.
-- Xóa giảng viên.
-- Đổi mật khẩu tài khoản giảng viên.
-- Đồng bộ thông tin với bảng `users`.
-
-#### Quản lý khoa
-
-- CRUD khoa.
-
-#### Quản lý lớp hành chính
-
-- CRUD lớp.
-- Lọc theo khoa và niên khóa.
-
-#### Quản lý phòng học
-
-- CRUD phòng học.
-- Tìm kiếm theo mã phòng/tên phòng.
-
-#### Quản lý môn học
-
-- CRUD môn học.
-- Lọc theo khoa.
-
-#### Quản lý học phần
-
-- CRUD học phần.
-- Gán môn học, giảng viên, học kỳ, năm học, sĩ số tối đa.
-- Kiểm tra trùng lịch giảng viên khi đổi giảng viên cho học phần đã có lịch.
-
-#### Quản lý lịch học
-
-- CRUD lịch học.
-- Lọc theo học phần, phòng, khoa.
-- Kiểm tra:
-  - trùng phòng,
-  - trùng lịch giảng viên,
-  - ràng buộc tiết bắt đầu/tiết kết thúc.
-
-#### Quản lý đăng ký học phần
-
-- CRUD đăng ký.
-- Xem theo sinh viên, lớp, khoa, học phần.
-
-#### Quản lý điểm
-
-- CRUD điểm.
-- Xem theo học phần, lớp.
-- Tính tổng kết và kết quả tự động.
-
-#### Báo cáo và thống kê
-
-- Thống kê tổng sinh viên, giảng viên, môn học, học phần.
-- Báo cáo sinh viên theo lớp.
-- Báo cáo giảng viên theo khoa.
-- Báo cáo sinh viên trong học phần.
-- Báo cáo điểm theo học phần.
-- Xuất PDF báo cáo hiện tại.
-
-#### Quản trị tài khoản
-
-- Đổi mật khẩu chính tài khoản admin.
-- Reset mật khẩu cho sinh viên/giảng viên thông qua màn hình quản lý tương ứng.
-
-### 4.2. Theo role `GIẢNG VIÊN`
-
-#### Hồ sơ cá nhân
-
+# Hệ thống quản lý sinh viên kết hợp AI phân tích dữ liệu
+
+## Mục lục
+1. Giới thiệu đề tài
+2. Mục tiêu đề tài
+3. Phạm vi đề tài
+4. Chức năng chính của phần mềm
+5. Phân quyền người dùng
+6. Kiến trúc, mô hình và công nghệ sử dụng
+7. Cấu trúc project
+8. Cấu trúc database
+9. Chi tiết từng bảng trong database
+10. Thuật toán và chính sách xử lý chính
+11. Các luồng hoạt động chính của chương trình
+12. Hướng dẫn sử dụng phần mềm
+13. Tài khoản test đã xác minh từ project
+14. Đánh giá đồ án dưới góc độ đồ án cuối kì
+15. Ghi chú xác minh và hiện trạng
+
+## 1. Giới thiệu đề tài
+Đây là đồ án desktop viết bằng Java Swing, phục vụ quản lý đào tạo trong phạm vi trường/khoa với ba vai trò chính: quản trị viên, giảng viên và sinh viên. Hệ thống quản lý dữ liệu học thuật cốt lõi như sinh viên, giảng viên, khoa, lớp hành chính, môn học, học phần, lịch học, đăng ký học phần và điểm số.
+
+Điểm nổi bật của project là ngoài các nghiệp vụ quản lý học vụ truyền thống, hệ thống còn có nền tảng tích hợp AI để phân tích dữ liệu điểm học tập thông qua dịch vụ Groq. AI đang được dùng ở hai hướng:
+
+- Phân tích kết quả học tập cá nhân cho sinh viên.
+- Phân tích xu hướng điểm của cả danh sách/lớp học phần cho giảng viên.
+
+README này được viết bám theo source code, cấu hình và SQL đang có trong working tree hiện tại của project. Phần nào chưa thấy được nối vào luồng chạy thực tế sẽ được ghi chú rõ, không suy diễn thêm ngoài code và database.
+
+## 2. Mục tiêu đề tài
+Mục tiêu thực tế có thể xác minh từ project hiện tại:
+
+- Tin học hóa quản lý thông tin sinh viên, giảng viên, khoa, lớp, môn học và học phần.
+- Tổ chức lịch học và kiểm soát các xung đột cơ bản về phòng học, lịch dạy và lịch đăng ký.
+- Hỗ trợ sinh viên đăng ký học phần, xem lịch học, xem điểm và theo dõi kết quả học tập.
+- Hỗ trợ giảng viên theo dõi học phần phụ trách, danh sách sinh viên, nhập điểm và phân tích điểm.
+- Hỗ trợ quản trị viên quản lý dữ liệu đào tạo tập trung và xuất báo cáo PDF.
+- Tạo nền tảng tích hợp AI để đưa ra nhận xét và gợi ý dựa trên dữ liệu điểm.
+
+## 3. Phạm vi đề tài
+### 3.1. Phạm vi đã có trong project
+- Ứng dụng desktop Java Swing, không phải ứng dụng web.
+- Dữ liệu lưu trên MySQL schema `student_management`.
+- Truy cập dữ liệu chính bằng JPA/Hibernate, có dùng JPQL trong DAO.
+- Có phân quyền theo 3 vai trò: `ADMIN`, `LECTURER`, `STUDENT`.
+- Có dữ liệu seed mẫu để chạy thử và đăng nhập ngay.
+- Có báo cáo thống kê và xuất PDF ở một số màn hình.
+- Có tích hợp Groq API để phân tích điểm.
+
+### 3.2. Phạm vi chưa thấy triển khai đầy đủ trong working tree hiện tại
+- Chưa thấy màn hình quản lý trực tiếp bảng `users` và `roles`.
+- Bảng `lecturer_subjects` có trong database nhưng chưa thấy entity/DAO/service/UI sử dụng trực tiếp, cũng chưa thấy dữ liệu seed cho bảng này.
+- `LecturerAssignedSubjectsPanel.java` hiện chỉ là khung rỗng và chưa được gắn vào dashboard.
+- Thư mục `docs/` hiện có file tiêu đề nhưng nội dung tài liệu thiết kế gần như chưa được viết đầy đủ.
+- Không thấy `src/test`, tức là chưa có bộ test tự động trong project hiện tại.
+
+## 4. Chức năng chính của phần mềm
+### 4.1. Nhóm chức năng quản trị viên
+- Đăng nhập và vào dashboard quản trị.
+- Xem tổng quan thống kê hệ thống.
+- Quản lý sinh viên: thêm, sửa, xóa, tìm kiếm, lọc theo khoa, lớp, niên khóa, xem chi tiết, đổi mật khẩu tài khoản sinh viên.
+- Quản lý giảng viên: thêm, sửa, xóa, lọc theo khoa, xem chi tiết, đổi mật khẩu tài khoản giảng viên.
+- Quản lý khoa: thêm, sửa, xóa, lọc theo mã khoa.
+- Quản lý lớp hành chính: thêm, sửa, xóa, lọc theo khoa hoặc niên khóa.
+- Quản lý phòng học: thêm, sửa, xóa, tìm theo từ khóa.
+- Quản lý môn học: thêm, sửa, xóa, lọc theo khoa.
+- Quản lý học phần: thêm, sửa, xóa, lọc theo mã học phần, phòng học hoặc khoa.
+- Quản lý đăng ký học phần: thêm, sửa, xóa, lọc theo học phần, lớp hoặc khoa.
+- Quản lý điểm: thêm, sửa, xóa điểm; xem danh sách điểm theo sinh viên; lọc theo học phần/lớp; xem chi tiết từng môn.
+- Quản lý lịch học: thêm, sửa, xóa lịch; lọc theo học phần, phòng học hoặc khoa.
+- Xem báo cáo: sinh viên theo lớp, giảng viên theo khoa, sinh viên trong học phần, điểm theo học phần.
+- Xuất PDF cho màn hình báo cáo.
+- Đổi mật khẩu quản trị viên và đăng xuất.
+
+### 4.2. Nhóm chức năng giảng viên
+- Xem và cập nhật thông tin cá nhân.
+- Đổi mật khẩu giảng viên.
+- Xem học phần đang phụ trách.
+- Xem danh sách sinh viên theo học phần phụ trách.
+- Lọc danh sách sinh viên theo học phần.
+- Xuất PDF danh sách sinh viên của học phần đang xem.
+- Xem và nhập/sửa điểm cho sinh viên thuộc học phần được phân công.
+- Tìm kiếm sinh viên theo mã hoặc họ tên trong danh sách điểm.
+- Phân tích AI trên danh sách điểm đang lọc.
+- Xem lịch dạy.
+- Đăng xuất.
+
+### 4.3. Nhóm chức năng sinh viên
+- Xem dashboard cá nhân: số học phần, tổng tín chỉ, điểm trung bình, số buổi học.
 - Xem thông tin cá nhân.
-- Sửa email, số điện thoại, địa chỉ.
-- Đổi mật khẩu.
-
-#### Học phần phụ trách
-
-- Xem danh sách học phần đang phụ trách.
-- Xem chi tiết học phần: môn học, số tín chỉ, học kỳ, năm học, lịch học, sĩ số tối đa.
-
-#### Danh sách sinh viên
-
-- Xem danh sách sinh viên đã đăng ký theo học phần.
-- Lọc theo học phần phụ trách.
-- Xem chi tiết sinh viên.
-- Xuất danh sách ra PDF.
-
-#### Nhập/sửa điểm
-
-- Xem danh sách điểm của sinh viên trong các học phần mình phụ trách.
-- Lọc theo học phần.
-- Tìm kiếm theo mã sinh viên/họ tên.
-- Nhập điểm quá trình, giữa kỳ, cuối kỳ.
-- Cập nhật lại điểm cho sinh viên.
-- Chỉ được nhập điểm cho học phần được phân công.
-
-#### Lịch dạy
-
-- Xem toàn bộ lịch dạy theo các học phần mình phụ trách.
-
-### 4.3. Theo role `SINH VIÊN`
-
-#### Trang tổng quan
-
-- Xem thông tin tóm tắt:
-  - số học phần đã đăng ký,
-  - tổng số tín chỉ,
-  - điểm trung bình hiện tại,
-  - số lịch học,
-  - tóm tắt kết quả học tập.
-
-#### Hồ sơ cá nhân
-
-- Xem thông tin cá nhân.
-- Cập nhật email, số điện thoại, địa chỉ.
-- Đổi mật khẩu.
-
-#### Đăng ký học phần
-
-- Xem danh sách học phần đang mở.
-- Tìm kiếm học phần theo mã/tên môn/giảng viên.
-- Lọc theo học kỳ.
+- Cập nhật thông tin liên hệ: email, số điện thoại, địa chỉ.
+- Đổi mật khẩu sinh viên.
+- Tìm kiếm và lọc học phần mở theo từ khóa và học kỳ.
 - Đăng ký học phần.
 - Hủy đăng ký học phần của chính mình.
-
-#### Các ràng buộc khi đăng ký học phần
-
-- Không được đăng ký trùng đúng học phần.
-- Không được đăng ký học phần khác của cùng môn học.
-- Không vượt quá sĩ số tối đa.
-- Không được đăng ký nếu trùng lịch với học phần đã có.
-
-#### Học phần đã đăng ký
-
 - Xem danh sách học phần đã đăng ký.
-
-#### Xem điểm
-
 - Xem bảng điểm cá nhân.
-- Xem số môn đạt/chưa đạt.
-- Xem điểm trung bình tổng kết.
-- Có chức năng phân tích điểm bằng AI nếu cấu hình `groq.api.key`.
+- Phân tích AI kết quả học tập cá nhân.
+- Xem lịch học.
+- Đăng xuất.
 
-#### Xem lịch học
+## 5. Phân quyền người dùng
+Project dùng `Role`, `RoleEntity`, `SessionManager`, `AuthManager` và `RolePermission` để kiểm soát quyền.
 
-- Xem toàn bộ lịch học cá nhân lấy từ các học phần đã đăng ký.
+| Vai trò | Quyền chính đã xác minh từ code |
+|---|---|
+| `ADMIN` | Quản lý sinh viên, giảng viên, khoa, lớp, môn học, học phần, đăng ký, điểm, lịch học; xem báo cáo; xem thống kê; xem/sửa hồ sơ cá nhân; xem lịch của mình |
+| `LECTURER` | Xem/sửa hồ sơ cá nhân; xem lớp/học phần được phân công; xem sinh viên thuộc học phần phụ trách; nhập/xem điểm; xem lịch dạy |
+| `STUDENT` | Xem/sửa hồ sơ cá nhân; đăng ký học phần; xem điểm; xem lịch học |
 
-### 4.4. Phân quyền
+### 5.1. Ghi chú về xác thực và phiên đăng nhập
+- Đăng nhập kiểm tra trên bảng `users`.
+- Mật khẩu được băm bằng SHA-256 qua `PasswordHasher`.
+- `AuthService` sẽ từ chối tài khoản có `users.active = false`.
+- Phiên hiện tại được lưu trong `SessionManager`.
+- `DashboardController` điều hướng tới màn hình Admin/Giảng viên/Sinh viên theo vai trò.
 
-Phân quyền hiện tại được hard-code trong `RolePermission`, không đọc động từ bảng `roles`.
+## 6. Kiến trúc, mô hình và công nghệ sử dụng
+### 6.1. Kiến trúc tổng thể
+Project đang theo mô hình phân lớp khá rõ:
 
-#### `ADMIN`
+`View (Swing)` -> `Controller` -> `Service` -> `DAO` -> `JPA/Hibernate` -> `MySQL`
 
-- `MANAGE_STUDENTS`
-- `MANAGE_LECTURERS`
-- `MANAGE_FACULTIES`
-- `MANAGE_CLASSES`
-- `MANAGE_SUBJECTS`
-- `MANAGE_COURSE_SECTIONS`
-- `MANAGE_ENROLLMENTS`
-- `MANAGE_SCORES`
-- `MANAGE_SCHEDULES`
-- `VIEW_REPORTS`
-- `VIEW_SYSTEM_STATISTICS`
-- `VIEW_OWN_PROFILE`
-- `EDIT_OWN_PROFILE`
-- `VIEW_OWN_SCHEDULE`
+Các thành phần hỗ trợ:
 
-#### `LECTURER`
+- `config`: tải cấu hình, khởi tạo JPA, quản lý session.
+- `security`: xác thực, băm mật khẩu, bản đồ quyền.
+- `dto`: chuẩn hóa dữ liệu hiển thị cho UI.
+- `utils`: kiểm tra dữ liệu, định dạng năm học, xuất PDF, dialog, hiển thị văn bản.
 
-- `VIEW_OWN_PROFILE`
-- `EDIT_OWN_PROFILE`
-- `VIEW_ASSIGNED_CLASSES`
-- `VIEW_ASSIGNED_STUDENTS`
-- `MANAGE_SCORES`
-- `VIEW_OWN_SCHEDULE`
+### 6.2. Công nghệ đã dùng
+- Ngôn ngữ: Java 17.
+- Build tool: Maven.
+- Giao diện: Java Swing.
+- ORM: Hibernate 6.4.10.Final.
+- JPA API: Jakarta Persistence 3.1.
+- Database: MySQL 8.
+- Cách truy vấn chính: JPQL trong các DAO.
+- JDBC: có dùng trong `DBConnection.java` cho mục đích bootstrap/diagnostics legacy, không phải luồng runtime chính.
+- Kết nối AI: `java.net.http.HttpClient` gọi Groq Chat Completions API.
+- Xuất PDF: iText 5 (`com.itextpdf:itextpdf`).
+- Logging runtime: `slf4j-simple`.
 
-#### `STUDENT`
+### 6.3. Ghi chú công nghệ quan trọng
+- `application.properties` là file cấu hình tự đọc bằng `AppConfig`, không phải Spring Boot.
+- `persistence.xml` dùng persistence unit `student-management-jpa`, transaction type `RESOURCE_LOCAL`.
+- `JpaBootstrap` tự quản lý `EntityManagerFactory`, `EntityManager` và transaction.
+- `jcalendar` có khai báo trong `pom.xml` và có file jar trong `lib/`, nhưng chưa thấy import/sử dụng trực tiếp trong source hiện tại.
 
-- `VIEW_OWN_PROFILE`
-- `EDIT_OWN_PROFILE`
-- `REGISTER_ENROLLMENT`
-- `VIEW_OWN_SCORES`
-- `VIEW_OWN_SCHEDULE`
+## 7. Cấu trúc project
+### 7.1. Cấu trúc thư mục mức cao
 
-## 5. Luồng Hoạt Động
+| Đường dẫn | Vai trò |
+|---|---|
+| `database/` | Chứa bộ script SQL tạo schema, seed dữ liệu và kiểm tra dữ liệu |
+| `docs/` | Chứa tài liệu hỗ trợ; hiện tại đa số file mới ở mức tiêu đề |
+| `lib/` | Chứa jar phụ trợ như MySQL Connector, iText, JCalendar |
+| `src/main/java/com/qlsv/` | Toàn bộ mã nguồn Java chính |
+| `src/main/resources/` | File cấu hình runtime |
+| `target/` | Thư mục build artifact của Maven |
+| `pom.xml` | Khai báo dependencies và cấu hình build Maven |
+| `README.md` | Báo cáo tổng hợp project |
 
-### 5.1. Luồng tổng quát từ UI tới DB
+### 7.2. Cấu trúc package Java
 
-Luồng chuẩn của project:
+| Package | Vai trò |
+|---|---|
+| `com.qlsv` | Chứa `Main.java`, entry point chính của ứng dụng |
+| `com.qlsv.config` | Cấu hình ứng dụng, bootstrap JPA, session, utility kiểm tra migration |
+| `com.qlsv.controller` | Lớp trung gian cho UI; điều phối service, tạo DTO hiển thị và xử lý dữ liệu form |
+| `com.qlsv.dao` | Truy cập dữ liệu bằng JPA/JPQL |
+| `com.qlsv.dto` | DTO/record để hiển thị ra bảng, dashboard, form |
+| `com.qlsv.exception` | Ngoại lệ nghiệp vụ: xác thực, phân quyền, validation, lỗi chung |
+| `com.qlsv.model` | Entity và model domain |
+| `com.qlsv.navigation` | Điều hướng giữa màn hình login và dashboard |
+| `com.qlsv.security` | Băm mật khẩu, kiểm tra vai trò/quyền |
+| `com.qlsv.service` | Nghiệp vụ chính, validation và transaction |
+| `com.qlsv.utils` | Hàm tiện ích định dạng, kiểm tra dữ liệu, dialog, PDF |
+| `com.qlsv.view.admin` | Dashboard và màn hình nghiệp vụ quản trị |
+| `com.qlsv.view.auth` | Màn hình đăng nhập và đổi mật khẩu |
+| `com.qlsv.view.common` | Component UI dùng chung, theme, màu sắc, panel nền |
+| `com.qlsv.view.dialog` | Form dialog và detail dialog cho CRUD |
+| `com.qlsv.view.lecturer` | Dashboard và màn hình nghiệp vụ giảng viên |
+| `com.qlsv.view.student` | Dashboard và màn hình nghiệp vụ sinh viên |
 
-`Swing Panel/Dialog -> Controller -> Service -> DAO -> EntityManager/JPA -> MySQL`
+### 7.3. File và class quan trọng trong project
 
-Ví dụ khi admin thêm sinh viên:
+| File/Class | Vai trò |
+|---|---|
+| `src/main/java/com/qlsv/Main.java` | Entry point chính; kiểm tra khả năng bootstrap JPA và schema trước khi mở login |
+| `src/main/java/com/qlsv/config/AppConfig.java` | Tải `application.properties` bằng UTF-8 |
+| `src/main/java/com/qlsv/config/JpaBootstrap.java` | Khởi tạo Hibernate/JPA, thực thi transaction `RESOURCE_LOCAL` |
+| `src/main/java/com/qlsv/config/SessionManager.java` | Lưu người dùng đang đăng nhập |
+| `src/main/java/com/qlsv/config/DBConnection.java` | Utility JDBC legacy để kiểm tra kết nối/schema |
+| `src/main/java/com/qlsv/config/StudentJpaMigrationVerifier.java` | Chương trình kiểm tra smoke test cho luồng JPA của Student |
+| `src/main/java/com/qlsv/security/PasswordHasher.java` | Băm và đối chiếu mật khẩu SHA-256 |
+| `src/main/java/com/qlsv/security/RolePermission.java` | Bản đồ quyền cho từng vai trò |
+| `src/main/java/com/qlsv/service/GroqService.java` | Tích hợp Groq API |
+| `src/main/java/com/qlsv/service/LecturerScoreAnalysisService.java` | Chuẩn bị snapshot và prompt AI cho giảng viên |
+| `src/main/java/com/qlsv/utils/ValidationUtil.java` | Kiểm tra email, số điện thoại, độ dài, khoảng điểm |
+| `src/main/java/com/qlsv/utils/AcademicFormatUtil.java` | Chuẩn hóa học kỳ và năm học |
+| `src/main/java/com/qlsv/utils/PDFExportUtil.java` | Xuất dữ liệu bảng Swing ra PDF |
+| `src/main/resources/application.properties` | Cấu hình DB, JPA, tên app và Groq API key |
+| `src/main/resources/META-INF/persistence.xml` | Cấu hình persistence unit và danh sách entity |
+| `database/00_drop_old_database.sql` | Xóa schema cũ |
+| `database/01_create_schema.sql` | Tạo bảng, khóa, view, trigger, index |
+| `database/02_seed_full_data.sql` | Seed dữ liệu mẫu |
+| `database/03_verify_data.sql` | Script kiểm tra nhanh dữ liệu và schema |
 
-1. Form trên `StudentManagementPanel` nhận dữ liệu.
-2. `StudentManagementScreenController` tạo object `Student`.
-3. `StudentController.saveStudent(...)` gọi `StudentService.save(...)`.
-4. `StudentService`:
-   - kiểm tra quyền,
-   - validate dữ liệu,
-   - mở transaction,
-   - tạo/liên kết `User`,
-   - gọi `StudentDAO.insert(...)` hoặc `update(...)`,
-   - đồng bộ email/họ tên sang bảng `users`.
-5. `StudentDAO` ghi dữ liệu bằng JPA.
-6. Hibernate sinh SQL thao tác với MySQL.
+### 7.4. Các màn hình/chức năng theo folder `view`
+#### `view.admin`
+- `AdminDashboardFrame`: khung dashboard quản trị.
+- `AdminHomePanel`: màn hình chào và thống kê nhanh.
+- `SystemStatisticsPanel`: 5 thẻ thống kê chính.
+- `StudentManagementPanel`: CRUD sinh viên, lọc nhiều tiêu chí, đổi mật khẩu sinh viên.
+- `LecturerManagementPanel`: CRUD giảng viên, lọc theo khoa, đổi mật khẩu giảng viên.
+- `FacultyManagementPanel`: CRUD khoa.
+- `ClassRoomManagementPanel`: CRUD lớp hành chính.
+- `RoomManagementPanel`: CRUD phòng học.
+- `SubjectManagementPanel`: CRUD môn học.
+- `CourseSectionManagementPanel`: CRUD học phần.
+- `EnrollmentManagementPanel`: CRUD đăng ký học phần.
+- `ScoreManagementPanel`: quản lý điểm theo sinh viên và môn.
+- `ScheduleManagementPanel`: quản lý lịch học.
+- `ReportManagementPanel`: báo cáo và xuất PDF.
 
-### 5.2. Luồng đăng nhập
+#### `view.lecturer`
+- `LecturerDashboardFrame`: dashboard giảng viên.
+- `LecturerProfilePanel`: xem/sửa hồ sơ, đổi mật khẩu.
+- `LecturerCourseSectionPanel`: xem học phần phụ trách.
+- `LecturerStudentListPanel`: xem/lọc sinh viên theo học phần, xuất PDF.
+- `LecturerScorePanel`: nhập điểm, lọc theo học phần, tìm sinh viên, phân tích AI.
+- `LecturerSchedulePanel`: xem lịch dạy.
+- `LecturerAssignedSubjectsPanel`: hiện là lớp rỗng, chưa nối vào luồng chính.
 
-1. Người dùng nhập username/password tại `LoginFrame`.
-2. `AuthService` kiểm tra thông tin.
-3. Nếu hợp lệ:
-   - lưu user vào `SessionManager`,
-   - xác định role,
-   - mở dashboard tương ứng.
-4. Nếu sai:
-   - hiển thị dialog lỗi.
+#### `view.student`
+- `StudentDashboardFrame`: dashboard sinh viên.
+- `StudentHomePanel`: tổng quan học tập.
+- `StudentProfilePanel`: xem/sửa liên hệ, đổi mật khẩu.
+- `StudentEnrollmentPanel`: tìm kiếm, lọc, đăng ký/hủy học phần.
+- `StudentRegisteredSubjectsPanel`: xem học phần đã đăng ký.
+- `StudentScorePanel`: xem điểm và phân tích AI.
+- `StudentSchedulePanel`: xem lịch học.
 
-### 5.3. Luồng xử lý dữ liệu trong tầng nghiệp vụ
+#### `view.common` và `view.dialog`
+- `AppTheme`, `AppColors`, `DashboardCard`, `SidebarMenu`, `BaseFrame`, `BasePanel`: lớp nền giao diện dùng chung.
+- `AbstractCrudPanel`: khung CRUD tái sử dụng cho nhiều màn hình quản trị.
+- `*FormDialog`, `*DetailDialog`, `ChangePasswordDialog`, `AnalysisResultDialog`: dialog nhập liệu và xem chi tiết.
 
-#### Luồng đọc dữ liệu
+## 8. Cấu trúc database
+### 8.1. Tổng quan schema
+- Tên schema: `student_management`.
+- Số bảng base đã xác minh từ `01_create_schema.sql`: 13.
+- Số view: 2.
+- Số trigger: 4.
+- Số index tùy biến khai báo cuối script: 10.
 
-- `Service -> DAO.find...() -> JpaBootstrap.executeWithEntityManager(...) -> JPQL -> Entity -> trả về UI`
+### 8.2. Các nhóm bảng chính
+- Nhóm phân quyền và tài khoản: `roles`, `users`.
+- Nhóm danh mục đào tạo: `faculties`, `class_rooms`, `rooms`, `subjects`.
+- Nhóm hồ sơ con người: `lecturers`, `students`.
+- Nhóm tổ chức giảng dạy: `lecturer_subjects`, `course_sections`, `schedules`.
+- Nhóm học vụ: `enrollments`, `scores`.
 
-#### Luồng ghi dữ liệu
+### 8.3. Mapping giữa bảng và entity/model
 
-- `Service -> JpaBootstrap.executeInTransaction(...) -> DAO.insert/update/delete -> flush -> commit`
+| Bảng | Entity/model trong code | Ghi chú |
+|---|---|---|
+| `roles` | `RoleEntity`, `Role` | `Role` là enum nghiệp vụ; `RoleEntity` là entity JPA |
+| `users` | `User` | Tài khoản đăng nhập |
+| `faculties` | `Faculty` | Khoa |
+| `rooms` | `Room` | Phòng học |
+| `class_rooms` | `ClassRoom` | Lớp hành chính |
+| `subjects` | `Subject` | Môn học |
+| `lecturers` | `Lecturer` | Giảng viên |
+| `students` | `Student` | Sinh viên |
+| `course_sections` | `CourseSection` | Học phần mở |
+| `schedules` | `Schedule` | Lịch học/lịch dạy |
+| `enrollments` | `Enrollment` | Đăng ký học phần |
+| `scores` | `Score` | Điểm |
+| `lecturer_subjects` | Không có entity riêng | Có trong schema nhưng chưa thấy luồng sử dụng trực tiếp |
 
-#### Kiểm tra chéo trong service
+### 8.4. View và trigger
+#### View
+- `vw_student_schedules`: tổng hợp lịch học theo sinh viên.
+- `vw_section_scores`: tổng hợp điểm theo học phần và sinh viên.
 
-- `EnrollmentService`: chống trùng đăng ký, chống trùng môn, chống quá sĩ số, chống trùng lịch sinh viên.
-- `ScheduleService`: chống trùng phòng, chống trùng lịch giảng viên.
-- `ScoreService`: chỉ giảng viên phụ trách mới được nhập điểm; tự tính điểm tổng kết và kết quả.
-- `StudentService`/`LecturerService`: đồng bộ hồ sơ với bảng `users`.
+#### Trigger
+- `trg_lecturers_create_user`: tự tạo/liên kết `users` khi thêm giảng viên mới.
+- `trg_students_create_user`: tự tạo/liên kết `users` khi thêm sinh viên mới.
+- `trg_lecturers_update_user`: đồng bộ `username`, `full_name` của `users` khi sửa giảng viên.
+- `trg_students_update_user`: đồng bộ `username`, `full_name` của `users` khi sửa sinh viên.
 
-### 5.4. Luồng script database
+## 9. Chi tiết từng bảng trong database
+### 9.1. Bảng `roles`
+- Chức năng: lưu danh mục vai trò hệ thống.
+- Cột chính:
 
-Thư mục `database/` đi theo luồng:
+| Cột | Ý nghĩa |
+|---|---|
+| `id` | Khóa chính tự tăng |
+| `role_code` | Mã vai trò, ví dụ `ADMIN`, `LECTURER`, `STUDENT` |
+| `role_name` | Tên hiển thị của vai trò |
 
-1. `00_drop_old_database.sql`
-2. `01_create_schema.sql`
-3. `02_seed_full_data.sql`
-4. `03_verify_data.sql`
+- Khóa chính: `id`.
+- Khóa ngoại: không có.
+- Liên kết: `users.role_id` tham chiếu sang bảng này.
+- Ghi chú logic: seed hiện có đúng 3 vai trò.
 
-Ý nghĩa:
+### 9.2. Bảng `users`
+- Chức năng: tài khoản đăng nhập chung của toàn hệ thống.
+- Cột chính:
 
-- `00`: xóa DB cũ nếu muốn reset.
-- `01`: tạo schema, bảng, khóa ngoại, index, view, trigger.
-- `02`: nạp dữ liệu mẫu cho admin, giảng viên, sinh viên.
-- `03`: kiểm tra số lượng bảng, dữ liệu, view, trigger và thử test nhanh.
+| Cột | Ý nghĩa |
+|---|---|
+| `id` | Khóa chính tự tăng |
+| `username` | Tên đăng nhập duy nhất |
+| `password_hash` | Mật khẩu băm SHA-256 |
+| `full_name` | Tên đầy đủ hiển thị |
+| `email` | Email tài khoản |
+| `role_id` | Vai trò của tài khoản |
+| `active` | Trạng thái khóa/mở tài khoản |
+| `created_at` | Thời gian tạo |
 
-## 6. Luồng Cài Đặt Và Chạy
+- Khóa chính: `id`.
+- Khóa ngoại: `role_id -> roles.id`.
+- Liên kết:
+  - Một `users` có thể gắn 1 hồ sơ `lecturers`.
+  - Một `users` có thể gắn 1 hồ sơ `students`.
+- Ghi chú logic:
+  - Đăng nhập luôn đi qua bảng này.
+  - `AuthService` sẽ từ chối tài khoản có `active = false`.
+  - Tài khoản sinh viên/giảng viên có thể được tạo tự động qua trigger SQL hoặc qua service khi thêm mới trong app.
 
-### 6.1. Yêu cầu môi trường
+### 9.3. Bảng `faculties`
+- Chức năng: lưu thông tin khoa/viện.
+- Cột chính:
 
-- Java 17
-- Maven
-- MySQL 8
-- IDE Java như IntelliJ IDEA / Eclipse / NetBeans
+| Cột | Ý nghĩa |
+|---|---|
+| `id` | Khóa chính |
+| `faculty_code` | Mã khoa duy nhất |
+| `faculty_name` | Tên khoa |
+| `description` | Mô tả ngắn |
+| `created_at` | Thời gian tạo |
 
-### 6.2. Cấu hình database
+- Khóa chính: `id`.
+- Khóa ngoại: không có.
+- Liên kết:
+  - `class_rooms.faculty_id`
+  - `subjects.faculty_id`
+  - `lecturers.faculty_id`
+  - `students.faculty_id`
+- Ghi chú logic: là bảng danh mục trung tâm để lọc sinh viên, giảng viên, môn học, lớp, lịch và học phần.
 
-File cấu hình hiện tại:
+### 9.4. Bảng `rooms`
+- Chức năng: lưu phòng học/phòng thực hành/hội trường.
+- Cột chính:
 
-- `src/main/resources/application.properties`
+| Cột | Ý nghĩa |
+|---|---|
+| `id` | Khóa chính |
+| `room_code` | Mã phòng duy nhất |
+| `room_name` | Tên phòng |
+| `created_at` | Thời gian tạo |
 
-Giá trị mặc định:
+- Khóa chính: `id`.
+- Khóa ngoại: không có.
+- Liên kết: `schedules.room_id -> rooms.id`.
+- Ghi chú logic: xung đột phòng được kiểm tra ở tầng service/DAO chứ không chỉ bằng unique constraint đơn giản.
+
+### 9.5. Bảng `class_rooms`
+- Chức năng: lưu lớp hành chính của sinh viên.
+- Cột chính:
+
+| Cột | Ý nghĩa |
+|---|---|
+| `id` | Khóa chính |
+| `class_code` | Mã lớp duy nhất |
+| `class_name` | Tên lớp |
+| `academic_year` | Niên khóa lớp |
+| `faculty_id` | Khoa quản lý lớp |
+| `created_at` | Thời gian tạo |
+
+- Khóa chính: `id`.
+- Khóa ngoại: `faculty_id -> faculties.id`.
+- Liên kết: `students.class_room_id -> class_rooms.id`.
+- Ghi chú logic: được dùng mạnh trong lọc sinh viên, đăng ký học phần và báo cáo.
+
+### 9.6. Bảng `subjects`
+- Chức năng: lưu môn học trong chương trình đào tạo.
+- Cột chính:
+
+| Cột | Ý nghĩa |
+|---|---|
+| `id` | Khóa chính |
+| `subject_code` | Mã môn duy nhất |
+| `subject_name` | Tên môn |
+| `credits` | Số tín chỉ |
+| `faculty_id` | Khoa phụ trách |
+| `description` | Mô tả môn học |
+| `created_at` | Thời gian tạo |
+
+- Khóa chính: `id`.
+- Khóa ngoại: `faculty_id -> faculties.id`.
+- Liên kết:
+  - `course_sections.subject_id`
+  - `lecturer_subjects.subject_id`
+- Ghi chú logic:
+  - Có check constraint `credits > 0`.
+  - Khi sinh viên đăng ký, hệ thống chặn đăng ký 2 học phần khác nhau của cùng một môn.
+
+### 9.7. Bảng `lecturers`
+- Chức năng: hồ sơ giảng viên.
+- Cột chính:
+
+| Cột | Ý nghĩa |
+|---|---|
+| `id` | Khóa chính |
+| `user_id` | Tài khoản đăng nhập liên kết |
+| `lecturer_code` | Mã giảng viên duy nhất |
+| `full_name` | Họ tên |
+| `gender` | Giới tính |
+| `email` | Email |
+| `date_of_birth` | Ngày sinh |
+| `phone` | Số điện thoại |
+| `address` | Địa chỉ |
+| `faculty_id` | Khoa phụ trách |
+| `status` | Trạng thái hoạt động |
+| `created_at` | Thời gian tạo |
+
+- Khóa chính: `id`.
+- Khóa ngoại:
+  - `user_id -> users.id`
+  - `faculty_id -> faculties.id`
+- Liên kết:
+  - `course_sections.lecturer_id`
+  - `lecturer_subjects.lecturer_id`
+- Ghi chú logic:
+  - Nếu chưa có `user_id`, hệ thống có thể tự tạo tài khoản đăng nhập cho giảng viên.
+  - Khi sửa giảng viên, tên và email tài khoản `users` cũng được đồng bộ.
+
+### 9.8. Bảng `students`
+- Chức năng: hồ sơ sinh viên.
+- Cột chính:
+
+| Cột | Ý nghĩa |
+|---|---|
+| `id` | Khóa chính |
+| `user_id` | Tài khoản đăng nhập liên kết |
+| `student_code` | Mã sinh viên duy nhất |
+| `full_name` | Họ tên |
+| `gender` | Giới tính |
+| `date_of_birth` | Ngày sinh |
+| `email` | Email |
+| `phone` | Số điện thoại |
+| `address` | Địa chỉ |
+| `faculty_id` | Khoa |
+| `class_room_id` | Lớp hành chính |
+| `academic_year` | Niên khóa |
+| `status` | Trạng thái |
+| `created_at` | Thời gian tạo |
+
+- Khóa chính: `id`.
+- Khóa ngoại:
+  - `user_id -> users.id`
+  - `faculty_id -> faculties.id`
+  - `class_room_id -> class_rooms.id`
+- Liên kết:
+  - `enrollments.student_id`
+- Ghi chú logic:
+  - Service chuẩn hóa prefix mã sinh viên về `SV`.
+  - Có thể tự tạo tài khoản `users` nếu chưa có.
+  - Cập nhật liên hệ của sinh viên sẽ đồng bộ email sang `users`.
+
+### 9.9. Bảng `lecturer_subjects`
+- Chức năng: bảng nối nhiều-nhiều giữa giảng viên và môn học.
+- Cột chính:
+
+| Cột | Ý nghĩa |
+|---|---|
+| `lecturer_id` | Giảng viên |
+| `subject_id` | Môn học |
+
+- Khóa chính: khóa ghép (`lecturer_id`, `subject_id`).
+- Khóa ngoại:
+  - `lecturer_id -> lecturers.id`
+  - `subject_id -> subjects.id`
+- Liên kết: mô tả giảng viên có thể dạy môn nào.
+- Ghi chú logic:
+  - Trong source code hiện tại chưa thấy entity riêng, DAO riêng, service riêng hay màn hình đang sử dụng trực tiếp bảng này.
+  - Cũng chưa thấy dữ liệu seed chèn vào bảng này.
+  - Suy ra đây là nền tảng mở rộng, chưa trở thành luồng nghiệp vụ chính ở working tree hiện tại.
+
+### 9.10. Bảng `course_sections`
+- Chức năng: lưu các lớp học phần mở cho từng môn theo học kỳ/năm học.
+- Cột chính:
+
+| Cột | Ý nghĩa |
+|---|---|
+| `id` | Khóa chính |
+| `section_code` | Mã học phần duy nhất |
+| `subject_id` | Môn học gốc |
+| `lecturer_id` | Giảng viên phụ trách |
+| `semester` | Học kỳ |
+| `school_year` | Năm học |
+| `max_students` | Sĩ số tối đa |
+| `created_at` | Thời gian tạo |
+
+- Khóa chính: `id`.
+- Khóa ngoại:
+  - `subject_id -> subjects.id`
+  - `lecturer_id -> lecturers.id`
+- Liên kết:
+  - `schedules.course_section_id`
+  - `enrollments.course_section_id`
+- Ghi chú logic:
+  - Có check constraint `max_students > 0`.
+  - Trong mô hình JPA hiện tại, `CourseSection` có thêm `room` và `scheduleText` dạng `@Transient` để tương thích với các màn hình cũ; dữ liệu này được hydrate từ bảng `schedules`.
+  - Việc đổi giảng viên của học phần sẽ bị chặn nếu lịch học hiện có gây xung đột với lịch dạy của giảng viên mới.
+
+### 9.11. Bảng `schedules`
+- Chức năng: lưu lịch học/lịch dạy chi tiết theo học phần.
+- Cột chính:
+
+| Cột | Ý nghĩa |
+|---|---|
+| `id` | Khóa chính |
+| `course_section_id` | Học phần |
+| `day_of_week` | Thứ học |
+| `start_period` | Tiết bắt đầu |
+| `end_period` | Tiết kết thúc |
+| `room_id` | Phòng học |
+| `note` | Ghi chú |
+| `created_at` | Thời gian tạo |
+
+- Khóa chính: `id`.
+- Khóa ngoại:
+  - `course_section_id -> course_sections.id`
+  - `room_id -> rooms.id`
+- Ràng buộc:
+  - Unique: `uq_schedules_section_slot (course_section_id, day_of_week, start_period, room_id)`.
+  - Check: `start_period > 0`, `end_period > 0`, `start_period <= end_period`.
+- Liên kết: dùng để tạo lịch học sinh viên và lịch dạy giảng viên.
+- Ghi chú logic:
+  - Source code kiểm tra nghiêm hơn SQL: service yêu cầu `start_period < end_period`.
+  - Trùng phòng và trùng lịch giảng viên được kiểm tra bằng truy vấn overlap trong `ScheduleDAO`, không chỉ dựa vào unique đơn giản.
+  - `ScheduleManagementScreenController` còn chủ động thêm “schedule giả” cho học phần chưa có lịch để admin có thể nhìn thấy học phần chưa được xếp lịch.
+
+### 9.12. Bảng `enrollments`
+- Chức năng: lưu đăng ký học phần của sinh viên.
+- Cột chính:
+
+| Cột | Ý nghĩa |
+|---|---|
+| `id` | Khóa chính |
+| `student_id` | Sinh viên đăng ký |
+| `course_section_id` | Học phần đăng ký |
+| `status` | Trạng thái đăng ký |
+| `enrolled_at` | Thời điểm đăng ký |
+
+- Khóa chính: `id`.
+- Khóa ngoại:
+  - `student_id -> students.id`
+  - `course_section_id -> course_sections.id`
+- Ràng buộc:
+  - Unique: `uq_enrollment_student_section (student_id, course_section_id)`.
+- Liên kết:
+  - `scores.enrollment_id`
+- Ghi chú logic:
+  - Service chặn trùng cùng học phần.
+  - Service chặn trùng môn học khác học phần.
+  - Service chặn vượt sĩ số tối đa.
+  - Service chặn trùng lịch với các học phần sinh viên đã đăng ký.
+  - Sinh viên chỉ được hủy đăng ký của chính mình.
+
+### 9.13. Bảng `scores`
+- Chức năng: lưu điểm thành phần và kết quả học tập của từng đăng ký.
+- Cột chính:
+
+| Cột | Ý nghĩa |
+|---|---|
+| `id` | Khóa chính |
+| `enrollment_id` | Đăng ký học phần tương ứng |
+| `process_score` | Điểm quá trình |
+| `midterm_score` | Điểm giữa kỳ |
+| `final_score` | Điểm cuối kỳ |
+| `total_score` | Điểm tổng kết |
+| `result` | Kết quả `PASS`/`FAIL` |
+| `updated_at` | Thời gian cập nhật cuối |
+
+- Khóa chính: `id`.
+- Khóa ngoại: `enrollment_id -> enrollments.id`.
+- Ràng buộc:
+  - Unique: `enrollment_id`.
+  - Check điểm từ 0 đến 10 cho tất cả cột điểm.
+- Liên kết: một đăng ký học phần có tối đa một bản ghi điểm.
+- Ghi chú logic:
+  - Tổng kết được tính ở tầng service theo công thức `0.3 * QT + 0.2 * GK + 0.5 * CK`.
+  - `PASS` nếu `total_score >= 5.0`, ngược lại `FAIL`.
+  - Với giảng viên, nếu sinh viên chưa có bản ghi điểm trong DB thì UI tạo placeholder tương thích để có thể nhập mới.
+
+## 10. Thuật toán và chính sách xử lý chính
+### 10.1. Đăng nhập và phân quyền
+- `AuthService.login()` đọc `users` theo `username`.
+- So khớp mật khẩu bằng `PasswordHasher.matches()` với SHA-256.
+- Kiểm tra `users.active`; nếu bị khóa thì từ chối đăng nhập.
+- `AuthManager.login()` lưu user vào `SessionManager`.
+- `DashboardController.resolveDashboard()` điều hướng tới màn hình Admin/Giảng viên/Sinh viên.
+- `PermissionService` kiểm tra quyền theo `RolePermission`.
+
+### 10.2. Tìm kiếm và lọc
+- Sinh viên: lọc theo khoa, lớp, niên khóa; tìm kiếm theo mã, tên, email.
+- Giảng viên: lọc theo khoa.
+- Lớp: lọc theo khoa, niên khóa.
+- Môn học: lọc theo khoa.
+- Học phần: lọc theo mã học phần, phòng học, khoa.
+- Lịch học: lọc theo học phần, phòng học, khoa.
+- Đăng ký: lọc theo học phần, lớp, khoa.
+- Điểm:
+  - Admin lọc theo học phần hoặc lớp.
+  - Giảng viên lọc theo học phần, tìm thêm theo mã sinh viên/họ tên.
+  - Admin `ScoreManagementPanel` còn chuẩn hóa text tìm kiếm bằng `Normalizer` để giảm ảnh hưởng dấu tiếng Việt.
+
+### 10.3. Kiểm tra ràng buộc dữ liệu
+- `ValidationUtil` kiểm tra:
+  - Không để trống.
+  - Độ dài tối đa.
+  - Định dạng email.
+  - Định dạng số điện thoại Việt Nam (`+84` hoặc `0`).
+  - Khoảng điểm 0..10.
+- `AcademicFormatUtil` chuẩn hóa:
+  - Năm học dạng `yyyy - yyyy`.
+  - Học kỳ chỉ nhận `HK1`, `HK2`, `HK3`.
+- `DateUtil` kiểm tra ngày theo `yyyy-MM-dd`.
+
+### 10.4. Kiểm tra trùng mã và đồng bộ tài khoản
+- Mã sinh viên được chuẩn hóa prefix `SV`.
+- Mã giảng viên được chuẩn hóa prefix `GV`.
+- Khi thêm sinh viên/giảng viên mới:
+  - Nếu chưa có `user_id`, service sẽ tìm `users.username` tương ứng.
+  - Nếu chưa có tài khoản thì tự tạo tài khoản mới với mật khẩu mặc định `123456`.
+- Trigger SQL cũng hỗ trợ tự tạo tài khoản ở mức database khi chèn trực tiếp vào bảng `students` hoặc `lecturers`.
+- Khi cập nhật hồ sơ sinh viên/giảng viên, `users.full_name` và/hoặc `users.email` được đồng bộ lại.
+
+### 10.5. Kiểm tra trùng lịch, trùng phòng, trùng đăng ký
+- Trùng phòng:
+  - `ScheduleDAO.hasRoomScheduleConflict()` kiểm tra overlap theo phòng, thứ và khoảng tiết.
+- Trùng lịch giảng viên:
+  - `ScheduleDAO.hasLecturerScheduleConflict()` kiểm tra overlap giữa các lịch dạy.
+- Trùng lịch sinh viên khi đăng ký:
+  - `ScheduleDAO.hasStudentScheduleConflict()` so sánh lịch của học phần mới với các học phần sinh viên đã đăng ký.
+- Trùng đăng ký:
+  - Không cho đăng ký cùng học phần hai lần.
+  - Không cho đăng ký hai học phần khác nhau của cùng một môn.
+
+### 10.6. Logic tính điểm và xếp loại
+- Công thức tổng kết: `QT * 0.3 + GK * 0.2 + CK * 0.5`.
+- Làm tròn 2 chữ số thập phân.
+- Xếp loại:
+  - `PASS` nếu `total_score >= 5.0`.
+  - `FAIL` nếu `total_score < 5.0`.
+- Nếu giảng viên đang xem danh sách có sinh viên chưa có bản ghi điểm, hệ thống hiển thị placeholder 0.0 để nhập mới.
+
+### 10.7. Logic AI phân tích dữ liệu
+#### Cho sinh viên
+- `StudentScorePanel` gọi `GroqService.analyzeScores(currentScores)`.
+- Dữ liệu gửi đi gồm danh sách JSON rút gọn theo môn, tổng kết và kết quả.
+- Kết quả trả về là nhận xét/gợi ý học tập bằng tiếng Việt.
+
+#### Cho giảng viên
+- `LecturerScoreAnalysisService.prepareSnapshot()`:
+  - Chỉ cho phép phân tích khi toàn bộ sinh viên trong danh sách hiện tại đã có điểm đầy đủ.
+  - Tính số lượng sinh viên, điểm trung bình, min, max, số đạt, số chưa đạt.
+  - Tạo prompt AI theo vai trò giảng viên.
+- `analyzeSnapshot()` gọi `GroqService.requestAnalysis()`.
+- Nếu thiếu điểm hoặc chưa có bản ghi điểm thật, hệ thống sẽ từ chối phân tích và báo rõ danh sách sinh viên còn thiếu.
+
+## 11. Các luồng hoạt động chính của chương trình
+### 11.1. Luồng khởi tạo từ SQL đến khi vào hệ thống
+1. Chạy `00_drop_old_database.sql` nếu muốn reset hoàn toàn dữ liệu cũ.
+2. Chạy `01_create_schema.sql` để tạo schema, bảng, view, trigger, index.
+3. Chạy `02_seed_full_data.sql` để nạp dữ liệu mẫu.
+4. Chạy `03_verify_data.sql` để kiểm tra nhanh số lượng bảng, dữ liệu, trigger, view và xung đột lịch.
+5. Cấu hình lại `application.properties`.
+6. Chạy `Main.java`.
+7. `Main` gọi `JpaBootstrap.canBootstrap()` và `JpaBootstrap.hasRequiredSchema()`.
+8. Nếu kết nối DB và schema hợp lệ, hệ thống mở `LoginFrame`.
+9. Người dùng đăng nhập.
+10. `DashboardController` điều hướng theo vai trò:
+   - `ADMIN` -> `AdminDashboardFrame`
+   - `LECTURER` -> `LecturerDashboardFrame`
+   - `STUDENT` -> `StudentDashboardFrame`
+
+### 11.2. Luồng quản lý sinh viên
+1. Admin vào `StudentManagementPanel`.
+2. Chọn điều kiện lọc: tất cả, theo khoa, theo lớp, theo niên khóa.
+3. Tìm kiếm theo từ khóa nếu cần.
+4. Thêm/sửa sinh viên qua `StudentFormDialog`.
+5. `StudentManagementScreenController` chuẩn hóa dữ liệu form.
+6. `StudentService` kiểm tra email, số điện thoại, niên khóa, mã SV, khoa, lớp.
+7. Nếu sinh viên chưa có user, service tự tạo tài khoản login hoặc liên kết tài khoản có sẵn đúng vai trò.
+8. Dữ liệu được ghi qua JPA transaction.
+9. Admin có thể đổi mật khẩu tài khoản sinh viên từ chính màn hình này.
+
+### 11.3. Luồng quản lý giảng viên
+1. Admin vào `LecturerManagementPanel`.
+2. Lọc theo khoa hoặc xem tất cả.
+3. Thêm/sửa hồ sơ giảng viên qua `LecturerFormDialog`.
+4. `LecturerService` kiểm tra mã GV, ngày sinh, email, số điện thoại, khoa.
+5. Nếu chưa có user, service tạo tài khoản hoặc liên kết tài khoản sẵn có đúng vai trò giảng viên.
+6. Admin có thể đổi mật khẩu tài khoản giảng viên.
+7. Giảng viên tự đăng nhập để chỉnh sửa thông tin liên hệ của chính mình trong `LecturerProfilePanel`.
+
+### 11.4. Luồng quản lý môn học, học phần, lịch học
+1. Admin quản lý môn học trong `SubjectManagementPanel`.
+2. Admin tạo học phần trong `CourseSectionManagementPanel` bằng cách chọn môn học, giảng viên, học kỳ, năm học, sĩ số.
+3. `CourseSectionService` kiểm tra:
+   - Môn học có tồn tại.
+   - Giảng viên có tồn tại.
+   - Học kỳ và năm học hợp lệ.
+   - Sĩ số tối đa lớn hơn 0.
+4. Sau đó admin gán lịch học trong `ScheduleManagementPanel`.
+5. `ScheduleService` kiểm tra:
+   - Học phần hợp lệ.
+   - Phòng học hợp lệ.
+   - `start_period < end_period`.
+   - Không trùng phòng.
+   - Không trùng lịch dạy của giảng viên.
+6. Các màn hình học phần, đăng ký và điểm lấy `scheduleText`/`room` từ bảng `schedules` thông qua trường `@Transient` của `CourseSection`.
+
+### 11.5. Luồng đăng ký học phần của sinh viên
+1. Sinh viên vào `StudentEnrollmentPanel`.
+2. Tìm kiếm học phần mở theo từ khóa và học kỳ.
+3. Chọn học phần muốn đăng ký.
+4. `StudentEnrollmentScreenController` gọi `EnrollmentController.registerCurrentStudent()`.
+5. `EnrollmentService` kiểm tra:
+   - Sinh viên tồn tại.
+   - Học phần tồn tại.
+   - Chưa đăng ký học phần này.
+   - Chưa đăng ký học phần khác của cùng môn.
+   - Chưa vượt sĩ số tối đa.
+   - Không trùng lịch với các học phần hiện có.
+6. Nếu hợp lệ, tạo bản ghi `enrollments`.
+7. Sinh viên có thể hủy đăng ký của chính mình ở bảng đã đăng ký.
+
+### 11.6. Luồng nhập và quản lý điểm
+#### Phía giảng viên
+1. Giảng viên vào `LecturerScorePanel`.
+2. Hệ thống lấy tất cả enrollments của các học phần giảng viên phụ trách.
+3. Hệ thống ghép với bảng `scores`.
+4. Nếu enrollment chưa có điểm, tạo placeholder để giảng viên nhập mới.
+5. Khi lưu:
+   - Kiểm tra giảng viên có đúng quyền trên học phần đó.
+   - Kiểm tra điểm thành phần nằm trong khoảng 0..10.
+   - Tính tổng kết 30/20/50.
+   - Xác định `PASS`/`FAIL`.
+
+#### Phía quản trị viên
+1. Admin vào `ScoreManagementPanel`.
+2. Lọc theo học phần hoặc lớp.
+3. Hệ thống gom điểm theo từng sinh viên để hiển thị bảng tổng quan.
+4. Chọn sinh viên để xem danh sách điểm chi tiết theo môn.
+5. Admin có thể thêm, sửa, xóa bản ghi điểm từ form riêng.
+
+### 11.7. Luồng AI phân tích dữ liệu
+#### AI cho sinh viên
+1. Sinh viên mở `StudentScorePanel`.
+2. Nhấn nút `Phân tích điểm (AI)`.
+3. `GroqService` gửi danh sách điểm hiện có lên Groq.
+4. Kết quả trả về hiển thị trong dialog dạng văn bản.
+
+#### AI cho giảng viên
+1. Giảng viên lọc dữ liệu trong `LecturerScorePanel`.
+2. Nhấn `Phân tích điểm`.
+3. `LecturerScoreAnalysisService` kiểm tra toàn bộ danh sách đã có điểm đầy đủ.
+4. Tạo snapshot thống kê và prompt phân tích.
+5. Gửi lên Groq.
+6. Hiển thị kết quả trong `AnalysisResultDialog`.
+
+## 12. Hướng dẫn sử dụng phần mềm
+### 12.1. Yêu cầu môi trường
+- Java 17.
+- Maven.
+- MySQL 8.
+- Kết nối Internet nếu muốn dùng chức năng AI Groq.
+
+### 12.2. Chạy SQL theo thứ tự
+Thứ tự khuyến nghị đã được chính project ghi trong `database/README.md`:
+
+1. `database/00_drop_old_database.sql`
+2. `database/01_create_schema.sql`
+3. `database/02_seed_full_data.sql`
+4. `database/03_verify_data.sql`
+
+Ghi chú:
+- File `00_drop_old_database.sql` là bước reset, có thể bỏ qua nếu không muốn xóa toàn bộ dữ liệu cũ.
+- Nếu chạy từ đầu cho môi trường mới thì nên chạy đủ `00 -> 03`.
+
+### 12.3. Cấu hình database ở đâu
+Chỉnh file:
+
+`src/main/resources/application.properties`
+
+Các khóa cấu hình quan trọng:
 
 ```properties
 db.url=jdbc:mysql://localhost:3306/student_management
 db.username=root
 db.password=123456
+app.name=Hệ Thống Quản Lý Sinh Viên
 jpa.persistence.unit=student-management-jpa
+jpa.hibernate.dialect=org.hibernate.dialect.MySQLDialect
 jpa.hibernate.ddl-auto=none
 jpa.show-sql=false
-student.persistence.mode=jpa
-groq.api.key=YOUR_GROQ_API_KEY
+groq.api.key=...
 ```
-
-### 6.3. Thứ tự setup database
-
-Chạy theo đúng thứ tự:
-
-1. `database/00_drop_old_database.sql` (tùy chọn nếu muốn reset sạch)
-2. `database/01_create_schema.sql`
-3. `database/02_seed_full_data.sql`
-4. `database/03_verify_data.sql`
-
-### 6.4. Tài khoản demo sau khi seed
-
-- Admin: `admin / 123456`
-- Giảng viên: `gv001 / 123456`, `gv002 / 123456`, `gv003 / 123456`
-- Sinh viên: `sv2200001 / 123456`, `sv2200002 / 123456`, ...
-
-### 6.5. Cách chạy project
-
-#### Cách đơn giản nhất
-
-- Mở project dưới dạng Maven project trong IDE.
-- Chờ IDE tải dependency.
-- Chạy file `Main.java`.
-
-#### Có thể build trước bằng Maven
-
-```bash
-mvn clean compile
-```
-
-Sau đó chạy `Main.java` trong IDE.
-
-### 6.6. Dependency cần thiết
-
-Theo `pom.xml`, project cần các dependency chính:
-
-- `hibernate-core`
-- `jakarta.persistence-api`
-- `mysql-connector-j`
-- `slf4j-simple`
-- `itextpdf`
-- `jcalendar`
 
 Ghi chú:
+- Nếu không dùng AI, hệ thống nghiệp vụ cốt lõi vẫn có thể chạy; riêng chức năng phân tích AI sẽ báo lỗi cấu hình khi gọi.
+- `groq.api.key` hiện đang được đặt trực tiếp trong file cấu hình. Đây là cách phù hợp cho demo/đồ án, nhưng chưa tốt cho môi trường production.
 
-- Thư mục `lib/` cũng đang chứa một số `.jar` tương ứng, nhưng nguồn quản lý chính vẫn là Maven.
+### 12.4. Chạy chương trình
+Cách bám sát project hiện tại nhất:
 
-## 7. Ưu Điểm
+1. Import project như một Maven project trong IDE.
+2. Bảo đảm MySQL đang chạy và database đã được tạo theo bộ SQL trên.
+3. Mở file `src/main/java/com/qlsv/Main.java`.
+4. Run `Main.java` như một Java Application.
 
-### 7.1. Về kiến trúc
+Ghi chú:
+- `pom.xml` hiện chưa cấu hình plugin chạy desktop app trực tiếp, nên cách thực tế nhất là chạy từ IDE.
+- `Main.java` sẽ dừng ở bước khởi động nếu không kết nối được DB hoặc schema chưa đúng.
 
-- Chia layer tương đối rõ: `view`, `controller`, `service`, `dao`, `model`.
-- Nghiệp vụ quan trọng nằm ở `service`, không nhét toàn bộ xuống UI.
-- Dùng `JpaBootstrap` để gom logic transaction/read/write khá gọn.
+### 12.5. Tài khoản admin để test
+Đã xác minh trực tiếp từ `database/02_seed_full_data.sql`:
 
-### 7.2. Về tách lớp dữ liệu
+- Admin: `admin` / `123456`
 
-- Dùng JPA/Hibernate thay vì viết toàn bộ SQL thủ công trong runtime.
-- Entity được map rõ ràng với bảng chính.
-- DAO sử dụng `JOIN FETCH` để giảm lỗi lazy loading khi đưa dữ liệu lên Swing.
+Ngoài ra seed còn có:
 
-### 7.3. Về nghiệp vụ
+- Giảng viên: `gv001`, `gv002`, `gv003` / `123456`
+- Sinh viên: `sv2200001` đến `sv2200006` / `123456`
 
-- Có kiểm tra quyền theo role.
-- Có validate dữ liệu ở service.
-- Có kiểm tra:
-  - trùng lịch phòng,
-  - trùng lịch giảng viên,
-  - trùng lịch sinh viên,
-  - trùng đăng ký môn/học phần,
-  - quá sĩ số tối đa.
+Khi thêm sinh viên hoặc giảng viên mới từ ứng dụng:
+- Nếu hệ thống tự tạo tài khoản login mới, mật khẩu mặc định cũng là `123456`.
 
-### 7.4. Về database
+## 13. Tài khoản test đã xác minh từ project
+### 13.1. Theo SQL seed
 
-- Có bộ script khá đầy đủ: tạo schema, seed data, verify data.
-- Có view hỗ trợ truy vấn tổng hợp.
-- Có trigger tự tạo/đồng bộ tài khoản user.
-- Có index cho các quan hệ truy vấn nhiều.
+| Vai trò | Tài khoản | Mật khẩu |
+|---|---|---|
+| Admin | `admin` | `123456` |
+| Giảng viên | `gv001`, `gv002`, `gv003` | `123456` |
+| Sinh viên | `sv2200001` đến `sv2200006` | `123456` |
 
-### 7.5. Về UI/UX
+### 13.2. Theo logic code
+- Mật khẩu mặc định được băm SHA-256 qua `PasswordHasher`.
+- Trigger SQL và service Java đều đang dùng cùng mật khẩu mặc định `123456` khi tự tạo user cho sinh viên/giảng viên.
 
-- Có theme Swing chung (`AppTheme`, `AppColors`, `SidebarMenu`, `DashboardCard`).
-- Dashboard riêng cho từng role.
-- Nhiều màn hình có dialog chi tiết, lọc dữ liệu, tìm kiếm, thống kê nhanh.
-- Có chức năng xuất PDF cho báo cáo và danh sách sinh viên.
+## 14. Đánh giá đồ án dưới góc độ đồ án cuối kì
+### 14.1. Ưu điểm
+- Có phạm vi nghiệp vụ khá đầy đủ cho một hệ thống quản lý đào tạo cơ bản.
+- Phân vai rõ ràng giữa Admin, Giảng viên và Sinh viên.
+- Cấu trúc phân lớp tương đối tốt, dễ đọc và dễ bảo trì.
+- Dùng JPA/Hibernate và JPQL thay vì viết toàn bộ SQL thủ công trong ứng dụng.
+- Có kiểm tra ràng buộc nghiệp vụ quan trọng: trùng lịch, trùng phòng, trùng đăng ký, vượt sĩ số, định dạng dữ liệu.
+- Có trigger SQL và service Java cùng hỗ trợ tự tạo tài khoản người dùng.
+- Có báo cáo và xuất PDF.
+- Có tích hợp AI thực tế, không chỉ dừng ở ý tưởng.
 
-## 8. Nhược Điểm / Rủi Ro
+### 14.2. Hạn chế
+- Chưa có test tự động.
+- Một số file tài liệu trong `docs/` mới ở mức tiêu đề.
+- Có vài thành phần mở rộng chưa nối vào luồng chính như `lecturer_subjects`, `LecturerAssignedSubjectsPanel`.
+- `application.properties` đang chứa thông tin kết nối DB và Groq API key trực tiếp.
+- Chưa thấy màn hình quản lý trực tiếp `users` và `roles`.
+- Có dependency `jcalendar` nhưng chưa thấy sử dụng trực tiếp trong source hiện tại.
+- Một số lớp vẫn mang dấu vết chuyển đổi từ mô hình cũ sang schema mới, ví dụ `CourseSection.room` và `scheduleText` đang là `@Transient` để tương thích.
 
-### 8.1. Chức năng chưa hoàn thiện đồng đều
+### 14.3. Mức độ hoàn thiện
+Xét theo phạm vi đồ án cuối kì, project đang ở mức khá hoàn thiện đối với các luồng nghiệp vụ cốt lõi:
 
-- `UserManagementPanel` đang rỗng.
-- `AssignmentManagementPanel` đang rỗng.
-- `RoleManagementPanel` chỉ là màn hình thông báo, chưa có CRUD thực tế.
-- `AssignmentDAO` mới là placeholder.
-- `LecturerAssignedSubjectsPanel` đang rỗng.
+- Có bộ dữ liệu seed và có thể đăng nhập thử ngay.
+- Có đầy đủ các luồng chính của quản lý đào tạo cơ bản.
+- Có cả phần quản trị, phần giảng viên và phần sinh viên.
+- Có phần AI đã chạy được về mặt kiến trúc tích hợp.
 
-=> Nghĩa là project có sẵn khung mở rộng, nhưng chưa hoàn thiện toàn bộ module.
+Tuy nhiên, để đạt mức hoàn thiện cao hơn theo tiêu chuẩn sản phẩm thực tế, project vẫn cần bổ sung test, tài liệu và cơ chế quản lý cấu hình an toàn hơn.
 
-### 8.2. Chưa đồng nhất hoàn toàn giữa schema và runtime
+### 14.4. Khả năng mở rộng
+- Bổ sung màn hình quản lý người dùng và vai trò.
+- Kích hoạt đầy đủ bảng `lecturer_subjects` để quản lý phân công dạy theo môn.
+- Bổ sung import/export Excel.
+- Thêm cảnh báo, thông báo lịch học, nhắc học vụ.
+- Tách cấu hình bí mật sang biến môi trường.
+- Thêm log hệ thống, audit thao tác và test tự động.
+- Có thể mở rộng từ desktop sang web/API vì tầng service/DAO đã tương đối tách lớp.
 
-- Bảng `lecturer_subjects` tồn tại trong SQL nhưng JPA runtime hiện chưa map/use đầy đủ.
-- Phân công giảng dạy thực tế đang bám chủ yếu vào `course_sections.lecturer_id`.
+### 14.5. Hướng phát triển
+- Bổ sung dashboard phân tích sâu hơn cho Admin.
+- Thêm xếp loại học lực, GPA, CPA, học vụ cảnh báo.
+- Thêm quản lý học phí, cố vấn học tập, lớp cố định theo học kỳ.
+- Tăng chất lượng AI bằng prompt chuẩn hóa, lưu lịch sử phân tích và cho phép phân tích theo từng môn/học kỳ.
+- Chuẩn hóa tài liệu thiết kế trong `docs/`.
 
-### 8.3. Phân quyền chưa động theo database
-
-- Bảng `roles` có trong DB.
-- Nhưng quyền thao tác hiện đang hard-code trong `RolePermission`.
-- Muốn đổi permission phải sửa code, chưa có quản trị quyền động theo DB.
-
-### 8.4. Bảo mật còn cơ bản
-
-- Mật khẩu mặc định seed là `123456`.
-- Mật khẩu được băm SHA-256 nhưng chưa có salt.
-- Thông tin DB đang để trực tiếp trong `application.properties`.
-
-### 8.5. Chưa có test tự động chuẩn
-
-- Không thấy thư mục `src/test`.
-- Chỉ có `StudentJpaMigrationVerifier` dạng smoke test thủ công cho một phần hệ thống.
-
-### 8.6. Rủi ro bảo trì
-
-- Project đang tồn tại song song:
-  - luồng JPA mới,
-  - `DBConnection` JDBC cũ để diagnostic.
-- Một số field `@Transient` trong `CourseSection` dùng cho tương thích UI cũ, dễ gây khó theo dõi nếu mở rộng tiếp.
-
-### 8.7. Hiển thị tiếng Việt trong source chưa sạch hoàn toàn
-
-- Trong nhiều file source đang xuất hiện dấu hiệu lỗi encoding ký tự tiếng Việt khi đọc raw text.
-- Dù logic vẫn rõ, nhưng phần hiển thị/chỉnh sửa source có thể khó bảo trì nếu không thống nhất UTF-8.
-
-## 9. Hướng Phát Triển
-
-### 9.1. Hoàn thiện module còn dở
-
-- Hoàn thiện `RoleManagementPanel`, `UserManagementPanel`, `AssignmentManagementPanel`.
-- Nếu cần quản lý phân công môn - giảng viên riêng, nên map đầy đủ bảng `lecturer_subjects`.
-
-### 9.2. Nâng cấp phân quyền
-
-- Đưa permission xuống database thay vì hard-code hoàn toàn trong `RolePermission`.
-- Cho phép admin cấu hình quyền theo role trên UI.
-
-### 9.3. Cải tiến bảo mật
-
-- Dùng password encoder mạnh hơn có salt.
-- Đưa cấu hình DB/API key sang biến môi trường hoặc file cấu hình tách riêng.
-- Bắt buộc đổi mật khẩu ở lần đăng nhập đầu tiên với tài khoản mặc định.
-
-### 9.4. Tối ưu kiểm thử và chất lượng mã nguồn
-
-- Bổ sung unit test/integration test cho service và DAO.
-- Thêm test cho luồng đăng ký học phần, xếp lịch, nhập điểm.
-- Tách rõ hơn logic UI và logic nghiệp vụ ở một số panel dài.
-
-### 9.5. Cải tiến UI/UX
-
-- Đồng bộ thêm các màn hình đang còn placeholder.
-- Bổ sung phân trang nếu dữ liệu lớn.
-- Tối ưu trải nghiệm lọc/tìm kiếm trên các bảng quản lý.
-
-### 9.6. Cải tiến database
-
-- Rà soát thêm index theo các truy vấn thực tế khi dữ liệu tăng.
-- Chuẩn hóa hơn phần phân công giảng dạy nếu muốn tách riêng khỏi `course_sections`.
-
-### 9.7. Mở rộng tính năng
-
-- Quản lý học phí.
-- Quản lý học kỳ/niên khóa độc lập.
-- Import/export Excel.
-- Gửi thông báo/email cho sinh viên, giảng viên.
-- Mở API hoặc web/mobile client nếu muốn tách frontend khỏi desktop app.
-
-## 10. Kết Luận
-
-Project đã xây dựng được một hệ thống quản lý sinh viên desktop khá đầy đủ cho 3 role chính, với bộ chức năng cốt lõi gồm quản lý danh mục, học phần, lịch học, đăng ký, điểm và báo cáo. Điểm mạnh lớn nhất là kiến trúc phân lớp rõ, có JPA/Hibernate, có script database đầy đủ và có kiểm tra nghiệp vụ tương đối chặt ở các luồng quan trọng.
-
-Tuy nhiên, project vẫn còn một số phần đang ở mức khung mở rộng hoặc chưa đồng bộ hoàn toàn giữa code và schema, đặc biệt là các module user/role/assignment. Nếu tiếp tục hoàn thiện các điểm này, đây sẽ là một đồ án có tính thực tiễn và khả năng mở rộng tốt hơn.
+## 15. Ghi chú xác minh và hiện trạng
+- Đã xác minh `Main.java` là entry point chính cho runtime desktop.
+- Đã xác minh project hiện chạy theo Java Swing + JPA/Hibernate + MySQL, không phải Spring Boot.
+- Đã xác minh có 3 vai trò thực sự đang dùng: Admin, Giảng viên, Sinh viên.
+- Đã xác minh có 13 bảng base, 2 view và 4 trigger trong schema hiện tại.
+- Đã xác minh có dữ liệu seed cho tài khoản demo.
+- Đã xác minh có tích hợp Groq AI ở cả luồng sinh viên và giảng viên.
+- Đã xác minh có xuất PDF ở màn hình báo cáo của Admin và danh sách sinh viên của Giảng viên.
+- Không thấy `src/test`, nên không thể khẳng định project đã có kiểm thử tự động.
+- Không thấy dữ liệu seed hoặc luồng nghiệp vụ trực tiếp cho `lecturer_subjects`; nhận định đây là phần nền tảng mở rộng là suy ra từ hiện trạng source và SQL.

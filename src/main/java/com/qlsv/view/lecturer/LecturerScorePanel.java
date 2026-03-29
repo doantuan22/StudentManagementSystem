@@ -3,13 +3,16 @@ package com.qlsv.view.lecturer;
 import com.qlsv.controller.CourseSectionController;
 import com.qlsv.controller.LecturerController;
 import com.qlsv.controller.ScoreController;
+import com.qlsv.exception.ValidationException;
 import com.qlsv.model.CourseSection;
 import com.qlsv.model.Lecturer;
 import com.qlsv.model.Score;
+import com.qlsv.service.LecturerScoreAnalysisService;
 import com.qlsv.utils.DialogUtil;
 import com.qlsv.utils.DisplayTextUtil;
 import com.qlsv.view.common.AppColors;
 import com.qlsv.view.common.BasePanel;
+import com.qlsv.view.dialog.AnalysisResultDialog;
 import com.qlsv.view.dialog.LecturerScoreDetailDialog;
 
 import javax.swing.BorderFactory;
@@ -18,6 +21,7 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.SwingWorker;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
@@ -38,6 +42,7 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.ExecutionException;
 
 public class LecturerScorePanel extends BasePanel {
 
@@ -55,6 +60,7 @@ public class LecturerScorePanel extends BasePanel {
     private final ScoreController scoreController = new ScoreController();
     private final LecturerController lecturerController = new LecturerController();
     private final CourseSectionController courseSectionController = new CourseSectionController();
+    private final LecturerScoreAnalysisService lecturerScoreAnalysisService = new LecturerScoreAnalysisService();
 
     private final DefaultTableModel scoreTableModel = new DefaultTableModel(SCORE_TABLE_COLUMNS, 0) {
         @Override
@@ -81,6 +87,7 @@ public class LecturerScorePanel extends BasePanel {
     private final Timer searchDebounceTimer;
     private JPanel editPanel;
     private LecturerScoreDetailDialog detailDialog;
+    private AnalysisResultDialog analysisDialog;
 
     private Score selectedScore;
     private Long currentCourseSectionId;
@@ -96,8 +103,10 @@ public class LecturerScorePanel extends BasePanel {
 
         JButton filterButton = new JButton("Lọc");
         JButton reloadButton = new JButton("Tải lại");
+        JButton analyzeButton = new JButton("Phân tích điểm");
         styleSecondaryButton(filterButton);
         styleSecondaryButton(reloadButton);
+        stylePrimaryButton(analyzeButton);
         styleSaveButton(saveButton);
         saveButton.setEnabled(false);
 
@@ -106,6 +115,7 @@ public class LecturerScorePanel extends BasePanel {
             applyFilters(getSelectedEnrollmentId());
         });
         reloadButton.addActionListener(event -> reloadData());
+        analyzeButton.addActionListener(event -> handleAnalyzeScores(analyzeButton));
         saveButton.addActionListener(event -> handleSaveScore());
 
         searchField.setToolTipText("Tìm theo mã sinh viên hoặc họ tên trong danh sách đang lọc.");
@@ -170,6 +180,7 @@ public class LecturerScorePanel extends BasePanel {
         JPanel actionPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 4));
         actionPanel.setOpaque(false);
         actionPanel.add(reloadButton);
+        actionPanel.add(analyzeButton);
 
         JPanel headerPanel = createSectionCard(new BorderLayout(12, 8));
         JLabel titleLabel = new JLabel("Nhập điểm sinh viên");
@@ -248,6 +259,7 @@ public class LecturerScorePanel extends BasePanel {
     @Override
     public void removeNotify() {
         disposeDetailDialog();
+        disposeAnalysisDialog();
         super.removeNotify();
     }
 
@@ -354,6 +366,17 @@ public class LecturerScorePanel extends BasePanel {
         button.setForeground(AppColors.BUTTON_TEXT);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         button.setBorder(BorderFactory.createEmptyBorder(8, 14, 8, 14));
+    }
+
+    private void stylePrimaryButton(JButton button) {
+        button.setFocusPainted(false);
+        button.setBorderPainted(false);
+        button.setOpaque(true);
+        button.setBackground(AppColors.BUTTON_PRIMARY);
+        button.setForeground(AppColors.BUTTON_TEXT);
+        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        button.setBorder(BorderFactory.createEmptyBorder(8, 14, 8, 14));
+        button.setFont(button.getFont().deriveFont(Font.BOLD));
     }
 
     private void styleSaveButton(JButton button) {
@@ -469,6 +492,117 @@ public class LecturerScorePanel extends BasePanel {
             detailDialog.dispose();
             detailDialog = null;
         }
+    }
+
+    private void disposeAnalysisDialog() {
+        if (analysisDialog != null) {
+            analysisDialog.dispose();
+            analysisDialog = null;
+        }
+    }
+
+    private void handleAnalyzeScores(JButton analyzeButton) {
+        LecturerScoreAnalysisService.LecturerScoreAnalysisSnapshot snapshot;
+        try {
+            snapshot = lecturerScoreAnalysisService.prepareSnapshot(filteredScores, buildAnalysisFilterLabel());
+        } catch (ValidationException exception) {
+            DialogUtil.showInfo(this, exception.getMessage());
+            return;
+        } catch (Exception exception) {
+            DialogUtil.showError(this, exception.getMessage());
+            return;
+        }
+
+        analyzeButton.setEnabled(false);
+        String originalText = analyzeButton.getText();
+        analyzeButton.setText("Đang phân tích...");
+
+        LecturerScoreAnalysisService.LecturerScoreAnalysisSnapshot immutableSnapshot = snapshot;
+        new SwingWorker<String, Void>() {
+            @Override
+            protected String doInBackground() {
+                return lecturerScoreAnalysisService.analyzeSnapshot(immutableSnapshot);
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    showAnalysisDialog(immutableSnapshot, get());
+                } catch (InterruptedException exception) {
+                    Thread.currentThread().interrupt();
+                    DialogUtil.showError(LecturerScorePanel.this, "Đã gián đoạn quá trình phân tích điểm.");
+                } catch (ExecutionException exception) {
+                    DialogUtil.showError(LecturerScorePanel.this, resolveAsyncErrorMessage(exception));
+                } finally {
+                    analyzeButton.setEnabled(true);
+                    analyzeButton.setText(originalText);
+                }
+            }
+        }.execute();
+    }
+
+    private void showAnalysisDialog(
+            LecturerScoreAnalysisService.LecturerScoreAnalysisSnapshot snapshot,
+            String analysisText
+    ) {
+        if (analysisDialog == null) {
+            analysisDialog = new AnalysisResultDialog(snapshot.dialogTitle());
+        }
+        analysisDialog.setDialogTitle(snapshot.dialogTitle());
+        analysisDialog.setAnalysisText(buildAnalysisDialogContent(snapshot, analysisText));
+        analysisDialog.openDialog();
+    }
+
+    private String buildAnalysisDialogContent(
+            LecturerScoreAnalysisService.LecturerScoreAnalysisSnapshot snapshot,
+            String analysisText
+    ) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("Phạm vi bộ lọc: ")
+                .append(snapshot.filterLabel().isBlank() ? "Danh sách đang hiển thị" : snapshot.filterLabel())
+                .append('\n');
+        builder.append("Số lượng sinh viên: ").append(snapshot.studentCount()).append('\n');
+        builder.append(String.format(
+                Locale.US,
+                "Điểm trung bình: %.2f | Đạt: %d | Chưa đạt: %d | Thấp nhất: %.2f | Cao nhất: %.2f%n%n",
+                snapshot.averageScore(),
+                snapshot.passCount(),
+                snapshot.failCount(),
+                snapshot.minScore(),
+                snapshot.maxScore()
+        ));
+        builder.append(analysisText == null ? "" : analysisText.trim());
+        return builder.toString();
+    }
+
+    private String buildAnalysisFilterLabel() {
+        String courseLabel = resolveCurrentCourseLabel();
+        if (currentKeyword.isBlank()) {
+            return courseLabel;
+        }
+        return courseLabel + " | Từ khóa: " + currentKeyword;
+    }
+
+    private String resolveCurrentCourseLabel() {
+        if (currentCourseSectionId == null) {
+            return "Tất cả học phần đang hiển thị";
+        }
+
+        for (int index = 0; index < courseComboBox.getItemCount(); index++) {
+            Object item = courseComboBox.getItemAt(index);
+            if (item instanceof CourseSection section && currentCourseSectionId.equals(section.getId())) {
+                return "Học phần " + DisplayTextUtil.defaultText(section.getSectionCode());
+            }
+        }
+        return "Học phần đang hiển thị";
+    }
+
+    private String resolveAsyncErrorMessage(ExecutionException exception) {
+        Throwable cause = exception.getCause();
+        if (cause != null && cause.getMessage() != null && !cause.getMessage().isBlank()) {
+            return cause.getMessage();
+        }
+        return "Không thể phân tích dữ liệu điểm ở thời điểm hiện tại.";
     }
 
     private void loadCourseSections() {

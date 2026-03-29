@@ -60,11 +60,6 @@ public class EnrollmentService {
         return enrollmentDAO.findByFacultyId(facultyId);
     }
 
-    public List<Enrollment> findByStudentId(Long studentId) {
-        permissionService.requirePermission(RolePermission.MANAGE_ENROLLMENTS);
-        return enrollmentDAO.findByStudentId(studentId);
-    }
-
     public Enrollment save(Enrollment enrollment) {
         permissionService.requirePermission(RolePermission.MANAGE_ENROLLMENTS);
         return JpaBootstrap.executeInTransaction(

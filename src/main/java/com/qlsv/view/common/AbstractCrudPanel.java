@@ -16,6 +16,7 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
+import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableModel;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
@@ -53,6 +54,10 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
     private BaseDetailDialog detailDialog;
     private List<T> allItems = new ArrayList<>();
     private List<T> currentItems = new ArrayList<>();
+    private SwingWorker<?, ?> activeWorker;
+    private static final String LOADING_CARD = "loading";
+    private static final String DATA_CARD = "table";
+    private static final String EMPTY_CARD = "empty";
 
     /**
      * Khởi tạo abstract crud.
@@ -161,8 +166,9 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
 
         tableCardPanel.setOpaque(false);
         mainContentPanel.setOpaque(false);
-        tableCardPanel.add(tableScrollPane, "table");
-        tableCardPanel.add(emptyStatePanel, "empty");
+        tableCardPanel.add(tableScrollPane, DATA_CARD);
+        tableCardPanel.add(emptyStatePanel, EMPTY_CARD);
+        tableCardPanel.add(createLoadingPanel(), LOADING_CARD);
         mainContentPanel.add(tableCardPanel, BorderLayout.CENTER);
         add(mainContentPanel, BorderLayout.CENTER);
 
@@ -360,15 +366,34 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
     }
 
     /**
-     * Làm mới dữ liệu bảng bằng cách tải lại từ nguồn dữ liệu (service/dao).
+     * Làm mới dữ liệu bảng bằng cách tải lại từ nguồn dữ liệu (service/dao) bất đồng bộ.
      */
     protected final void refreshData() {
-        try {
-            allItems = new ArrayList<>(loadItems());
-            applySearch();
-        } catch (Exception exception) {
-            DialogUtil.showError(this, exception.getMessage());
+        if (activeWorker != null && !activeWorker.isDone()) {
+            activeWorker.cancel(true);
         }
+
+        setLoadingState(true);
+        activeWorker = new SwingWorker<List<T>, Void>() {
+            @Override
+            protected List<T> doInBackground() {
+                return loadItems();
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    if (isCancelled()) return;
+                    allItems = new ArrayList<>(get());
+                    applySearch();
+                } catch (Exception exception) {
+                    DialogUtil.showError(AbstractCrudPanel.this, "Lỗi tải dữ liệu: " + exception.getMessage());
+                } finally {
+                    setLoadingState(false);
+                }
+            }
+        };
+        activeWorker.execute();
     }
 
     /**
@@ -432,13 +457,37 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
         try {
             T item = promptForEntity(null);
             if (item != null) {
-                saveEntity(item);
-                refreshData();
-                DialogUtil.showInfo(this, "Lưu dữ liệu thành công.");
+                performSaveAsync(item, "Lưu dữ liệu thành công.");
             }
         } catch (Exception exception) {
             DialogUtil.showError(this, exception.getMessage());
         }
+    }
+
+    /**
+     * Thực hiện lưu entity bất đồng bộ.
+     */
+    private void performSaveAsync(T item, String successMessage) {
+        setLoadingState(true);
+        new SwingWorker<Void, Void>() {
+            @Override
+            protected Void doInBackground() {
+                saveEntity(item);
+                return null;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    get();
+                    DialogUtil.showInfo(AbstractCrudPanel.this, successMessage);
+                    refreshData();
+                } catch (Exception exception) {
+                    DialogUtil.showError(AbstractCrudPanel.this, "Lỗi lưu dữ liệu: " + exception.getMessage());
+                    setLoadingState(false);
+                }
+            }
+        }.execute();
     }
 
     /**
@@ -453,9 +502,7 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
         try {
             T item = promptForEntity(selectedItem);
             if (item != null) {
-                saveEntity(item);
-                refreshData();
-                DialogUtil.showInfo(this, "Cập nhật dữ liệu thành công.");
+                performSaveAsync(item, "Cập nhật dữ liệu thành công.");
             }
         } catch (Exception exception) {
             DialogUtil.showError(this, exception.getMessage());
@@ -474,13 +521,26 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
         if (!DialogUtil.confirm(this, "Bạn có chắc chắn muốn xóa bản ghi này không?")) {
             return;
         }
-        try {
-            deleteEntity(selectedItem);
-            refreshData();
-            DialogUtil.showInfo(this, "Xóa dữ liệu thành công.");
-        } catch (Exception exception) {
-            DialogUtil.showError(this, exception.getMessage());
-        }
+        setLoadingState(true);
+        new SwingWorker<Void, Void>() {
+            @Override
+            protected Void doInBackground() {
+                deleteEntity(selectedItem);
+                return null;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    get();
+                    DialogUtil.showInfo(AbstractCrudPanel.this, "Xóa dữ liệu thành công.");
+                    refreshData();
+                } catch (Exception exception) {
+                    DialogUtil.showError(AbstractCrudPanel.this, "Lỗi xóa dữ liệu: " + exception.getMessage());
+                    setLoadingState(false);
+                }
+            }
+        }.execute();
     }
 
     /**
@@ -577,6 +637,38 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
                 styleNestedButtons(child);
             }
         }
+    }
+
+    /**
+     * Cập nhật trạng thái loading.
+     */
+    protected void setLoadingState(boolean loading) {
+        addButton.setEnabled(!loading);
+        editButton.setEnabled(!loading);
+        deleteButton.setEnabled(!loading);
+        reloadButton.setEnabled(!loading);
+        searchField.setEnabled(!loading);
+        table.setEnabled(!loading);
+
+        if (loading) {
+            tableCardLayout.show(tableCardPanel, LOADING_CARD);
+            setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+        } else {
+            setCursor(Cursor.getDefaultCursor());
+        }
+    }
+
+    /**
+     * Tạo panel loading.
+     */
+    private JPanel createLoadingPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setOpaque(false);
+        JLabel loadingLabel = new JLabel("Đang xử lý, vui lòng đợi...", SwingConstants.CENTER);
+        loadingLabel.setForeground(AppColors.CARD_MUTED_TEXT);
+        loadingLabel.setFont(loadingLabel.getFont().deriveFont(Font.ITALIC));
+        panel.add(loadingLabel, BorderLayout.CENTER);
+        return panel;
     }
 
     private static final class ResponsiveTable extends JTable {

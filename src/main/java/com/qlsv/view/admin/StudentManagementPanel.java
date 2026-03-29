@@ -359,33 +359,59 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
     }
 
     /**
-     * Tải lại các giá trị cho ô chọn điều kiện lọc (danh sách khoa, lớp, niên khóa).
+     * Tải lại các giá trị cho ô chọn điều kiện lọc (danh sách khoa, lớp, niên khóa) bất đồng bộ.
      */
     private void reloadFilterValues() {
         String filterType = (String) filterTypeComboBox.getSelectedItem();
         filterReady = FILTER_ALL.equals(filterType);
         filterValueComboBox.removeAllItems();
-        boolean requiresValue = FILTER_FACULTY.equals(filterType)
-                || FILTER_CLASS_ROOM.equals(filterType)
-                || FILTER_ACADEMIC_YEAR.equals(filterType);
-        filterValueComboBox.setEnabled(requiresValue);
 
-        if (FILTER_FACULTY.equals(filterType)) {
-            filterValueComboBox.addItem(new FilterOption<>("Chọn khoa", null));
-            for (Faculty faculty : screenController.loadFaculties()) {
-                filterValueComboBox.addItem(new FilterOption<>(faculty.getFacultyCode() + " - " + faculty.getFacultyName(), faculty));
-            }
-        } else if (FILTER_CLASS_ROOM.equals(filterType)) {
-            filterValueComboBox.addItem(new FilterOption<>("Chọn lớp", null));
-            for (ClassRoom classRoom : screenController.loadClassRooms()) {
-                filterValueComboBox.addItem(new FilterOption<>(classRoom.getClassCode() + " - " + classRoom.getClassName(), classRoom));
-            }
-        } else if (FILTER_ACADEMIC_YEAR.equals(filterType)) {
-            filterValueComboBox.addItem(new FilterOption<>("Chọn niên khóa", null));
-            for (String academicYear : screenController.loadAcademicYears()) {
-                filterValueComboBox.addItem(new FilterOption<>(academicYear, academicYear));
-            }
+        if (FILTER_NONE.equals(filterType) || FILTER_ALL.equals(filterType)) {
+            filterValueComboBox.setEnabled(false);
+            return;
         }
+
+        setLoadingState(true);
+        new javax.swing.SwingWorker<List<?>, Void>() {
+            @Override
+            protected List<?> doInBackground() {
+                if (FILTER_FACULTY.equals(filterType)) return screenController.loadFaculties();
+                if (FILTER_CLASS_ROOM.equals(filterType)) return screenController.loadClassRooms();
+                if (FILTER_ACADEMIC_YEAR.equals(filterType)) return screenController.loadAcademicYears();
+                return List.of();
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    List<?> results = get();
+                    filterValueComboBox.setEnabled(true);
+                    if (FILTER_FACULTY.equals(filterType)) {
+                        filterValueComboBox.addItem(new FilterOption<>("Chọn khoa", null));
+                        for (Object obj : results) {
+                            Faculty faculty = (Faculty) obj;
+                            filterValueComboBox.addItem(new FilterOption<>(faculty.getFacultyCode() + " - " + faculty.getFacultyName(), faculty));
+                        }
+                    } else if (FILTER_CLASS_ROOM.equals(filterType)) {
+                        filterValueComboBox.addItem(new FilterOption<>("Chọn lớp", null));
+                        for (Object obj : results) {
+                            ClassRoom classRoom = (ClassRoom) obj;
+                            filterValueComboBox.addItem(new FilterOption<>(classRoom.getClassCode() + " - " + classRoom.getClassName(), classRoom));
+                        }
+                    } else if (FILTER_ACADEMIC_YEAR.equals(filterType)) {
+                        filterValueComboBox.addItem(new FilterOption<>("Chọn niên khóa", null));
+                        for (Object obj : results) {
+                            String academicYear = (String) obj;
+                            filterValueComboBox.addItem(new FilterOption<>(academicYear, academicYear));
+                        }
+                    }
+                } catch (Exception exception) {
+                    DialogUtil.showError(StudentManagementPanel.this, "Lỗi khi tải danh mục: " + exception.getMessage());
+                } finally {
+                    setLoadingState(false);
+                }
+            }
+        }.execute();
     }
 
     /**

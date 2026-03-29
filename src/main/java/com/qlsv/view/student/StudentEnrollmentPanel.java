@@ -26,10 +26,13 @@ import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
 import java.awt.BorderLayout;
+import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
@@ -45,6 +48,8 @@ public class StudentEnrollmentPanel extends BasePanel {
 
     private static final String ALL_SEMESTERS = "Tất cả học kỳ";
     private static final int CONTROL_GAP = 8;
+    private static final String DATA_CARD = "data";
+    private static final String LOADING_CARD = "loading";
 
     private final StudentEnrollmentScreenController screenController = new StudentEnrollmentScreenController();
 
@@ -58,9 +63,6 @@ public class StudentEnrollmentPanel extends BasePanel {
 
     private final DefaultTableModel courseSectionTableModel = new DefaultTableModel(
             new String[]{"ID", "Học phần", "Môn học", "Tín chỉ", "Sĩ số", "Giảng viên", "Học kỳ", "Năm học", "Lịch"}, 0) {
-        /**
-         * Xác định ô có cho phép chỉnh sửa hay không.
-         */
         @Override
         public boolean isCellEditable(int row, int column) {
             return false;
@@ -69,9 +71,6 @@ public class StudentEnrollmentPanel extends BasePanel {
 
     private final DefaultTableModel enrollmentTableModel = new DefaultTableModel(
             new String[]{"ID", "Học phần", "Môn học", "Giảng viên", "Học kỳ", "Năm học", "Trạng thái", "Đăng ký lúc"}, 0) {
-        /**
-         * Xác định ô có cho phép chỉnh sửa hay không.
-         */
         @Override
         public boolean isCellEditable(int row, int column) {
             return false;
@@ -80,6 +79,14 @@ public class StudentEnrollmentPanel extends BasePanel {
 
     private final JTable courseSectionTable = new JTable(courseSectionTableModel);
     private final JTable enrollmentTable = new JTable(enrollmentTableModel);
+
+    private final JButton filterButton = new JButton("Tìm kiếm");
+    private final JButton reloadButton = new JButton("Tải lại");
+    private final JButton registerButton = new JButton("Đăng ký học phần");
+    private final JButton cancelButton = new JButton("Hủy đăng ký");
+    private final JPanel mainContentWrapper = new JPanel(new CardLayout());
+    private CardLayout cardLayout;
+    private SwingWorker<?, ?> activeWorker;
 
     /**
      * Khởi tạo sinh viên đăng ký.
@@ -108,11 +115,6 @@ public class StudentEnrollmentPanel extends BasePanel {
         titlePanel.add(titleLabel);
         titlePanel.add(Box.createVerticalStrut(6));
         titlePanel.add(subtitleLabel);
-
-        JButton filterButton = new JButton("Tìm kiếm");
-        JButton reloadButton = new JButton("Tải lại");
-        JButton registerButton = new JButton("Đăng ký học phần");
-        JButton cancelButton = new JButton("Hủy đăng ký");
 
         styleTextField(searchField, 280);
         searchField.setMinimumSize(new Dimension(220, 38));
@@ -210,19 +212,24 @@ public class StudentEnrollmentPanel extends BasePanel {
         splitPane.setOneTouchExpandable(true);
         splitPane.setDividerSize(10);
 
+        cardLayout = (CardLayout) mainContentWrapper.getLayout();
+        mainContentWrapper.setOpaque(false);
+        mainContentWrapper.add(splitPane, DATA_CARD);
+        mainContentWrapper.add(createLoadingPanel(), LOADING_CARD);
+
         JPanel headerPanel = new JPanel(new BorderLayout(0, 12));
         headerPanel.setOpaque(false);
         headerPanel.add(titlePanel, BorderLayout.NORTH);
         headerPanel.add(controlCard, BorderLayout.CENTER);
 
         add(headerPanel, BorderLayout.NORTH);
-        add(splitPane, BorderLayout.CENTER);
+        add(mainContentWrapper, BorderLayout.CENTER);
 
         SwingUtilities.invokeLater(() -> splitPane.setDividerLocation(0.58));
     }
 
     /**
-     * Đăng ký học phần đã chọn.
+     * Đăng ký học phần đã chọn bất đồng bộ.
      */
     private void registerSelectedCourseSection() {
         int selectedRow = courseSectionTable.getSelectedRow();
@@ -230,17 +237,32 @@ public class StudentEnrollmentPanel extends BasePanel {
             DialogUtil.showError(this, "Hãy chọn một học phần trong danh sách để đăng ký.");
             return;
         }
-        try {
-            screenController.registerCourseSection(displayedCourseSections.get(selectedRow));
-            DialogUtil.showInfo(this, "Đăng ký học phần thành công.");
-            reloadData();
-        } catch (Exception exception) {
-            DialogUtil.showError(this, exception.getMessage());
-        }
+
+        CourseSection section = displayedCourseSections.get(selectedRow);
+        setLoadingState(true);
+        new SwingWorker<Void, Void>() {
+            @Override
+            protected Void doInBackground() {
+                screenController.registerCourseSection(section);
+                return null;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    get();
+                    DialogUtil.showInfo(StudentEnrollmentPanel.this, "Đăng ký học phần thành công.");
+                    reloadData();
+                } catch (Exception exception) {
+                    DialogUtil.showError(StudentEnrollmentPanel.this, "Lỗi đăng ký: " + exception.getMessage());
+                    setLoadingState(false);
+                }
+            }
+        }.execute();
     }
 
     /**
-     * Kiểm tra khả năng cel đã chọn đăng ký.
+     * Hủy đăng ký học phần đã chọn bất đồng bộ.
      */
     private void cancelSelectedEnrollment() {
         int selectedRow = enrollmentTable.getSelectedRow();
@@ -248,47 +270,84 @@ public class StudentEnrollmentPanel extends BasePanel {
             DialogUtil.showError(this, "Hãy chọn học phần đã đăng ký cần hủy.");
             return;
         }
-        try {
-            screenController.cancelEnrollment(currentEnrollments.get(selectedRow));
-            DialogUtil.showInfo(this, "Hủy đăng ký học phần thành công.");
-            reloadData();
-        } catch (Exception exception) {
-            DialogUtil.showError(this, exception.getMessage());
+
+        Enrollment enrollment = currentEnrollments.get(selectedRow);
+        if (!DialogUtil.confirm(this, "Bạn có chắc chắn muốn hủy đăng ký học phần này?")) {
+            return;
         }
+
+        setLoadingState(true);
+        new SwingWorker<Void, Void>() {
+            @Override
+            protected Void doInBackground() {
+                screenController.cancelEnrollment(enrollment);
+                return null;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    get();
+                    DialogUtil.showInfo(StudentEnrollmentPanel.this, "Hủy đăng ký học phần thành công.");
+                    reloadData();
+                } catch (Exception exception) {
+                    DialogUtil.showError(StudentEnrollmentPanel.this, "Lỗi hủy đăng ký: " + exception.getMessage());
+                    setLoadingState(false);
+                }
+            }
+        }.execute();
     }
 
     /**
-     * Làm mới dữ liệu đang hiển thị.
+     * Làm mới dữ liệu đang hiển thị bất đồng bộ.
      */
     @Override
     public void reloadData() {
-        try {
-            StudentEnrollmentDataDto data = screenController.loadData(
-                    searchField.getText(),
-                    semesterFilterComboBox.getSelectedItem() == null ? ALL_SEMESTERS : semesterFilterComboBox.getSelectedItem().toString()
-            );
-
-            syncSemesterOptions(data.semesterOptions());
-            displayedCourseSections.clear();
-            displayedCourseSections.addAll(data.displayedCourseSections());
-            currentEnrollments.clear();
-            currentEnrollments.addAll(data.currentEnrollments());
-
-            refillCourseTable(data.availableCourseRows());
-            refillEnrollmentTable(data.enrollmentRows());
-            availableSummaryLabel.setText(data.availableSummary());
-            registeredSummaryLabel.setText(data.registeredSummary());
-
-            hideColumn(courseSectionTable, 0);
-            hideColumn(enrollmentTable, 0);
-        } catch (Exception exception) {
-            DialogUtil.showError(this, exception.getMessage());
+        if (activeWorker != null && !activeWorker.isDone()) {
+            activeWorker.cancel(true);
         }
+
+        String search = searchField.getText();
+        String semester = semesterFilterComboBox.getSelectedItem() == null ? ALL_SEMESTERS : semesterFilterComboBox.getSelectedItem().toString();
+
+        setLoadingState(true);
+        activeWorker = new SwingWorker<StudentEnrollmentDataDto, Void>() {
+            @Override
+            protected StudentEnrollmentDataDto doInBackground() {
+                return screenController.loadData(search, semester);
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    if (isCancelled()) return;
+                    StudentEnrollmentDataDto data = get();
+
+                    syncSemesterOptions(data.semesterOptions());
+                    displayedCourseSections.clear();
+                    displayedCourseSections.addAll(data.displayedCourseSections());
+                    currentEnrollments.clear();
+                    currentEnrollments.addAll(data.currentEnrollments());
+
+                    refillCourseTable(data.availableCourseRows());
+                    refillEnrollmentTable(data.enrollmentRows());
+                    availableSummaryLabel.setText(data.availableSummary());
+                    registeredSummaryLabel.setText(data.registeredSummary());
+
+                    hideColumn(courseSectionTable, 0);
+                    hideColumn(enrollmentTable, 0);
+                } catch (Exception exception) {
+                    DialogUtil.showError(StudentEnrollmentPanel.this, "Lỗi tải dữ liệu: " + exception.getMessage());
+                    availableSummaryLabel.setText("Lỗi khi tải dữ liệu.");
+                    registeredSummaryLabel.setText("Lỗi khi tải dữ liệu.");
+                } finally {
+                    setLoadingState(false);
+                }
+            }
+        };
+        activeWorker.execute();
     }
 
-    /**
-     * Đồng bộ học kỳ options.
-     */
     private void syncSemesterOptions(List<String> semesterOptions) {
         Object selected = semesterFilterComboBox.getSelectedItem();
         semesterFilterComboBox.removeAllItems();
@@ -301,48 +360,26 @@ public class StudentEnrollmentPanel extends BasePanel {
         semesterFilterComboBox.setSelectedItem(exists ? preferred : ALL_SEMESTERS);
     }
 
-    /**
-     * Xử lý bảng refill khóa học.
-     */
     private void refillCourseTable(List<CourseSectionDisplayDto> rows) {
         courseSectionTableModel.setRowCount(0);
         for (CourseSectionDisplayDto row : rows) {
             courseSectionTableModel.addRow(new Object[]{
-                    row.id(),
-                    row.sectionCode(),
-                    row.subjectName(),
-                    row.credits(),
-                    row.slotsText(),
-                    row.lecturerName(),
-                    row.semester(),
-                    row.schoolYear(),
-                    row.scheduleText()
+                    row.id(), row.sectionCode(), row.subjectName(), row.credits(),
+                    row.slotsText(), row.lecturerName(), row.semester(), row.schoolYear(), row.scheduleText()
             });
         }
     }
 
-    /**
-     * Xử lý bảng refill đăng ký.
-     */
     private void refillEnrollmentTable(List<EnrollmentDisplayDto> rows) {
         enrollmentTableModel.setRowCount(0);
         for (EnrollmentDisplayDto row : rows) {
             enrollmentTableModel.addRow(new Object[]{
-                    row.id(),
-                    row.sectionCode(),
-                    row.subjectName(),
-                    row.lecturerName(),
-                    row.semester(),
-                    row.schoolYear(),
-                    row.statusText(),
-                    row.enrolledAtText()
+                    row.id(), row.sectionCode(), row.subjectName(), row.lecturerName(),
+                    row.semester(), row.schoolYear(), row.statusText(), row.enrolledAtText()
             });
         }
     }
 
-    /**
-     * Tạo label caption.
-     */
     private JLabel createCaptionLabel(String text) {
         JLabel label = new JLabel(text);
         label.setForeground(AppColors.CARD_TITLE_TEXT);
@@ -350,9 +387,6 @@ public class StudentEnrollmentPanel extends BasePanel {
         return label;
     }
 
-    /**
-     * Tạo card surface.
-     */
     private JPanel createSurfaceCard(BorderLayout layout) {
         JPanel panel = new JPanel(layout);
         panel.setOpaque(true);
@@ -364,12 +398,8 @@ public class StudentEnrollmentPanel extends BasePanel {
         return panel;
     }
 
-    /**
-     * Tạo panel phần.
-     */
     private JPanel createSectionPanel(String title, String description, JLabel summaryLabel, JComponent content) {
         JPanel panel = createSurfaceCard(new BorderLayout(0, 12));
-
         summaryLabel.setForeground(AppColors.CARD_MUTED_TEXT);
         summaryLabel.setFont(summaryLabel.getFont().deriveFont(Font.PLAIN, 12.5f));
         summaryLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -378,19 +408,19 @@ public class StudentEnrollmentPanel extends BasePanel {
         headingPanel.setOpaque(false);
         headingPanel.setLayout(new BoxLayout(headingPanel, BoxLayout.Y_AXIS));
 
-        JLabel titleLabel = new JLabel(title);
-        titleLabel.setForeground(AppColors.CARD_TITLE_TEXT);
-        titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 16f));
-        titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JLabel titleLbl = new JLabel(title);
+        titleLbl.setForeground(AppColors.CARD_TITLE_TEXT);
+        titleLbl.setFont(titleLbl.getFont().deriveFont(Font.BOLD, 16f));
+        titleLbl.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel descriptionLabel = new JLabel(description);
-        descriptionLabel.setForeground(AppColors.CARD_MUTED_TEXT);
-        descriptionLabel.setFont(descriptionLabel.getFont().deriveFont(Font.PLAIN, 12.5f));
-        descriptionLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JLabel descLbl = new JLabel(description);
+        descLbl.setForeground(AppColors.CARD_MUTED_TEXT);
+        descLbl.setFont(descLbl.getFont().deriveFont(Font.PLAIN, 12.5f));
+        descLbl.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        headingPanel.add(titleLabel);
+        headingPanel.add(titleLbl);
         headingPanel.add(Box.createVerticalStrut(4));
-        headingPanel.add(descriptionLabel);
+        headingPanel.add(descLbl);
         headingPanel.add(Box.createVerticalStrut(6));
         headingPanel.add(summaryLabel);
 
@@ -399,24 +429,14 @@ public class StudentEnrollmentPanel extends BasePanel {
         return panel;
     }
 
-    /**
-     * Tạo bảng scroll pane.
-     */
     private JScrollPane createTableScrollPane(JTable table) {
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(BorderFactory.createLineBorder(AppColors.CARD_BORDER));
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         scrollPane.getViewport().setBackground(AppColors.CARD_BACKGROUND);
-        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
-        scrollPane.getHorizontalScrollBar().setUnitIncrement(16);
         scrollPane.setMinimumSize(new Dimension(0, 180));
         return scrollPane;
     }
 
-    /**
-     * Thiết lập bảng.
-     */
     private void configureTable(JTable table) {
         table.setRowHeight(34);
         table.setFillsViewportHeight(true);
@@ -424,7 +444,6 @@ public class StudentEnrollmentPanel extends BasePanel {
         table.setBackground(Color.WHITE);
         table.setSelectionBackground(AppColors.TABLE_SELECTION_BACKGROUND);
         table.setSelectionForeground(AppColors.CARD_VALUE_TEXT);
-        table.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
         table.getTableHeader().setReorderingAllowed(false);
         table.getTableHeader().setBackground(AppColors.TABLE_HEADER_BACKGROUND);
         table.getTableHeader().setForeground(AppColors.CARD_VALUE_TEXT);
@@ -432,71 +451,79 @@ public class StudentEnrollmentPanel extends BasePanel {
         table.getTableHeader().setPreferredSize(new Dimension(0, 32));
     }
 
-    /**
-     * Thiết lập học phần columns.
-     */
     private void configureCourseSectionColumns() {
         TableColumnModel columnModel = courseSectionTable.getColumnModel();
         int[] widths = {70, 130, 250, 80, 100, 180, 110, 110, 240};
-        for (int index = 0; index < widths.length && index < columnModel.getColumnCount(); index++) {
-            columnModel.getColumn(index).setPreferredWidth(widths[index]);
+        for (int i = 0; i < widths.length && i < columnModel.getColumnCount(); i++) {
+            columnModel.getColumn(i).setPreferredWidth(widths[i]);
         }
     }
 
-    /**
-     * Thiết lập đăng ký columns.
-     */
     private void configureEnrollmentColumns() {
         TableColumnModel columnModel = enrollmentTable.getColumnModel();
         int[] widths = {70, 130, 260, 180, 100, 100, 130, 170};
-        for (int index = 0; index < widths.length && index < columnModel.getColumnCount(); index++) {
-            columnModel.getColumn(index).setPreferredWidth(widths[index]);
+        for (int i = 0; i < widths.length && i < columnModel.getColumnCount(); i++) {
+            columnModel.getColumn(i).setPreferredWidth(widths[i]);
         }
     }
 
-    /**
-     * Ẩn column.
-     */
-    private void hideColumn(JTable table, int columnIndex) {
-        if (table.getColumnModel().getColumnCount() <= columnIndex) {
-            return;
-        }
-        table.getColumnModel().getColumn(columnIndex).setMinWidth(0);
-        table.getColumnModel().getColumn(columnIndex).setMaxWidth(0);
-        table.getColumnModel().getColumn(columnIndex).setPreferredWidth(0);
+    private void hideColumn(JTable table, int index) {
+        if (table.getColumnModel().getColumnCount() <= index) return;
+        table.getColumnModel().getColumn(index).setMinWidth(0);
+        table.getColumnModel().getColumn(index).setMaxWidth(0);
+        table.getColumnModel().getColumn(index).setPreferredWidth(0);
     }
 
-    /**
-     * Áp dụng kiểu cho trường văn bản.
-     */
-    private void styleTextField(JTextField textField, int preferredWidth) {
-        textField.setPreferredSize(new Dimension(preferredWidth, 38));
-        textField.setBorder(BorderFactory.createCompoundBorder(
+    private void styleTextField(JTextField field, int width) {
+        field.setPreferredSize(new Dimension(width, 38));
+        field.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(AppColors.INPUT_BORDER),
                 BorderFactory.createEmptyBorder(8, 10, 8, 10)
         ));
-        textField.setFont(textField.getFont().deriveFont(Font.PLAIN, 13.5f));
     }
 
-    /**
-     * Áp dụng kiểu cho chọn box.
-     */
-    private void styleComboBox(JComboBox<String> comboBox, int preferredWidth) {
-        comboBox.setPreferredSize(new Dimension(preferredWidth, 38));
-        comboBox.setFont(comboBox.getFont().deriveFont(Font.PLAIN, 13.5f));
+    private void styleComboBox(JComboBox<String> combo, int width) {
+        combo.setPreferredSize(new Dimension(width, 38));
     }
 
-    /**
-     * Áp dụng kiểu cho nút thao tác.
-     */
-    private void styleActionButton(JButton button, Color background) {
+    private void styleActionButton(JButton button, Color bg) {
         button.setFocusPainted(false);
         button.setBorderPainted(false);
         button.setOpaque(true);
-        button.setBackground(background);
+        button.setBackground(bg);
         button.setForeground(AppColors.BUTTON_TEXT);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         button.setFont(button.getFont().deriveFont(Font.BOLD, 13f));
         button.setBorder(BorderFactory.createEmptyBorder(9, 16, 9, 16));
+    }
+
+    private void setLoadingState(boolean loading) {
+        filterButton.setEnabled(!loading);
+        reloadButton.setEnabled(!loading);
+        registerButton.setEnabled(!loading);
+        cancelButton.setEnabled(!loading);
+        searchField.setEnabled(!loading);
+        semesterFilterComboBox.setEnabled(!loading);
+        courseSectionTable.setEnabled(!loading);
+        enrollmentTable.setEnabled(!loading);
+
+        if (loading) {
+            cardLayout.show(mainContentWrapper, LOADING_CARD);
+            setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+        } else {
+            cardLayout.show(mainContentWrapper, DATA_CARD);
+            setCursor(Cursor.getDefaultCursor());
+        }
+    }
+
+    private JPanel createLoadingPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setOpaque(true);
+        panel.setBackground(AppColors.CARD_BACKGROUND);
+        JLabel label = new JLabel("Đang xử lý, vui lòng đợi...", SwingConstants.CENTER);
+        label.setForeground(AppColors.CARD_MUTED_TEXT);
+        label.setFont(label.getFont().deriveFont(Font.ITALIC, 14f));
+        panel.add(label, BorderLayout.CENTER);
+        return panel;
     }
 }

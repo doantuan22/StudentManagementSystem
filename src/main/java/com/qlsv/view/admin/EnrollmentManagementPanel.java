@@ -226,40 +226,59 @@ public class EnrollmentManagementPanel extends AbstractCrudPanel<Enrollment> {
     }
 
     /**
-     * Tải lại các giá trị gợi ý cho bộ lọc (danh sách học phần, lớp, khoa).
+     * Tải lại các giá trị gợi ý cho bộ lọc (danh sách học phần, lớp, khoa) bất đồng bộ.
      */
     private void reloadFilterValues() {
         String filterType = (String) filterTypeComboBox.getSelectedItem();
         filterReady = FILTER_ALL.equals(filterType);
         filterValueComboBox.removeAllItems();
-        if (FILTER_SECTION_CODE.equals(filterType)) {
-            filterValueComboBox.setEnabled(true);
-            filterValueComboBox.addItem(new FilterOption<>("Chọn học phần", null));
-            for (CourseSection courseSection : screenController.loadCourseSections()) {
-                filterValueComboBox.addItem(new FilterOption<>(courseSection.getSectionCode(), courseSection));
-            }
+
+        if (FILTER_NONE.equals(filterType) || FILTER_ALL.equals(filterType)) {
+            filterValueComboBox.setEnabled(false);
             return;
         }
 
-        if (FILTER_CLASS_ROOM.equals(filterType)) {
-            filterValueComboBox.setEnabled(true);
-            filterValueComboBox.addItem(new FilterOption<>("Chọn lớp", null));
-            for (ClassRoom classRoom : screenController.loadClassRooms()) {
-                filterValueComboBox.addItem(new FilterOption<>(classRoom.getClassCode() + " - " + classRoom.getClassName(), classRoom));
+        setLoadingState(true);
+        new javax.swing.SwingWorker<List<?>, Void>() {
+            @Override
+            protected List<?> doInBackground() {
+                if (FILTER_SECTION_CODE.equals(filterType)) return screenController.loadCourseSections();
+                if (FILTER_CLASS_ROOM.equals(filterType)) return screenController.loadClassRooms();
+                if (FILTER_FACULTY.equals(filterType)) return screenController.loadFaculties();
+                return List.of();
             }
-            return;
-        }
 
-        if (FILTER_FACULTY.equals(filterType)) {
-            filterValueComboBox.setEnabled(true);
-            filterValueComboBox.addItem(new FilterOption<>("Chọn khoa", null));
-            for (Faculty faculty : screenController.loadFaculties()) {
-                filterValueComboBox.addItem(new FilterOption<>(faculty.getFacultyCode() + " - " + faculty.getFacultyName(), faculty));
+            @Override
+            protected void done() {
+                try {
+                    List<?> results = get();
+                    filterValueComboBox.setEnabled(true);
+                    if (FILTER_SECTION_CODE.equals(filterType)) {
+                        filterValueComboBox.addItem(new FilterOption<>("Chọn học phần", null));
+                        for (Object obj : results) {
+                            CourseSection cs = (CourseSection) obj;
+                            filterValueComboBox.addItem(new FilterOption<>(cs.getSectionCode(), cs));
+                        }
+                    } else if (FILTER_CLASS_ROOM.equals(filterType)) {
+                        filterValueComboBox.addItem(new FilterOption<>("Chọn lớp", null));
+                        for (Object obj : results) {
+                            ClassRoom cr = (ClassRoom) obj;
+                            filterValueComboBox.addItem(new FilterOption<>(cr.getClassCode() + " - " + cr.getClassName(), cr));
+                        }
+                    } else if (FILTER_FACULTY.equals(filterType)) {
+                        filterValueComboBox.addItem(new FilterOption<>("Chọn khoa", null));
+                        for (Object obj : results) {
+                            Faculty faculty = (Faculty) obj;
+                            filterValueComboBox.addItem(new FilterOption<>(faculty.getFacultyCode() + " - " + faculty.getFacultyName(), faculty));
+                        }
+                    }
+                } catch (Exception exception) {
+                    DialogUtil.showError(EnrollmentManagementPanel.this, "Lỗi khi tải danh mục: " + exception.getMessage());
+                } finally {
+                    setLoadingState(false);
+                }
             }
-            return;
-        }
-
-        filterValueComboBox.setEnabled(false);
+        }.execute();
     }
 
     /**

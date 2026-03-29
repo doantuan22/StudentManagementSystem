@@ -102,6 +102,11 @@ public class LecturerScorePanel extends BasePanel {
     private Long currentCourseSectionId;
     private String currentKeyword = "";
     private boolean suppressDetailDialogOpening;
+    private boolean loadingData;
+    private SwingWorker<?, ?> activeWorker;
+    private final JButton filterButton = new JButton("Lọc");
+    private final JButton reloadButton = new JButton("Tải lại");
+    private final JButton analyzeButton = new JButton("Phân tích điểm");
 
     /**
      * Khởi tạo điểm giảng viên.
@@ -113,9 +118,6 @@ public class LecturerScorePanel extends BasePanel {
 
         courseComboBox.addItem("Tất cả học phần");
 
-        JButton filterButton = new JButton("Lọc");
-        JButton reloadButton = new JButton("Tải lại");
-        JButton analyzeButton = new JButton("Phân tích điểm");
         styleSecondaryButton(filterButton);
         styleSecondaryButton(reloadButton);
         stylePrimaryButton(analyzeButton);
@@ -739,12 +741,53 @@ public class LecturerScorePanel extends BasePanel {
     }
 
     /**
-     * Làm mới dữ liệu đang hiển thị.
+     * Làm mới dữ liệu đang hiển thị bất đồng bộ.
      */
     @Override
     public void reloadData() {
-        refreshScoreData(true, getSelectedEnrollmentId());
+        if (activeWorker != null && !activeWorker.isDone()) {
+            activeWorker.cancel(true);
+        }
+
+        Long preferredEnrollmentId = getSelectedEnrollmentId();
+        setLoadingState(true);
+
+        activeWorker = new SwingWorker<LoadDataResult, Void>() {
+            @Override
+            protected LoadDataResult doInBackground() {
+                Lecturer lecturer = lecturerController.getCurrentLecturer();
+                List<CourseSection> sections = courseSectionController.getCourseSectionsByLecturer(lecturer.getId());
+                List<Score> scores = scoreController.getCurrentLecturerScores();
+                return new LoadDataResult(sections, scores);
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    if (isCancelled()) return;
+                    LoadDataResult result = get();
+
+                    courseComboBox.removeAllItems();
+                    courseComboBox.addItem("Tất cả học phần");
+                    for (CourseSection section : result.sections()) {
+                        courseComboBox.addItem(section);
+                    }
+                    restoreCourseSelection();
+
+                    allScores.clear();
+                    allScores.addAll(result.scores());
+                    applyFilters(preferredEnrollmentId);
+                } catch (Exception exception) {
+                    DialogUtil.showError(LecturerScorePanel.this, "Lỗi tải dữ liệu: " + exception.getMessage());
+                } finally {
+                    setLoadingState(false);
+                }
+            }
+        };
+        activeWorker.execute();
     }
+
+    private record LoadDataResult(List<CourseSection> sections, List<Score> scores) {}
 
     /**
      * Xử lý refresh điểm dữ liệu.
@@ -951,6 +994,26 @@ public class LecturerScorePanel extends BasePanel {
         @Override
         public boolean getScrollableTracksViewportWidth() {
             return getPreferredSize().width < getParent().getWidth();
+        }
+    }
+    /**
+     * Cập nhật trạng thái loading.
+     */
+    private void setLoadingState(boolean loading) {
+        loadingData = loading;
+        courseComboBox.setEnabled(!loading);
+        searchField.setEnabled(!loading);
+        filterButton.setEnabled(!loading);
+        reloadButton.setEnabled(!loading);
+        analyzeButton.setEnabled(!loading);
+        saveButton.setEnabled(!loading && selectedScore != null);
+        scoreTable.setEnabled(!loading);
+        editTable.setEnabled(!loading);
+
+        if (loading) {
+            setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+        } else {
+            setCursor(Cursor.getDefaultCursor());
         }
     }
 }

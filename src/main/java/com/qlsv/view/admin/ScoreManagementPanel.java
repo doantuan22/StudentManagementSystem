@@ -8,7 +8,6 @@ import com.qlsv.controller.ScoreManagementScreenController;
 import com.qlsv.dto.ScoreDisplayDto;
 import com.qlsv.model.ClassRoom;
 import com.qlsv.model.CourseSection;
-import com.qlsv.model.Enrollment;
 import com.qlsv.model.Score;
 import com.qlsv.model.Student;
 import com.qlsv.utils.AcademicFormatUtil;
@@ -32,8 +31,8 @@ import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableColumnModel;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
@@ -55,6 +54,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import javax.swing.table.TableColumnModel;
 
 public class ScoreManagementPanel extends BasePanel {
 
@@ -66,6 +66,9 @@ public class ScoreManagementPanel extends BasePanel {
     private static final int TABLE_SECTION_MIN_HEIGHT = 240;
     private static final int DETAIL_TABLE_VIEWPORT_HEIGHT = 220;
     private static final int DETAIL_SECTION_MIN_HEIGHT = 300;
+    private static final String LOADING_CARD = "loading";
+    private static final String DATA_CARD = "table";
+    private static final String EMPTY_CARD = "empty";
 
     private final ScoreManagementScreenController screenController = new ScoreManagementScreenController();
 
@@ -130,6 +133,8 @@ public class ScoreManagementPanel extends BasePanel {
 
     private boolean filterReady;
     private boolean suppressDetailDialogOpening;
+    private boolean isLoadingData;
+    private SwingWorker<?, ?> activeWorker;
 
     /**
      * Khởi tạo quản lý điểm.
@@ -148,11 +153,7 @@ public class ScoreManagementPanel extends BasePanel {
      */
     @Override
     public void reloadData() {
-        try {
-            applyCurrentFilters(getSelectedStudentId());
-        } catch (Exception exception) {
-            DialogUtil.showError(this, exception.getMessage());
-        }
+        applyCurrentFiltersAsync(getSelectedStudentId());
     }
 
     /**
@@ -312,8 +313,9 @@ public class ScoreManagementPanel extends BasePanel {
         JScrollPane detailTableScrollPane = createDetailTableScrollPane();
         tableCardPanel.setOpaque(false);
         mainContentPanel.setOpaque(false);
-        tableCardPanel.add(studentTableScrollPane, "table");
-        tableCardPanel.add(createEmptyStatePanel(), "empty");
+        tableCardPanel.add(studentTableScrollPane, DATA_CARD);
+        tableCardPanel.add(createEmptyStatePanel(), EMPTY_CARD);
+        tableCardPanel.add(createLoadingPanel(), LOADING_CARD);
         tableCardPanel.setMinimumSize(new Dimension(0, TABLE_SECTION_MIN_HEIGHT));
         detailContentPanel = createDetailContentPanel(detailTableScrollPane);
         mainContentPanel.add(tableCardPanel, BorderLayout.CENTER);
@@ -328,27 +330,66 @@ public class ScoreManagementPanel extends BasePanel {
     }
 
     /**
-     * Xử lý apply hiện tại filters.
+     * Xử lý apply hiện tại filters theo cách bất đồng bộ.
      */
-    private void applyCurrentFilters(Long preferredStudentId) {
-        List<Score> scores = screenController.loadItems(
-                filterReady,
-                (String) filterTypeComboBox.getSelectedItem(),
-                getSelectedFilterValue(Object.class),
-                FILTER_ALL,
-                FILTER_SECTION_CODE,
-                FILTER_CLASS_ROOM
-        );
-
-        loadedScores.clear();
-        String normalizedKeyword = normalizeSearchText(keywordField.getText());
-        for (Score score : scores) {
-            if (matchesKeyword(score, normalizedKeyword)) {
-                loadedScores.add(score);
-            }
+    private void applyCurrentFiltersAsync(Long preferredStudentId) {
+        if (activeWorker != null && !activeWorker.isDone()) {
+            activeWorker.cancel(true);
         }
 
-        bindStudentRows(buildStudentRows(loadedScores), preferredStudentId);
+        setLoadingState(true);
+        String filterType = (String) filterTypeComboBox.getSelectedItem();
+        Object filterValue = getSelectedFilterValue(Object.class);
+        String keyword = keywordField.getText();
+        boolean ready = filterReady;
+
+        activeWorker = new SwingWorker<List<Score>, Void>() {
+            @Override
+            protected List<Score> doInBackground() {
+                List<Score> scores = screenController.loadItems(
+                        ready,
+                        filterType,
+                        filterValue,
+                        FILTER_ALL,
+                        FILTER_SECTION_CODE,
+                        FILTER_CLASS_ROOM
+                );
+
+                List<Score> filtered = new ArrayList<>();
+                String normalizedKeyword = normalizeSearchText(keyword);
+                for (Score score : scores) {
+                    if (matchesKeyword(score, normalizedKeyword)) {
+                        filtered.add(score);
+                    }
+                }
+                return filtered;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    if (isCancelled()) return;
+                    List<Score> result = get();
+                    loadedScores.clear();
+                    loadedScores.addAll(result);
+                    bindStudentRows(buildStudentRows(loadedScores), preferredStudentId);
+                } catch (Exception exception) {
+                    DialogUtil.showError(ScoreManagementPanel.this, "Lỗi khi tải dữ liệu: " + exception.getMessage());
+                } finally {
+                    setLoadingState(false);
+                }
+            }
+        };
+        activeWorker.execute();
+    }
+
+    /**
+     * Xử lý apply hiện tại filters.
+     * @deprecated Use applyCurrentFiltersAsync instead.
+     */
+    @Deprecated
+    private void applyCurrentFilters(Long preferredStudentId) {
+        applyCurrentFiltersAsync(preferredStudentId);
     }
 
     /**
@@ -367,6 +408,7 @@ public class ScoreManagementPanel extends BasePanel {
             showStudentTableState(false, filterReady
                     ? "Không tìm thấy sinh viên có điểm phù hợp với điều kiện lọc hiện tại."
                     : "Vui lòng chọn điều kiện lọc để hiển thị danh sách điểm.");
+            tableCardLayout.show(tableCardPanel, EMPTY_CARD);
             studentTable.clearSelection();
             bindStudentDetail(null);
             hideDetailDialog();
@@ -374,6 +416,7 @@ public class ScoreManagementPanel extends BasePanel {
         }
 
         showStudentTableState(true, null);
+        tableCardLayout.show(tableCardPanel, DATA_CARD);
         int preferredIndex = 0;
         if (preferredStudentId != null) {
             for (int index = 0; index < studentRows.size(); index++) {
@@ -557,29 +600,57 @@ public class ScoreManagementPanel extends BasePanel {
      * Làm mới lọc values.
      */
     private void reloadFilterValues() {
-        filterReady = FILTER_ALL.equals(filterTypeComboBox.getSelectedItem());
+        String filterType = (String) filterTypeComboBox.getSelectedItem();
+        filterReady = FILTER_ALL.equals(filterType);
         filterValueComboBox.removeAllItems();
 
-        String filterType = (String) filterTypeComboBox.getSelectedItem();
-        if (FILTER_SECTION_CODE.equals(filterType)) {
-            filterValueComboBox.setEnabled(true);
-            filterValueComboBox.addItem(new FilterOption<>("Chọn học phần", null));
-            for (CourseSection courseSection : screenController.loadCourseSections()) {
-                filterValueComboBox.addItem(new FilterOption<>(courseSection.getSectionCode(), courseSection));
-            }
+        if (!FILTER_SECTION_CODE.equals(filterType) && !FILTER_CLASS_ROOM.equals(filterType)) {
+            filterValueComboBox.setEnabled(false);
             return;
         }
 
-        if (FILTER_CLASS_ROOM.equals(filterType)) {
-            filterValueComboBox.setEnabled(true);
-            filterValueComboBox.addItem(new FilterOption<>("Chọn lớp", null));
-            for (ClassRoom classRoom : screenController.loadClassRooms()) {
-                filterValueComboBox.addItem(new FilterOption<>(classRoom.getClassCode() + " - " + classRoom.getClassName(), classRoom));
-            }
-            return;
+        if (activeWorker != null && !activeWorker.isDone()) {
+            activeWorker.cancel(true);
         }
 
-        filterValueComboBox.setEnabled(false);
+        setLoadingState(true);
+        activeWorker = new SwingWorker<List<?>, Void>() {
+            @Override
+            protected List<?> doInBackground() {
+                if (FILTER_SECTION_CODE.equals(filterType)) {
+                    return screenController.loadCourseSections();
+                } else {
+                    return screenController.loadClassRooms();
+                }
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    if (isCancelled()) return;
+                    List<?> results = get();
+                    filterValueComboBox.setEnabled(true);
+                    if (FILTER_SECTION_CODE.equals(filterType)) {
+                        filterValueComboBox.addItem(new FilterOption<>("Chọn học phần", null));
+                        for (Object obj : results) {
+                            CourseSection cs = (CourseSection) obj;
+                            filterValueComboBox.addItem(new FilterOption<>(cs.getSectionCode(), cs));
+                        }
+                    } else {
+                        filterValueComboBox.addItem(new FilterOption<>("Chọn lớp", null));
+                        for (Object obj : results) {
+                            ClassRoom cr = (ClassRoom) obj;
+                            filterValueComboBox.addItem(new FilterOption<>(cr.getClassCode() + " - " + cr.getClassName(), cr));
+                        }
+                    }
+                } catch (Exception exception) {
+                    DialogUtil.showError(ScoreManagementPanel.this, "Lỗi khi tải danh mục: " + exception.getMessage());
+                } finally {
+                    setLoadingState(false);
+                }
+            }
+        };
+        activeWorker.execute();
     }
 
     /**
@@ -792,6 +863,44 @@ public class ScoreManagementPanel extends BasePanel {
                 displayDto == null ? "Chưa chọn" : defaultText(displayDto.resultText())
         ));
         return detailFields;
+    }
+
+    /**
+     * Cập nhật trạng thái loading.
+     */
+    private void setLoadingState(boolean loading) {
+        isLoadingData = loading;
+        filterTypeComboBox.setEnabled(!loading);
+        filterValueComboBox.setEnabled(!loading && (FILTER_SECTION_CODE.equals(filterTypeComboBox.getSelectedItem()) || FILTER_CLASS_ROOM.equals(filterTypeComboBox.getSelectedItem())));
+        keywordField.setEnabled(!loading);
+        searchButton.setEnabled(!loading);
+        applyButton.setEnabled(!loading);
+        resetButton.setEnabled(!loading);
+        reloadButton.setEnabled(!loading);
+        addButton.setEnabled(!loading);
+        editButton.setEnabled(!loading);
+        deleteButton.setEnabled(!loading);
+        studentTable.setEnabled(!loading);
+
+        if (loading) {
+            tableCardLayout.show(tableCardPanel, LOADING_CARD);
+            setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+        } else {
+            setCursor(Cursor.getDefaultCursor());
+        }
+    }
+
+    /**
+     * Tạo panel loading.
+     */
+    private JPanel createLoadingPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setOpaque(false);
+        JLabel loadingLabel = new JLabel("Đang xử lý dữ liệu, vui lòng đợi...", SwingConstants.CENTER);
+        loadingLabel.setForeground(AppColors.CARD_MUTED_TEXT);
+        loadingLabel.setFont(loadingLabel.getFont().deriveFont(Font.ITALIC));
+        panel.add(loadingLabel, BorderLayout.CENTER);
+        return panel;
     }
 
     /**

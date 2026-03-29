@@ -65,7 +65,7 @@ public class CourseSectionManagementPanel extends AbstractCrudPanel<CourseSectio
      */
     @Override
     protected String[] getColumnNames() {
-        return new String[]{"ID", "Mã học phần", "ôn học", "Giảng viên", "ọc kỳ", "ăm học", "ịch học"};
+        return new String[]{"ID", "Mã học phần", "Môn học", "Giảng viên", "Học kỳ", "Năm học", "Lịch học"};
     }
 
     /**

@@ -16,6 +16,7 @@ import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -24,6 +25,8 @@ import java.util.function.Function;
  * Enrollment is loaded via JPA; course section room/schedule text are hydrated as compatibility fields for legacy screens.
  */
 public class EnrollmentDAO {
+
+    private static final String EFFECTIVE_ENROLLMENT_STATUS = "REGISTERED";
 
     private static final String FETCH_BASE = """
             SELECT DISTINCT e
@@ -149,6 +152,24 @@ public class EnrollmentDAO {
         });
     }
 
+    public List<Enrollment> findEffectiveByCourseSectionId(Long courseSectionId) {
+        return executeRead("Khong the tai danh sach dang ky con hieu luc cua hoc phan.", entityManager -> {
+            List<Enrollment> enrollments = entityManager.createQuery(
+                            FETCH_BASE + """
+                                     WHERE courseSection.id = :courseSectionId
+                                       AND UPPER(COALESCE(e.status, 'REGISTERED')) = :effectiveStatus
+                                     ORDER BY e.enrolledAt, e.id
+                                    """,
+                            Enrollment.class
+                    )
+                    .setParameter("courseSectionId", courseSectionId)
+                    .setParameter("effectiveStatus", EFFECTIVE_ENROLLMENT_STATUS)
+                    .getResultList();
+            hydrateCourseSectionCompatibility(entityManager, enrollments);
+            return enrollments;
+        });
+    }
+
     /**
      * Tìm kiếm thông tin đăng ký dựa trên mã sinh viên và mã học phần.
      */
@@ -209,7 +230,13 @@ public class EnrollmentDAO {
     /**
      * Kiểm tra sinh viên đã đăng ký môn học này ở bất kỳ học phần nào chưa.
      */
-    public boolean existsByStudentAndSubject(Long studentId, Long subjectId) {
+    public boolean existsByStudentAndSubject(Long studentId, String subjectName,
+                                             String semester, String schoolYear,
+                                             Long excludeEnrollmentId) {
+        String normalizedSubjectName = normalizeSubjectName(subjectName);
+        if (normalizedSubjectName == null) {
+            return false;
+        }
         return executeRead("Không thể kiểm tra đăng ký trùng môn học.", entityManager -> {
             Long total = entityManager.createQuery("""
                             /**
@@ -218,11 +245,23 @@ public class EnrollmentDAO {
                             SELECT COUNT(e)
                             FROM Enrollment e
                             JOIN e.courseSection courseSection
+                            JOIN courseSection.subject subject
                             WHERE e.student.id = :studentId
-                              AND courseSection.subject.id = :subjectId
+                              AND LOWER(TRIM(subject.subjectName)) = :subjectName
+                              /**
+                               * Chuẩn hóa học kỳ và năm học để so sánh chính xác hơn.
+                               */
+                              AND UPPER(REPLACE(courseSection.semester, ' ', '')) = UPPER(REPLACE(:semester, ' ', ''))
+                              AND REPLACE(courseSection.schoolYear, ' ', '') = REPLACE(:schoolYear, ' ', '')
+                              AND (:excludeEnrollmentId IS NULL OR e.id <> :excludeEnrollmentId)
+                              AND UPPER(COALESCE(e.status, 'REGISTERED')) = :effectiveStatus
                             """, Long.class)
                     .setParameter("studentId", studentId)
-                    .setParameter("subjectId", subjectId)
+                    .setParameter("subjectName", normalizedSubjectName)
+                    .setParameter("semester", semester)
+                    .setParameter("schoolYear", schoolYear)
+                    .setParameter("excludeEnrollmentId", excludeEnrollmentId)
+                    .setParameter("effectiveStatus", EFFECTIVE_ENROLLMENT_STATUS)
                     .getSingleResult();
             return total != null && total > 0;
         });
@@ -231,7 +270,7 @@ public class EnrollmentDAO {
     /**
      * Kiểm tra sinh viên đã đăng ký vào học phần cụ thể này chưa.
      */
-    public boolean existsByStudentAndCourseSection(Long studentId, Long courseSectionId) {
+    public boolean existsByStudentAndCourseSection(Long studentId, Long courseSectionId, Long excludeEnrollmentId) {
         return executeRead("Không thể kiểm tra đăng ký trùng học phần.", entityManager -> {
             Long total = entityManager.createQuery("""
                             /**
@@ -241,9 +280,13 @@ public class EnrollmentDAO {
                             FROM Enrollment e
                             WHERE e.student.id = :studentId
                               AND e.courseSection.id = :courseSectionId
+                              AND (:excludeEnrollmentId IS NULL OR e.id <> :excludeEnrollmentId)
+                              AND UPPER(COALESCE(e.status, 'REGISTERED')) = :effectiveStatus
                             """, Long.class)
                     .setParameter("studentId", studentId)
                     .setParameter("courseSectionId", courseSectionId)
+                    .setParameter("excludeEnrollmentId", excludeEnrollmentId)
+                    .setParameter("effectiveStatus", EFFECTIVE_ENROLLMENT_STATUS)
                     .getSingleResult();
             return total != null && total > 0;
         });
@@ -253,6 +296,10 @@ public class EnrollmentDAO {
      * Đếm tổng số lượng sinh viên đã đăng ký vào một học phần.
      */
     public int countByCourseSectionId(Long courseSectionId) {
+        return countByCourseSectionId(courseSectionId, null);
+    }
+
+    public int countByCourseSectionId(Long courseSectionId, Long excludeEnrollmentId) {
         return executeRead("Không thể đếm số lượng đăng ký của học phần.", entityManager -> {
             Long total = entityManager.createQuery("""
                             /**
@@ -261,8 +308,12 @@ public class EnrollmentDAO {
                             SELECT COUNT(e)
                             FROM Enrollment e
                             WHERE e.courseSection.id = :courseSectionId
+                              AND (:excludeEnrollmentId IS NULL OR e.id <> :excludeEnrollmentId)
+                              AND UPPER(COALESCE(e.status, 'REGISTERED')) = :effectiveStatus
                             """, Long.class)
                     .setParameter("courseSectionId", courseSectionId)
+                    .setParameter("excludeEnrollmentId", excludeEnrollmentId)
+                    .setParameter("effectiveStatus", EFFECTIVE_ENROLLMENT_STATUS)
                     .getSingleResult();
             return total == null ? 0 : total.intValue();
         });
@@ -271,6 +322,176 @@ public class EnrollmentDAO {
     /**
      * Thêm mới một bản ghi đăng ký học phần.
      */
+    public boolean hasEffectiveStudentSubjectConflictForCourseSection(Long courseSectionId,
+                                                                      String subjectName,
+                                                                      String semester,
+                                                                      String schoolYear) {
+        String normalizedSubjectName = normalizeSubjectName(subjectName);
+        if (courseSectionId == null || normalizedSubjectName == null || semester == null || schoolYear == null) {
+            return false;
+        }
+        return executeRead("Không thể kiểm tra xung đột môn học khi cập nhật học phần.", entityManager -> {
+            Long total = entityManager.createQuery("""
+                            SELECT COUNT(currentEnrollment)
+                            FROM Enrollment currentEnrollment
+                            JOIN currentEnrollment.courseSection currentSection
+                            WHERE currentSection.id = :courseSectionId
+                              AND UPPER(COALESCE(currentEnrollment.status, 'REGISTERED')) = :effectiveStatus
+                              AND EXISTS (
+                                    SELECT otherEnrollment.id
+                                    FROM Enrollment otherEnrollment
+                                    JOIN otherEnrollment.courseSection otherSection
+                                    JOIN otherSection.subject otherSubject
+                                    WHERE otherEnrollment.student.id = currentEnrollment.student.id
+                                      AND otherSection.id <> currentSection.id
+                                      AND LOWER(TRIM(otherSubject.subjectName)) = :subjectName
+                                      /**
+                                       * Chuẩn hóa học kỳ và năm học để so sánh chính xác hơn.
+                                       */
+                                      AND UPPER(REPLACE(otherSection.semester, ' ', '')) = UPPER(REPLACE(:semester, ' ', ''))
+                                      AND REPLACE(otherSection.schoolYear, ' ', '') = REPLACE(:schoolYear, ' ', '')
+                                      AND UPPER(COALESCE(otherEnrollment.status, 'REGISTERED')) = :effectiveStatus
+                              )
+                            """, Long.class)
+                    .setParameter("courseSectionId", courseSectionId)
+                    .setParameter("subjectName", normalizedSubjectName)
+                    .setParameter("semester", semester)
+                    .setParameter("schoolYear", schoolYear)
+                    .setParameter("effectiveStatus", EFFECTIVE_ENROLLMENT_STATUS)
+                    .getSingleResult();
+            return total != null && total > 0;
+        });
+    }
+
+    public boolean hasEffectiveStudentScheduleConflictForCourseSection(Long courseSectionId,
+                                                                        String semester,
+                                                                        String schoolYear) {
+        if (courseSectionId == null || semester == null || schoolYear == null) {
+            return false;
+        }
+        return executeRead("Không thể kiểm tra xung đột lịch học khi cập nhật học phần.", entityManager -> {
+            Long total = entityManager.createQuery("""
+                            SELECT COUNT(currentEnrollment)
+                            FROM Enrollment currentEnrollment
+                            JOIN currentEnrollment.courseSection currentSection
+                            WHERE currentSection.id = :courseSectionId
+                              AND UPPER(COALESCE(currentEnrollment.status, 'REGISTERED')) = :effectiveStatus
+                              AND EXISTS (
+                                    SELECT otherEnrollment.id
+                                    FROM Enrollment otherEnrollment
+                                    JOIN otherEnrollment.courseSection otherSection
+                                    WHERE otherEnrollment.student.id = currentEnrollment.student.id
+                                      AND otherSection.id <> currentSection.id
+                                      /**
+                                       * Chuẩn hóa học kỳ và năm học để so sánh chính xác hơn.
+                                       */
+                                      AND UPPER(REPLACE(otherSection.semester, ' ', '')) = UPPER(REPLACE(:semester, ' ', ''))
+                                      AND REPLACE(otherSection.schoolYear, ' ', '') = REPLACE(:schoolYear, ' ', '')
+                                      AND UPPER(COALESCE(otherEnrollment.status, 'REGISTERED')) = :effectiveStatus
+                                      AND EXISTS (
+                                            SELECT s1.id
+                                            FROM Schedule s1
+                                            WHERE s1.courseSection.id = otherSection.id
+                                              AND EXISTS (
+                                                    SELECT s2.id
+                                                    FROM Schedule s2
+                                                    WHERE s2.courseSection.id = currentSection.id
+                                                      AND s1.dayOfWeek = s2.dayOfWeek
+                                                      AND NOT (s1.endPeriod < s2.startPeriod OR s1.startPeriod > s2.endPeriod)
+                                              )
+                                      )
+                              )
+                            """, Long.class)
+                    .setParameter("courseSectionId", courseSectionId)
+                    .setParameter("semester", semester)
+                    .setParameter("schoolYear", schoolYear)
+                    .setParameter("effectiveStatus", EFFECTIVE_ENROLLMENT_STATUS)
+                    .getSingleResult();
+            return total != null && total > 0;
+        });
+    }
+
+    public List<Enrollment> findEffectiveConflictsByStudentAndSubject(Long studentId,
+                                                                      String subjectName,
+                                                                      String semester,
+                                                                      String schoolYear,
+                                                                      Long excludeCourseSectionId) {
+        String normalizedSubjectName = normalizeSubjectName(subjectName);
+        if (normalizedSubjectName == null) {
+            return List.of();
+        }
+        return executeRead("Không the tai danh sach dang ky trung mon hoc trong cung hoc ky va nam hoc.", entityManager -> {
+            List<Enrollment> enrollments = entityManager.createQuery(
+                            FETCH_BASE + """
+                                      WHERE student.id = :studentId
+                                        AND LOWER(TRIM(subject.subjectName)) = :subjectName
+                                        /**
+                                         * Chuẩn hóa học kỳ và năm học để so sánh chính xác hơn.
+                                         */
+                                        AND UPPER(REPLACE(courseSection.semester, ' ', '')) = UPPER(REPLACE(:semester, ' ', ''))
+                                        AND REPLACE(courseSection.schoolYear, ' ', '') = REPLACE(:schoolYear, ' ', '')
+                                        AND (:excludeCourseSectionId IS NULL OR courseSection.id <> :excludeCourseSectionId)
+                                        AND UPPER(COALESCE(e.status, 'REGISTERED')) = :effectiveStatus
+                                      ORDER BY e.enrolledAt, e.id
+                                     """,
+                            Enrollment.class
+                    )
+                    .setParameter("studentId", studentId)
+                    .setParameter("subjectName", normalizedSubjectName)
+                    .setParameter("semester", semester)
+                    .setParameter("schoolYear", schoolYear)
+                    .setParameter("excludeCourseSectionId", excludeCourseSectionId)
+                    .setParameter("effectiveStatus", EFFECTIVE_ENROLLMENT_STATUS)
+                    .getResultList();
+            hydrateCourseSectionCompatibility(entityManager, enrollments);
+            return enrollments;
+        });
+    }
+
+    public List<Enrollment> findEffectiveScheduleConflictsByStudent(Long studentId,
+                                                                     Long courseSectionId,
+                                                                     String semester,
+                                                                     String schoolYear,
+                                                                     Long excludeCourseSectionId) {
+        return executeRead("Khong the tai danh sach dang ky trung lich hoc.", entityManager -> {
+            List<Enrollment> enrollments = entityManager.createQuery(
+                            FETCH_BASE + """
+                                      WHERE student.id = :studentId
+                                        /**
+                                         * Chuẩn hóa học kỳ và năm học để so sánh chính xác hơn.
+                                         */
+                                        AND UPPER(REPLACE(courseSection.semester, ' ', '')) = UPPER(REPLACE(:semester, ' ', ''))
+                                        AND REPLACE(courseSection.schoolYear, ' ', '') = REPLACE(:schoolYear, ' ', '')
+                                        AND (:excludeCourseSectionId IS NULL OR courseSection.id <> :excludeCourseSectionId)
+                                        AND UPPER(COALESCE(e.status, 'REGISTERED')) = :effectiveStatus
+                                        AND EXISTS (
+                                              SELECT s1.id
+                                              FROM Schedule s1
+                                              WHERE s1.courseSection.id = courseSection.id
+                                                AND EXISTS (
+                                                      SELECT s2.id
+                                                      FROM Schedule s2
+                                                      WHERE s2.courseSection.id = :courseSectionId
+                                                        AND s1.dayOfWeek = s2.dayOfWeek
+                                                        AND NOT (s1.endPeriod < s2.startPeriod OR s1.startPeriod > s2.endPeriod)
+                                                )
+                                        )
+                                      ORDER BY e.enrolledAt, e.id
+                                     """,
+                            Enrollment.class
+                    )
+                    .setParameter("studentId", studentId)
+                    .setParameter("courseSectionId", courseSectionId)
+                    .setParameter("semester", semester)
+                    .setParameter("schoolYear", schoolYear)
+                    .setParameter("excludeCourseSectionId", excludeCourseSectionId)
+                    .setParameter("effectiveStatus", EFFECTIVE_ENROLLMENT_STATUS)
+                    .getResultList();
+            hydrateCourseSectionCompatibility(entityManager, enrollments);
+            return enrollments;
+        });
+    }
+
     public Enrollment insert(Enrollment enrollment) {
         Long enrollmentId = executeWrite(
                 "Không thể thêm đăng ký học phần.",
@@ -486,5 +707,13 @@ public class EnrollmentDAO {
             current = current.getCause();
         }
         return false;
+    }
+
+    private String normalizeSubjectName(String subjectName) {
+        if (subjectName == null) {
+            return null;
+        }
+        String normalizedSubjectName = subjectName.trim().toLowerCase(Locale.ROOT);
+        return normalizedSubjectName.isEmpty() ? null : normalizedSubjectName;
     }
 }

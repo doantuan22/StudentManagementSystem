@@ -6,17 +6,22 @@ package com.qlsv.service;
 import com.qlsv.config.JpaBootstrap;
 import com.qlsv.config.SessionManager;
 import com.qlsv.dao.CourseSectionDAO;
+import com.qlsv.dao.EnrollmentDAO;
 import com.qlsv.dao.LecturerDAO;
 import com.qlsv.dao.ScheduleDAO;
+import com.qlsv.dao.ScoreDAO;
 import com.qlsv.dao.StudentDAO;
 import com.qlsv.exception.ValidationException;
 import com.qlsv.model.CourseSection;
+import com.qlsv.model.Enrollment;
 import com.qlsv.model.Lecturer;
 import com.qlsv.model.Schedule;
 import com.qlsv.model.Student;
 import com.qlsv.security.RolePermission;
 import com.qlsv.utils.ValidationUtil;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class ScheduleService {
@@ -84,6 +89,9 @@ public class ScheduleService {
         return scheduleDAO.findByFacultyId(facultyId);
     }
 
+    private final ScoreDAO scoreDAO = new ScoreDAO();
+    private final EnrollmentDAO enrollmentDAO = new EnrollmentDAO();
+
     /**
      * Lưu thông tin lịch học sau khi kiểm tra xung đột phòng và giảng viên.
      */
@@ -94,9 +102,47 @@ public class ScheduleService {
                 ignored -> {
                     CourseSection courseSection = validate(schedule);
                     validateScheduleConflicts(schedule, courseSection);
-                    return schedule.getId() == null ? scheduleDAO.insert(schedule) : updateAndReturn(schedule);
+                    Schedule savedSchedule = schedule.getId() == null ? scheduleDAO.insert(schedule) : updateAndReturn(schedule);
+                    resolveStudentScheduleConflicts(courseSection);
+                    return savedSchedule;
                 }
         );
+    }
+
+    private void resolveStudentScheduleConflicts(CourseSection courseSection) {
+        List<Enrollment> currentEnrollments = enrollmentDAO.findEffectiveByCourseSectionId(courseSection.getId());
+        for (Enrollment currentEnrollment : currentEnrollments) {
+            List<Enrollment> conflicts = enrollmentDAO.findEffectiveScheduleConflictsByStudent(
+                    currentEnrollment.getStudent().getId(),
+                    courseSection.getId(),
+                    courseSection.getSemester(),
+                    courseSection.getSchoolYear(),
+                    courseSection.getId()
+            );
+
+            if (conflicts.isEmpty()) {
+                continue;
+            }
+
+            List<Enrollment> allDuplicates = new ArrayList<>();
+            allDuplicates.add(currentEnrollment);
+            allDuplicates.addAll(conflicts);
+
+            // Sort by age (keep oldest)
+            allDuplicates.sort(
+                    Comparator.comparing(Enrollment::getEnrolledAt, Comparator.nullsLast(Comparator.naturalOrder()))
+                            .thenComparing(Enrollment::getId, Comparator.nullsLast(Comparator.naturalOrder()))
+            );
+
+            // Keep index 0. Check scores for others.
+            for (int i = 1; i < allDuplicates.size(); i++) {
+                Enrollment laterEnrollment = allDuplicates.get(i);
+                if (scoreDAO.findByEnrollmentId(laterEnrollment.getId()).isPresent()) {
+                    throw new ValidationException("Thay đổi lịch học gây xung đột cho sinh viên " + laterEnrollment.getStudent().getFullName() + " đã có điểm. Không thể tự động xử lý.");
+                }
+                enrollmentDAO.delete(laterEnrollment.getId());
+            }
+        }
     }
 
     /**

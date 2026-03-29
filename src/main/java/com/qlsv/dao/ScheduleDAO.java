@@ -21,6 +21,8 @@ import java.util.function.Function;
  */
 public class ScheduleDAO {
 
+    private static final String EFFECTIVE_ENROLLMENT_STATUS = "REGISTERED";
+
     private static final String FETCH_BASE = """
             SELECT DISTINCT s
             FROM Schedule s
@@ -276,18 +278,20 @@ public class ScheduleDAO {
     public boolean hasStudentScheduleConflict(Long studentId, Long courseSectionId, Long excludeEnrollmentId) {
         return executeRead("Không thể kiểm tra trùng lịch của sinh viên.", entityManager -> {
             Long count = entityManager.createQuery("""
-                            /**
-                             * Xử lý count.
-                             */
                             SELECT COUNT(existingSchedule)
                             FROM Schedule existingSchedule
                             JOIN Enrollment enrollment ON enrollment.courseSection = existingSchedule.courseSection
+                            JOIN enrollment.courseSection existingSection
                             WHERE enrollment.student.id = :studentId
                               AND (:excludeEnrollmentId IS NULL OR enrollment.id <> :excludeEnrollmentId)
+                              AND UPPER(COALESCE(enrollment.status, 'REGISTERED')) = :effectiveStatus
                               AND EXISTS (
                                     SELECT newSchedule.id
                                     FROM Schedule newSchedule
-                                    WHERE newSchedule.courseSection.id = :courseSectionId
+                                    JOIN newSchedule.courseSection newSection
+                                    WHERE newSection.id = :courseSectionId
+                                      AND UPPER(REPLACE(existingSection.semester, ' ', '')) = UPPER(REPLACE(newSection.semester, ' ', ''))
+                                      AND REPLACE(existingSection.schoolYear, ' ', '') = REPLACE(newSection.schoolYear, ' ', '')
                                       AND existingSchedule.dayOfWeek = newSchedule.dayOfWeek
                                       AND NOT (
                                             existingSchedule.endPeriod < newSchedule.startPeriod
@@ -298,6 +302,7 @@ public class ScheduleDAO {
                     .setParameter("courseSectionId", courseSectionId)
                     .setParameter("studentId", studentId)
                     .setParameter("excludeEnrollmentId", excludeEnrollmentId)
+                    .setParameter("effectiveStatus", EFFECTIVE_ENROLLMENT_STATUS)
                     .getSingleResult();
             return count != null && count.intValue() > 0;
         });

@@ -11,6 +11,7 @@ import com.qlsv.model.Role;
 import com.qlsv.utils.DateUtil;
 import com.qlsv.utils.DialogUtil;
 import com.qlsv.utils.DisplayTextUtil;
+import com.qlsv.utils.ValidationUtil;
 import com.qlsv.view.auth.ChangePasswordDialog;
 import com.qlsv.view.common.AbstractCrudPanel;
 import com.qlsv.view.common.AppColors;
@@ -164,7 +165,7 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
         }
 
         Lecturer lecturer = existingItem == null ? new Lecturer() : existingItem;
-        lecturer.setLecturerCode(formResult.lecturerCode().trim());
+        lecturer.setLecturerCode(ValidationUtil.normalizeCodePrefix(formResult.lecturerCode(), "GV", "MÃ£ giáº£ng viÃªn"));
         lecturer.setFullName(formResult.fullName().trim());
         lecturer.setGender(formResult.gender());
         lecturer.setDateOfBirth(DateUtil.parseRequiredDate(formResult.dateOfBirth(), "Ngày sinh"));

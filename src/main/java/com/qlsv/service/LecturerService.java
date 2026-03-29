@@ -99,6 +99,7 @@ public class LecturerService {
     }
 
     private void validate(Lecturer lecturer) {
+        lecturer.setLecturerCode(ValidationUtil.normalizeCodePrefix(lecturer.getLecturerCode(), "GV", "MÃ£ giáº£ng viÃªn"));
         ValidationUtil.requireWithinLength(lecturer.getLecturerCode(), 50, "Mã giảng viên");
         ValidationUtil.requireNotBlank(lecturer.getFullName(), "Họ tên giảng viên không được để trống.");
         ValidationUtil.requireEmail(lecturer.getEmail(), "Email giảng viên");

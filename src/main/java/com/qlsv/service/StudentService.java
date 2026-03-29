@@ -133,6 +133,7 @@ public class StudentService {
     }
 
     private void validate(Student student) {
+        student.setStudentCode(ValidationUtil.normalizeCodePrefix(student.getStudentCode(), "SV", "MÃ£ sinh viÃªn"));
         ValidationUtil.requireWithinLength(student.getStudentCode(), 50, "Mã sinh viên");
         ValidationUtil.requireNotBlank(student.getFullName(), "Họ tên sinh viên không được để trống.");
         ValidationUtil.requireEmail(student.getEmail(), "Email sinh viên");

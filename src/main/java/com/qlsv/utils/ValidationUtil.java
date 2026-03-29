@@ -2,6 +2,7 @@ package com.qlsv.utils;
 
 import com.qlsv.exception.ValidationException;
 
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 public final class ValidationUtil {
@@ -64,5 +65,23 @@ public final class ValidationUtil {
             throw new ValidationException(fieldName + " không được vượt quá " + maxLength + " ký tự.");
         }
         return normalizedValue;
+    }
+    public static String normalizeCodePrefix(String value, String expectedPrefix, String fieldName) {
+        String normalizedValue = requireWithinLength(value, 50, fieldName);
+        if (expectedPrefix == null || expectedPrefix.isBlank()) {
+            return normalizedValue;
+        }
+
+        String trimmedPrefix = expectedPrefix.trim();
+        if (normalizedValue.length() < trimmedPrefix.length()) {
+            return normalizedValue;
+        }
+
+        String actualPrefix = normalizedValue.substring(0, trimmedPrefix.length());
+        if (!actualPrefix.equalsIgnoreCase(trimmedPrefix)) {
+            return normalizedValue;
+        }
+
+        return trimmedPrefix.toUpperCase(Locale.ROOT) + normalizedValue.substring(trimmedPrefix.length());
     }
 }

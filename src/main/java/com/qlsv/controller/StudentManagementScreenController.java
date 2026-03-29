@@ -7,6 +7,7 @@ import com.qlsv.model.Faculty;
 import com.qlsv.model.Student;
 import com.qlsv.utils.AcademicFormatUtil;
 import com.qlsv.utils.DateUtil;
+import com.qlsv.utils.ValidationUtil;
 
 import java.util.List;
 
@@ -119,7 +120,7 @@ public class StudentManagementScreenController {
 
     public Student applyFormData(Student existingItem, StudentFormData formData) {
         Student student = existingItem == null ? new Student() : existingItem;
-        student.setStudentCode(formData.studentCode().trim());
+        student.setStudentCode(ValidationUtil.normalizeCodePrefix(formData.studentCode(), "SV", "MÃ£ sinh viÃªn"));
         student.setFullName(formData.fullName().trim());
         student.setGender(formData.gender());
         student.setDateOfBirth(DateUtil.parseOptionalDate(formData.dateOfBirth(), "Ngày sinh"));

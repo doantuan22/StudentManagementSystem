@@ -1,5 +1,6 @@
 /**
  * Ô nhập bo góc dùng cho màn hình đăng nhập.
+ * @deprecated Sử dụng CustomTextField với setRounded(true) thay thế
  */
 package com.qlsv.view.common;
 
@@ -13,13 +14,16 @@ import java.awt.RenderingHints;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 
+@Deprecated
 public class RoundedTextField extends JTextField {
     private final int radius;
     private boolean focused;
 
     /**
      * Khởi tạo trường bo góc văn bản.
+     * @deprecated Sử dụng CustomTextField thay thế
      */
+    @Deprecated
     public RoundedTextField(int radius) {
         super();
         this.radius = radius;

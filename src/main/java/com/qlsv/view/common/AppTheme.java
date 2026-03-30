@@ -127,12 +127,17 @@ public final class AppTheme {
     }
 
     /**
-     * Tạo card border.
+     * Tạo card border với padding chuẩn.
      */
     public static Border createCardBorder() {
         return BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(AppColors.CARD_BORDER),
-                BorderFactory.createEmptyBorder(16, 18, 16, 18)
+                BorderFactory.createEmptyBorder(
+                        AppSpacing.PADDING_NORMAL,
+                        AppSpacing.PADDING_NORMAL + 2,
+                        AppSpacing.PADDING_NORMAL,
+                        AppSpacing.PADDING_NORMAL + 2
+                )
         );
     }
 

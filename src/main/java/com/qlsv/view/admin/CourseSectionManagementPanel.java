@@ -52,7 +52,7 @@ public class CourseSectionManagementPanel extends AbstractCrudPanel<CourseSectio
      * Khởi tạo quản lý học phần.
      */
     public CourseSectionManagementPanel() {
-        super("Quan ly hoc phan");
+        super("Quản lý học phần");
         filterTypeComboBox.setSelectedItem(FILTER_ALL);
         setFilterPanel(buildFilterPanel());
         setDetailPanel(detailSectionPanel);

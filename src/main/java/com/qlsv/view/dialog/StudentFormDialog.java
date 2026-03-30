@@ -6,6 +6,8 @@ package com.qlsv.view.dialog;
 import com.qlsv.model.ClassRoom;
 import com.qlsv.model.Faculty;
 import com.qlsv.view.common.AppColors;
+import com.qlsv.view.common.AppFonts;
+import com.qlsv.view.common.AppSpacing;
 import com.qlsv.view.common.FilterOption;
 
 import javax.swing.BorderFactory;
@@ -27,7 +29,6 @@ import java.awt.Cursor;
 import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -90,12 +91,17 @@ public class StudentFormDialog extends JDialog {
         JPanel rootPanel = new JPanel(new BorderLayout());
         rootPanel.setBackground(AppColors.CARD_BACKGROUND);
 
-        JPanel headerPanel = new JPanel(new BorderLayout(0, 6));
+        JPanel headerPanel = new JPanel(new BorderLayout(0, AppSpacing.SM));
         headerPanel.setOpaque(false);
-        headerPanel.setBorder(BorderFactory.createEmptyBorder(20, 24, 0, 24));
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(
+            AppSpacing.PADDING_LARGE, 
+            AppSpacing.XL, 
+            0, 
+            AppSpacing.XL
+        ));
 
         JLabel titleLabel = new JLabel(model.title());
-        titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 22f));
+        titleLabel.setFont(AppFonts.H2);
         titleLabel.setForeground(AppColors.CARD_VALUE_TEXT);
 
 
@@ -105,18 +111,23 @@ public class StudentFormDialog extends JDialog {
         JPanel bodyPanel = new JPanel();
         bodyPanel.setOpaque(false);
         bodyPanel.setLayout(new BoxLayout(bodyPanel, BoxLayout.Y_AXIS));
-        bodyPanel.setBorder(BorderFactory.createEmptyBorder(16, 24, 20, 24));
+        bodyPanel.setBorder(BorderFactory.createEmptyBorder(
+            AppSpacing.PADDING_NORMAL, 
+            AppSpacing.XL, 
+            AppSpacing.PADDING_LARGE, 
+            AppSpacing.XL
+        ));
         bodyPanel.add(createBasicInfoSection());
-        bodyPanel.add(Box.createVerticalStrut(24));
+        bodyPanel.add(Box.createVerticalStrut(AppSpacing.SECTION_GAP));
         bodyPanel.add(createAcademicInfoSection());
-        bodyPanel.add(Box.createVerticalStrut(24));
+        bodyPanel.add(Box.createVerticalStrut(AppSpacing.SECTION_GAP));
         bodyPanel.add(createContactInfoSection());
 
         JScrollPane scrollPane = new JScrollPane(bodyPanel);
         scrollPane.setBorder(null);
         scrollPane.getViewport().setBackground(AppColors.CARD_BACKGROUND);
-        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
-        scrollPane.getHorizontalScrollBar().setUnitIncrement(16);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(AppSpacing.PADDING_NORMAL);
+        scrollPane.getHorizontalScrollBar().setUnitIncrement(AppSpacing.PADDING_NORMAL);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 
         JButton cancelButton = new JButton("Hủy");
@@ -130,9 +141,14 @@ public class StudentFormDialog extends JDialog {
         stylePrimaryButton(saveButton);
         saveButton.addActionListener(event -> handleSave());
 
-        JPanel footerPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 0));
+        JPanel footerPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, AppSpacing.MD, 0));
         footerPanel.setOpaque(false);
-        footerPanel.setBorder(BorderFactory.createEmptyBorder(0, 24, 20, 24));
+        footerPanel.setBorder(BorderFactory.createEmptyBorder(
+            0, 
+            AppSpacing.XL, 
+            AppSpacing.PADDING_LARGE, 
+            AppSpacing.XL
+        ));
         footerPanel.add(cancelButton);
         footerPanel.add(saveButton);
 
@@ -149,6 +165,26 @@ public class StudentFormDialog extends JDialog {
         setMinimumSize(new Dimension(720, 620));
         setSize(new Dimension(760, 680));
         setLocationRelativeTo(getOwner());
+        
+        // Thêm ESC key để đóng dialog
+        setupEscapeKey(cancelButton);
+    }
+
+    /**
+     * Thiết lập ESC key để đóng dialog.
+     */
+    private void setupEscapeKey(JButton cancelButton) {
+        javax.swing.JRootPane rootPane = getRootPane();
+        javax.swing.InputMap inputMap = rootPane.getInputMap(javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW);
+        javax.swing.ActionMap actionMap = rootPane.getActionMap();
+
+        inputMap.put(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_ESCAPE, 0), "ESCAPE");
+        actionMap.put("ESCAPE", new javax.swing.AbstractAction() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                cancelButton.doClick();
+            }
+        });
     }
 
     /**
@@ -217,25 +253,30 @@ public class StudentFormDialog extends JDialog {
      * Tạo phần.
      */
     private JPanel createSection(String title, String subtitle, JComponent content) {
-        JPanel panel = new JPanel(new BorderLayout(0, 16));
+        JPanel panel = new JPanel(new BorderLayout(0, AppSpacing.PADDING_NORMAL));
         panel.setOpaque(true);
         panel.setBackground(AppColors.CARD_BACKGROUND);
         panel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(AppColors.CARD_BORDER),
-                BorderFactory.createEmptyBorder(18, 18, 18, 18)
+                BorderFactory.createEmptyBorder(
+                    AppSpacing.PADDING_NORMAL + 2, 
+                    AppSpacing.PADDING_NORMAL + 2, 
+                    AppSpacing.PADDING_NORMAL + 2, 
+                    AppSpacing.PADDING_NORMAL + 2
+                )
         ));
         panel.setAlignmentX(Component.LEFT_ALIGNMENT);
         panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 
-        JPanel headingPanel = new JPanel(new BorderLayout(0, 4));
+        JPanel headingPanel = new JPanel(new BorderLayout(0, AppSpacing.XS));
         headingPanel.setOpaque(false);
 
         JLabel titleLabel = new JLabel(title);
-        titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 16f));
+        titleLabel.setFont(AppFonts.H4);
         titleLabel.setForeground(AppColors.CARD_VALUE_TEXT);
 
         JLabel subtitleLabel = new JLabel(subtitle);
-        subtitleLabel.setFont(subtitleLabel.getFont().deriveFont(Font.PLAIN, 12.5f));
+        subtitleLabel.setFont(AppFonts.CAPTION);
         subtitleLabel.setForeground(AppColors.CARD_MUTED_TEXT);
 
         headingPanel.add(titleLabel, BorderLayout.NORTH);
@@ -273,7 +314,12 @@ public class StudentFormDialog extends JDialog {
         constraints.weightx = width;
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.anchor = GridBagConstraints.NORTHWEST;
-        constraints.insets = new Insets(0, 0, 12, width == 2 ? 0 : (x == 0 ? 12 : 0));
+        constraints.insets = new Insets(
+            0, 
+            0, 
+            AppSpacing.MD, 
+            width == 2 ? 0 : (x == 0 ? AppSpacing.MD : 0)
+        );
         return constraints;
     }
 
@@ -281,12 +327,12 @@ public class StudentFormDialog extends JDialog {
      * Tạo trường.
      */
     private JPanel createField(String labelText, JComponent inputComponent) {
-        JPanel panel = new JPanel(new BorderLayout(0, 6));
+        JPanel panel = new JPanel(new BorderLayout(0, AppSpacing.SM));
         panel.setOpaque(false);
         panel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JLabel label = new JLabel(labelText);
-        label.setFont(label.getFont().deriveFont(Font.BOLD, 12.5f));
+        label.setFont(AppFonts.CAPTION_BOLD);
         label.setForeground(AppColors.CARD_TITLE_TEXT);
 
         panel.add(label, BorderLayout.NORTH);
@@ -301,12 +347,17 @@ public class StudentFormDialog extends JDialog {
         addressArea.setLineWrap(true);
         addressArea.setWrapStyleWord(true);
         addressArea.setRows(4);
-        addressArea.setFont(addressArea.getFont().deriveFont(Font.PLAIN, 13.5f));
-        addressArea.setBorder(BorderFactory.createEmptyBorder(10, 12, 10, 12));
+        addressArea.setFont(AppFonts.INPUT);
+        addressArea.setBorder(BorderFactory.createEmptyBorder(
+            AppSpacing.SM + 2, 
+            AppSpacing.MD, 
+            AppSpacing.SM + 2, 
+            AppSpacing.MD
+        ));
 
         JScrollPane scrollPane = new JScrollPane(addressArea);
         scrollPane.setBorder(BorderFactory.createLineBorder(AppColors.INPUT_BORDER));
-        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(AppSpacing.PADDING_NORMAL);
         scrollPane.setPreferredSize(new Dimension(0, TEXT_AREA_HEIGHT));
         scrollPane.setMinimumSize(new Dimension(160, TEXT_AREA_HEIGHT));
         return scrollPane;
@@ -316,10 +367,15 @@ public class StudentFormDialog extends JDialog {
      * Áp dụng kiểu cho trường văn bản.
      */
     private JTextField styleTextField(JTextField textField) {
-        textField.setFont(textField.getFont().deriveFont(Font.PLAIN, 13.5f));
+        textField.setFont(AppFonts.INPUT);
         textField.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(AppColors.INPUT_BORDER),
-                BorderFactory.createEmptyBorder(10, 12, 10, 12)
+                BorderFactory.createEmptyBorder(
+                    AppSpacing.SM + 2, 
+                    AppSpacing.MD, 
+                    AppSpacing.SM + 2, 
+                    AppSpacing.MD
+                )
         ));
         textField.setPreferredSize(new Dimension(textField.getPreferredSize().width, INPUT_HEIGHT));
         textField.setMinimumSize(new Dimension(160, INPUT_HEIGHT));
@@ -330,7 +386,7 @@ public class StudentFormDialog extends JDialog {
      * Áp dụng kiểu cho chọn box.
      */
     private <T> JComboBox<T> styleComboBox(JComboBox<T> comboBox) {
-        comboBox.setFont(comboBox.getFont().deriveFont(Font.PLAIN, 13.5f));
+        comboBox.setFont(AppFonts.INPUT);
         comboBox.setBorder(BorderFactory.createLineBorder(AppColors.INPUT_BORDER));
         comboBox.setPreferredSize(new Dimension(comboBox.getPreferredSize().width, INPUT_HEIGHT));
         comboBox.setMinimumSize(new Dimension(160, INPUT_HEIGHT));
@@ -341,26 +397,38 @@ public class StudentFormDialog extends JDialog {
      * Áp dụng kiểu cho nút primary.
      */
     private void stylePrimaryButton(JButton button) {
+        button.setFont(AppFonts.BUTTON);
         button.setFocusPainted(false);
         button.setBorderPainted(false);
         button.setOpaque(true);
         button.setBackground(AppColors.BUTTON_PRIMARY);
         button.setForeground(AppColors.BUTTON_TEXT);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        button.setBorder(BorderFactory.createEmptyBorder(10, 18, 10, 18));
+        button.setBorder(BorderFactory.createEmptyBorder(
+            AppSpacing.SM + 2, 
+            AppSpacing.PADDING_NORMAL + 2, 
+            AppSpacing.SM + 2, 
+            AppSpacing.PADDING_NORMAL + 2
+        ));
     }
 
     /**
      * Áp dụng kiểu cho nút secondary.
      */
     private void styleSecondaryButton(JButton button) {
+        button.setFont(AppFonts.BUTTON);
         button.setFocusPainted(false);
         button.setBorderPainted(false);
         button.setOpaque(true);
         button.setBackground(AppColors.BUTTON_NEUTRAL);
         button.setForeground(AppColors.BUTTON_TEXT);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        button.setBorder(BorderFactory.createEmptyBorder(10, 18, 10, 18));
+        button.setBorder(BorderFactory.createEmptyBorder(
+            AppSpacing.SM + 2, 
+            AppSpacing.PADDING_NORMAL + 2, 
+            AppSpacing.SM + 2, 
+            AppSpacing.PADDING_NORMAL + 2
+        ));
     }
 
     /**

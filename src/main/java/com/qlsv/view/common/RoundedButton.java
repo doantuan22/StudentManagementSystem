@@ -1,5 +1,6 @@
 /**
  * Nút bo góc dùng cho màn hình đăng nhập.
+ * @deprecated Sử dụng CustomButton với setRounded(true) thay thế
  */
 package com.qlsv.view.common;
 
@@ -10,12 +11,15 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 
+@Deprecated
 public class RoundedButton extends JButton {
     private final int radius;
 
     /**
      * Khởi tạo nút bo góc.
+     * @deprecated Sử dụng CustomButton thay thế
      */
+    @Deprecated
     public RoundedButton(String text, int radius) {
         super(text);
         this.radius = radius;

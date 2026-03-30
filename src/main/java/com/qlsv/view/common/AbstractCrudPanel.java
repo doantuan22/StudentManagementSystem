@@ -4,9 +4,13 @@
 package com.qlsv.view.common;
 
 import com.qlsv.utils.DialogUtil;
+import com.qlsv.utils.SearchDebouncer;
 import com.qlsv.view.dialog.BaseDetailDialog;
 
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
+import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -14,6 +18,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
@@ -27,6 +32,8 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.LayoutManager;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -55,6 +62,8 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
     private List<T> allItems = new ArrayList<>();
     private List<T> currentItems = new ArrayList<>();
     private SwingWorker<?, ?> activeWorker;
+    private Object selectedItemId;
+    private SearchDebouncer searchDebouncer;
     private static final String LOADING_CARD = "loading";
     private static final String DATA_CARD = "table";
     private static final String EMPTY_CARD = "empty";
@@ -67,10 +76,10 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
         setBackground(AppColors.CONTENT_BACKGROUND);
 
         JLabel titleLabel = new JLabel(title);
-        titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 20f));
+        titleLabel.setFont(AppFonts.H2);
         titleLabel.setForeground(AppColors.CARD_VALUE_TEXT);
 
-        JPanel searchPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 8, 0));
+        JPanel searchPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, AppSpacing.COMPONENT_GAP, 0));
         searchPanel.setOpaque(false);
         searchField = new JTextField(24);
         searchField.setToolTipText("Nhập từ khóa để tìm nhanh trong dữ liệu đang hiển thị.");
@@ -85,7 +94,7 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
         searchPanel.add(searchField);
         searchPanel.add(searchButton);
 
-        JPanel actionPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 0));
+        JPanel actionPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, AppSpacing.COMPONENT_GAP, 0));
         actionPanel.setOpaque(false);
         addButton = new JButton("Thêm");
         editButton = new JButton("Sửa");
@@ -101,7 +110,7 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
         actionPanel.add(deleteButton);
         actionPanel.add(reloadButton);
 
-        JPanel topHeaderPanel = new JPanel(new BorderLayout(12, 8));
+        JPanel topHeaderPanel = new JPanel(new BorderLayout(AppSpacing.MD, AppSpacing.COMPONENT_GAP));
         topHeaderPanel.setOpaque(false);
         topHeaderPanel.add(titleLabel, BorderLayout.WEST);
         if (isHeaderSearchVisible()) {
@@ -153,22 +162,15 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
         tableScrollPane.getHorizontalScrollBar().setUnitIncrement(16);
         tableScrollPane.getViewport().setBackground(AppColors.CARD_BACKGROUND);
 
-        JPanel emptyStatePanel = new JPanel(new BorderLayout());
+        JPanel emptyStatePanel = new EmptyStatePanel();
         emptyStatePanel.setOpaque(true);
         emptyStatePanel.setBackground(AppColors.CARD_BACKGROUND);
-        emptyStatePanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(AppColors.CARD_BORDER),
-                BorderFactory.createEmptyBorder(48, 24, 48, 24)
-        ));
-        emptyStateLabel.setFont(emptyStateLabel.getFont().deriveFont(Font.ITALIC, 15f));
-        emptyStateLabel.setForeground(AppColors.CARD_MUTED_TEXT);
-        emptyStatePanel.add(emptyStateLabel, BorderLayout.CENTER);
 
         tableCardPanel.setOpaque(false);
         mainContentPanel.setOpaque(false);
         tableCardPanel.add(tableScrollPane, DATA_CARD);
         tableCardPanel.add(emptyStatePanel, EMPTY_CARD);
-        tableCardPanel.add(createLoadingPanel(), LOADING_CARD);
+        tableCardPanel.add(new LoadingPanel(), LOADING_CARD);
         mainContentPanel.add(tableCardPanel, BorderLayout.CENTER);
         add(mainContentPanel, BorderLayout.CENTER);
 
@@ -178,6 +180,17 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
         reloadButton.addActionListener(event -> refreshData());
         searchButton.addActionListener(event -> handleSearch());
         searchField.addActionListener(event -> handleSearch());
+        
+        // Setup search debounce
+        searchDebouncer = new SearchDebouncer(this::handleSearch, 300);
+        searchField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { searchDebouncer.trigger(); }
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { searchDebouncer.trigger(); }
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { searchDebouncer.trigger(); }
+        });
+        
+        // Setup keyboard shortcuts
+        setupKeyboardShortcuts();
     }
 
     /**
@@ -209,6 +222,13 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
      * Xóa entity.
      */
     protected abstract void deleteEntity(T item);
+
+    /**
+     * Trả về ID của item để preserve selection (override nếu cần).
+     */
+    protected Object getItemId(T item) {
+        return null;
+    }
 
     /**
      * Kiểm tra xem một đối tượng dữ liệu có khớp với từ khóa tìm kiếm hay không.
@@ -362,6 +382,9 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
     @Override
     public void removeNotify() {
         disposeDetailDialog();
+        if (searchDebouncer != null) {
+            searchDebouncer.dispose();
+        }
         super.removeNotify();
     }
 
@@ -371,6 +394,12 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
     protected final void refreshData() {
         if (activeWorker != null && !activeWorker.isDone()) {
             activeWorker.cancel(true);
+        }
+
+        // Lưu selection hiện tại
+        T currentSelection = getSelectedItem();
+        if (currentSelection != null) {
+            selectedItemId = getItemId(currentSelection);
         }
 
         setLoadingState(true);
@@ -387,7 +416,7 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
                     allItems = new ArrayList<>(get());
                     applySearch();
                 } catch (Exception exception) {
-                    DialogUtil.showError(AbstractCrudPanel.this, "Lỗi tải dữ liệu: " + exception.getMessage());
+                    NotificationToast.showError(AbstractCrudPanel.this, "Lỗi tải dữ liệu: " + exception.getMessage());
                 } finally {
                     setLoadingState(false);
                 }
@@ -437,9 +466,8 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
             tableModel.addRow(toRow(item));
         }
 
-        table.clearSelection();
-        onSelectionChanged(null);
-        hideDetailDialog();
+        // Restore selection nếu có
+        restoreSelection();
 
         if (currentItems.isEmpty()) {
             emptyStateLabel.setText("<html><div style='text-align:center;'>" + getEmptyStateMessage() + "</div></html>");
@@ -448,6 +476,36 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
         }
 
         tableCardLayout.show(tableCardPanel, "table");
+    }
+
+    /**
+     * Khôi phục selection sau khi refresh data.
+     */
+    private void restoreSelection() {
+        if (selectedItemId == null) {
+            table.clearSelection();
+            onSelectionChanged(null);
+            hideDetailDialog();
+            return;
+        }
+
+        // Tìm item có cùng ID
+        for (int i = 0; i < currentItems.size(); i++) {
+            T item = currentItems.get(i);
+            Object itemId = getItemId(item);
+            if (itemId != null && itemId.equals(selectedItemId)) {
+                table.setRowSelectionInterval(i, i);
+                table.scrollRectToVisible(table.getCellRect(i, 0, true));
+                selectedItemId = null;
+                return;
+            }
+        }
+
+        // Không tìm thấy, clear selection
+        table.clearSelection();
+        onSelectionChanged(null);
+        hideDetailDialog();
+        selectedItemId = null;
     }
 
     /**
@@ -480,10 +538,11 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
             protected void done() {
                 try {
                     get();
-                    DialogUtil.showInfo(AbstractCrudPanel.this, successMessage);
+                    NotificationToast.showSuccess(AbstractCrudPanel.this, successMessage);
                     refreshData();
                 } catch (Exception exception) {
-                    DialogUtil.showError(AbstractCrudPanel.this, "Lỗi lưu dữ liệu: " + exception.getMessage());
+                    NotificationToast.showError(AbstractCrudPanel.this, "Lỗi lưu dữ liệu: " + exception.getMessage());
+                } finally {
                     setLoadingState(false);
                 }
             }
@@ -533,10 +592,11 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
             protected void done() {
                 try {
                     get();
-                    DialogUtil.showInfo(AbstractCrudPanel.this, "Xóa dữ liệu thành công.");
+                    NotificationToast.showSuccess(AbstractCrudPanel.this, "Xóa dữ liệu thành công.");
                     refreshData();
                 } catch (Exception exception) {
-                    DialogUtil.showError(AbstractCrudPanel.this, "Lỗi xóa dữ liệu: " + exception.getMessage());
+                    NotificationToast.showError(AbstractCrudPanel.this, "Lỗi xóa dữ liệu: " + exception.getMessage());
+                } finally {
                     setLoadingState(false);
                 }
             }
@@ -599,7 +659,12 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
         panel.setBackground(AppColors.CARD_BACKGROUND);
         panel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(AppColors.CARD_BORDER),
-                BorderFactory.createEmptyBorder(16, 18, 16, 18)
+                BorderFactory.createEmptyBorder(
+                        AppSpacing.PADDING_NORMAL,
+                        AppSpacing.PADDING_NORMAL + 2,
+                        AppSpacing.PADDING_NORMAL,
+                        AppSpacing.PADDING_NORMAL + 2
+                )
         ));
         return panel;
     }
@@ -655,20 +720,86 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
             setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         } else {
             setCursor(Cursor.getDefaultCursor());
+            // Hiển thị lại table hoặc empty state
+            if (currentItems.isEmpty()) {
+                tableCardLayout.show(tableCardPanel, EMPTY_CARD);
+            } else {
+                tableCardLayout.show(tableCardPanel, DATA_CARD);
+            }
         }
     }
 
     /**
      * Tạo panel loading.
+     * @deprecated Sử dụng LoadingPanel class thay thế
      */
+    @Deprecated
     private JPanel createLoadingPanel() {
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setOpaque(false);
-        JLabel loadingLabel = new JLabel("Đang xử lý, vui lòng đợi...", SwingConstants.CENTER);
-        loadingLabel.setForeground(AppColors.CARD_MUTED_TEXT);
-        loadingLabel.setFont(loadingLabel.getFont().deriveFont(Font.ITALIC));
-        panel.add(loadingLabel, BorderLayout.CENTER);
-        return panel;
+        return new LoadingPanel();
+    }
+
+    /**
+     * Setup keyboard shortcuts cho CRUD operations.
+     */
+    private void setupKeyboardShortcuts() {
+        InputMap inputMap = getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+        ActionMap actionMap = getActionMap();
+
+        // Ctrl+N: Thêm mới
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_N, KeyEvent.CTRL_DOWN_MASK), "add");
+        actionMap.put("add", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (addButton.isVisible() && addButton.isEnabled()) {
+                    handleAdd();
+                }
+            }
+        });
+
+        // Ctrl+E hoặc Enter: Sửa
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_E, KeyEvent.CTRL_DOWN_MASK), "edit");
+        actionMap.put("edit", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (editButton.isVisible() && editButton.isEnabled() && getSelectedItem() != null) {
+                    handleEdit();
+                }
+            }
+        });
+
+        // Delete: Xóa
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "delete");
+        actionMap.put("delete", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (deleteButton.isVisible() && deleteButton.isEnabled() && getSelectedItem() != null) {
+                    handleDelete();
+                }
+            }
+        });
+
+        // F5: Tải lại
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0), "reload");
+        actionMap.put("reload", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (reloadButton.isVisible() && reloadButton.isEnabled()) {
+                    refreshData();
+                }
+            }
+        });
+
+        // Ctrl+F: Focus search field
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_F, KeyEvent.CTRL_DOWN_MASK), "focusSearch");
+        actionMap.put("focusSearch", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (searchField.isVisible() && searchField.isEnabled()) {
+                    searchField.requestFocusInWindow();
+                    searchField.selectAll();
+                }
+            }
+        });
     }
 
     private static final class ResponsiveTable extends JTable {

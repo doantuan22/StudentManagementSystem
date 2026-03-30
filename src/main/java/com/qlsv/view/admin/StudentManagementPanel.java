@@ -207,6 +207,14 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
     }
 
     /**
+     * Trả về ID của student để preserve selection.
+     */
+    @Override
+    protected Object getItemId(Student item) {
+        return item != null ? item.getId() : null;
+    }
+
+    /**
      * Tạo hộp thoại chi tiết.
      */
     @Override
@@ -371,7 +379,11 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
             return;
         }
 
+        // Disable controls trong lúc load
+        filterTypeComboBox.setEnabled(false);
+        filterValueComboBox.setEnabled(false);
         setLoadingState(true);
+        
         new javax.swing.SwingWorker<List<?>, Void>() {
             @Override
             protected List<?> doInBackground() {
@@ -385,7 +397,6 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
             protected void done() {
                 try {
                     List<?> results = get();
-                    filterValueComboBox.setEnabled(true);
                     if (FILTER_FACULTY.equals(filterType)) {
                         filterValueComboBox.addItem(new FilterOption<>("Chọn khoa", null));
                         for (Object obj : results) {
@@ -405,9 +416,11 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
                             filterValueComboBox.addItem(new FilterOption<>(academicYear, academicYear));
                         }
                     }
+                    filterValueComboBox.setEnabled(true);
                 } catch (Exception exception) {
                     DialogUtil.showError(StudentManagementPanel.this, "Lỗi khi tải danh mục: " + exception.getMessage());
                 } finally {
+                    filterTypeComboBox.setEnabled(true);
                     setLoadingState(false);
                 }
             }

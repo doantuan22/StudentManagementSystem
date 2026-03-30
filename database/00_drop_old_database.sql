@@ -1,8 +1,8 @@
 -- ============================================================
 -- FILE: 00_drop_old_database.sql
--- MUC DICH: Xoa database cu de tao lai tu dau (BUOC 1 - CHAY TRUOC)
--- CANH BAO: Lenh nay se XOA TOAN BO du lieu hien tai!
---           Hay dam bao da backup truoc khi chay.
+-- MỤC ĐÍCH: Xóa database cũ để tạo lại từ đầu (BƯỚC 1 - CHẠY TRƯỚC)
+-- CẢNH BÁO: Lệnh này sẽ XÓA TOÀN BỘ dữ liệu hiện tại!
+--           Hãy đảm bảo đã backup trước khi chạy.
 -- ============================================================
 
 -- Xóa schema cũ của hệ thống quản lý sinh viên để chuẩn bị tạo lại.

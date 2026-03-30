@@ -13,6 +13,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
+/**
+ * DAO xử lý truy vấn và lưu trữ dữ liệu phòng học.
+ */
 public class RoomDAO {
 
     /**

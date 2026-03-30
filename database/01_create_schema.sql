@@ -1,8 +1,8 @@
 -- ============================================================
 -- FILE: 01_create_schema.sql
--- MUC DICH: Tạo toàn bộ schema của Hệ thống Quản lý Sinh viên.
+-- MỤC ĐÍCH: Tạo toàn bộ schema của Hệ thống Quản lý Sinh viên.
 --           Đã tích hợp các cột bổ sung và trigger tự động hóa.
--- CHAY SAU: 00_drop_old_database.sql
+-- CHẠY SAU: 00_drop_old_database.sql
 -- ============================================================
 
 SET NAMES utf8mb4;
@@ -15,7 +15,7 @@ CREATE DATABASE IF NOT EXISTS student_management
 USE student_management;
 
 -- ------------------------------------------------------------
--- BANG CO SO (Base tables)
+-- BẢNG CƠ SỞ (Base tables)
 -- ------------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS roles (
@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS rooms (
 );
 
 -- ------------------------------------------------------------
--- BANG USERS VA PHAN QUYEN
+-- BẢNG USERS VÀ PHÂN QUYỀN
 -- ------------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS users (
@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 -- ------------------------------------------------------------
--- LOP HOC VA MON HOC
+-- LỚP HỌC VÀ MÔN HỌC
 -- ------------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS class_rooms (
@@ -82,7 +82,7 @@ CREATE TABLE IF NOT EXISTS subjects (
 );
 
 -- ------------------------------------------------------------
--- GIANG VIEN VA SINH VIEN
+-- GIẢNG VIÊN VÀ SINH VIÊN
 -- ------------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS lecturers (
@@ -123,7 +123,7 @@ CREATE TABLE IF NOT EXISTS students (
 );
 
 -- ------------------------------------------------------------
--- PHAN CONG VA HOC PHAN
+-- PHÂN CÔNG VÀ HỌC PHẦN
 -- ------------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS lecturer_subjects (
@@ -148,9 +148,9 @@ CREATE TABLE IF NOT EXISTS course_sections (
     CONSTRAINT chk_course_sections_max_students CHECK (max_students > 0)
 );
 
--- NOTE:
--- Khong the enforce xung dot overlap cua phong hoc / giang vien bang UNIQUE constraint don gian
--- vi rule phu thuoc vao khoang tiet giao nhau. Rule nay duoc kiem tra o service/DAO.
+-- LƯU Ý:
+-- Không thể enforce xung đột overlap của phòng học / giảng viên bằng UNIQUE constraint đơn giản
+-- vì rule phụ thuộc vào khoảng tiết giao nhau. Rule này được kiểm tra ở service/DAO.
 CREATE TABLE IF NOT EXISTS schedules (
     id                BIGINT PRIMARY KEY AUTO_INCREMENT,
     course_section_id BIGINT NOT NULL,
@@ -167,7 +167,7 @@ CREATE TABLE IF NOT EXISTS schedules (
 );
 
 -- ------------------------------------------------------------
--- DANG KY VA DIEM
+-- ĐĂNG KÝ VÀ ĐIỂM
 -- ------------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS enrollments (
@@ -234,7 +234,7 @@ FROM enrollments e
          LEFT JOIN scores s      ON s.enrollment_id = e.id;
 
 -- ------------------------------------------------------------
--- TRIGGERS: TU DONG TAO/CAP NHAT TAI KHOAN USER
+-- TRIGGERS: TỰ ĐỘNG TẠO/CẬP NHẬT TÀI KHOẢN USER
 -- ------------------------------------------------------------
 
 DELIMITER //

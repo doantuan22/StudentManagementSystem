@@ -17,7 +17,7 @@ import java.util.Optional;
 import java.util.function.Function;
 
 /**
- * JPA repository for Lecturer.
+ * DAO xử lý truy vấn và lưu trữ dữ liệu giảng viên.
  */
 public class LecturerDAO {
 

@@ -1,9 +1,9 @@
 -- ============================================================
 -- FILE: 02_seed_full_data.sql
--- MUC DICH: Chen toan bo du lieu mau bang tieng Viet co dau.
--- Du lieu da bao gom cac truong dia chi va nhat quan username.
--- CHAY SAU: 01_create_schema.sql
--- MAT KHAU: Tat ca tai khoan dung mat khau "123456"
+-- MỤC ĐÍCH: Chèn toàn bộ dữ liệu mẫu bằng tiếng Việt có dấu.
+-- Dữ liệu đã bao gồm các trường địa chỉ và nhất quán username.
+-- CHẠY SAU: 01_create_schema.sql
+-- MẬT KHẨU: Tất cả tài khoản dùng mật khẩu "123456"
 --           SHA-256: 8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92
 -- ============================================================
 
@@ -12,7 +12,7 @@ SET NAMES utf8mb4;
 USE student_management;
 
 -- ------------------------------------------------------------
--- 1. VAI TRO (roles)
+-- 1. VAI TRÒ (roles)
 -- ------------------------------------------------------------
 INSERT INTO roles (id, role_code, role_name)
 VALUES (1, 'ADMIN',    'Quản trị viên'),
@@ -20,8 +20,8 @@ VALUES (1, 'ADMIN',    'Quản trị viên'),
        (3, 'STUDENT',  'Sinh viên');
 
 -- ------------------------------------------------------------
--- 2. NGUOI DUNG (users)
--- Mat khau mac dinh: 123456
+-- 2. NGƯỜI DÙNG (users)
+-- Mật khẩu mặc định: 123456
 -- ------------------------------------------------------------
 INSERT INTO users (id, username, password_hash, full_name, email, role_id, active)
 VALUES
@@ -83,7 +83,7 @@ VALUES
     (4, 'KTCK', 'Kỹ thuật Cơ khí',     'Khoa đào tạo kỹ sư cơ khí và tự động hóa');
 
 -- ------------------------------------------------------------
--- 4. PHONG HOC (rooms)
+-- 4. PHÒNG HỌC (rooms)
 -- ------------------------------------------------------------
 INSERT INTO rooms (id, room_code, room_name)
 VALUES
@@ -97,7 +97,7 @@ VALUES
     (8, 'D401', 'Phòng học cao học D401');
 
 -- ------------------------------------------------------------
--- 5. LOP HANH CHINH (class_rooms)
+-- 5. LỚP HÀNH CHÍNH (class_rooms)
 -- ------------------------------------------------------------
 INSERT INTO class_rooms (id, class_code, class_name, academic_year, faculty_id)
 VALUES
@@ -107,7 +107,7 @@ VALUES
     (4, 'D17DTVT01-N', 'Lớp Điện tử Viễn thông 01',  '2022 - 2026', 3);
 
 -- ------------------------------------------------------------
--- 6. GIANG VIEN (lecturers)
+-- 6. GIẢNG VIÊN (lecturers)
 -- ------------------------------------------------------------
 INSERT INTO lecturers (id, user_id, lecturer_code, full_name, gender, email, date_of_birth, phone, address, faculty_id, status)
 VALUES
@@ -128,7 +128,7 @@ VALUES
     (15, 22, 'GV015', 'Đặng Gia Bảo',   'Nam', 'dg.bao@sms.edu.vn',   '1987-03-19', '0901234581', '67 Lạc Long Quân, Tây Hồ, Hà Nội', 4, 'ACTIVE');
 
 -- ------------------------------------------------------------
--- 7. SINH VIEN (students)
+-- 7. SINH VIÊN (students)
 -- ------------------------------------------------------------
 INSERT INTO students (id, user_id, student_code, full_name, gender, date_of_birth, email, phone, address, faculty_id, class_room_id, academic_year, status)
 VALUES
@@ -164,7 +164,7 @@ VALUES
     (30, 46, 'SV2200030', 'Phạm Thảo Nhi',            'Nữ',  '2004-11-06', 'sv2200030@sms.edu.vn',   '0912000030', 'Số 58 Nguyễn Xiển, Thanh Xuân, Hà Nội', 3, 4, '2022 - 2026', 'ACTIVE');
 
 -- ------------------------------------------------------------
--- 8. MON HOC (subjects)
+-- 8. MÔN HỌC (subjects)
 -- ------------------------------------------------------------
 INSERT INTO subjects (id, subject_code, subject_name, credits, faculty_id, description)
 VALUES
@@ -176,7 +176,7 @@ VALUES
     (6, 'BUS102', 'Marketing Căn bản',       2, 2, 'Tổng quan về marketing và hành vi tiêu dùng');
 
 -- ------------------------------------------------------------
--- 9. HOC PHAN MO (course_sections)
+-- 9. HỌC PHẦN MỞ (course_sections)
 -- ------------------------------------------------------------
 INSERT INTO course_sections (id, section_code, subject_id, lecturer_id, semester, school_year, max_students)
 VALUES
@@ -188,7 +188,7 @@ VALUES
     (6, 'BUS102-01', 6, 8, 'HK1', '2024-2025', 40);
 
 -- ------------------------------------------------------------
--- 10. LICH HOC (schedules)
+-- 10. LỊCH HỌC (schedules)
 -- ------------------------------------------------------------
 INSERT INTO schedules (id, course_section_id, day_of_week, start_period, end_period, room_id, note)
 VALUES
@@ -200,7 +200,7 @@ VALUES
     (6, 6, 'Thứ Bảy', 1, 3, 7, 'Lịch chính thức học phần Marketing Căn bản');
 
 -- ------------------------------------------------------------
--- 11. DANG KY HOC PHAN (enrollments)
+-- 11. ĐĂNG KÝ HỌC PHẦN (enrollments)
 -- ------------------------------------------------------------
 INSERT INTO enrollments (id, student_id, course_section_id, status)
 SELECT 1 + ((s.id - 1) * 3), s.id, MOD(s.id - 1, 6) + 1, 'REGISTERED'
@@ -216,7 +216,7 @@ FROM students s
 WHERE s.id BETWEEN 1 AND 30;
 
 -- ------------------------------------------------------------
--- 12. DIEM SO (scores)
+-- 12. ĐIỂM SỐ (scores)
 -- ------------------------------------------------------------
 INSERT INTO scores (id, enrollment_id, process_score, midterm_score, final_score, total_score, result)
 SELECT

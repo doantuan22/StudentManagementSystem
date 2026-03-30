@@ -19,8 +19,8 @@ import java.util.Optional;
 import java.util.function.Function;
 
 /**
- * Service-facing DAO boundary for Student persistence.
- * This class owns all JPA access for the Student module.
+ * DAO xử lý truy vấn và lưu trữ dữ liệu sinh viên.
+ * Class này quản lý toàn bộ truy cập JPA cho module Student.
  */
 public class StudentDAO {
 

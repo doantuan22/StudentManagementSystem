@@ -12,8 +12,8 @@ import java.util.List;
 import java.util.function.Function;
 
 /**
- * Read-only reporting DAO backed by JPQL projections.
- * JDBC is intentionally avoided here because this DAO participates in runtime report flows.
+ * DAO chỉ đọc dữ liệu để tạo báo cáo, sử dụng JPQL projection.
+ * Cố ý không dùng JDBC vì DAO này tham gia vào luồng báo cáo runtime.
  */
 public class ReportDAO {
 

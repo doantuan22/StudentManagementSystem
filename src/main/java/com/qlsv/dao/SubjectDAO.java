@@ -15,7 +15,8 @@ import java.util.Optional;
 import java.util.function.Function;
 
 /**
- * JOIN FETCH keeps Faculty available after EntityManager closes for the current Swing screens.
+ * DAO xử lý truy vấn và lưu trữ dữ liệu môn học.
+ * JOIN FETCH giữ Faculty khả dụng sau khi EntityManager đóng cho các màn hình Swing hiện tại.
  */
 public class SubjectDAO {
 

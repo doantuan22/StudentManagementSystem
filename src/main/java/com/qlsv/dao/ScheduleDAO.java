@@ -17,7 +17,8 @@ import java.util.Optional;
 import java.util.function.Function;
 
 /**
- * Schedule is loaded via JPA; fetch plans are tuned for detached Swing screens and avoid legacy JDBC hydration.
+ * DAO xử lý truy vấn và lưu trữ dữ liệu lịch học/lịch dạy.
+ * Schedule được load qua JPA; fetch plan được tối ưu cho màn hình Swing detached.
  */
 public class ScheduleDAO {
 

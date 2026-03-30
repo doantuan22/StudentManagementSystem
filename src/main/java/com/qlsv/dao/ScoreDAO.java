@@ -21,7 +21,8 @@ import java.util.Optional;
 import java.util.function.Function;
 
 /**
- * Score is loaded via JPA; course section room/schedule text are hydrated as compatibility fields for existing DTO/UI flows.
+ * DAO xử lý truy vấn và lưu trữ dữ liệu điểm số.
+ * Score được load qua JPA; thông tin phòng/lịch học được hydrate để tương thích với DTO/UI hiện tại.
  */
 public class ScoreDAO {
 

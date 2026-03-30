@@ -14,7 +14,7 @@ import java.util.Optional;
 import java.util.function.Function;
 
 /**
- * JPA repository for Faculty.
+ * DAO xử lý truy vấn và lưu trữ dữ liệu khoa.
  */
 public class FacultyDAO {
 

@@ -20,7 +20,8 @@ import java.util.Optional;
 import java.util.function.Function;
 
 /**
- * CourseSection is loaded via JPA; scheduleText and room stay as compatibility fields and should be removed later.
+ * DAO xử lý truy vấn và lưu trữ dữ liệu học phần.
+ * CourseSection được load qua JPA; scheduleText và room là các trường tương thích sẽ được loại bỏ sau.
  */
 public class CourseSectionDAO {
 

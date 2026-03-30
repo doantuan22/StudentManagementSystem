@@ -8,7 +8,6 @@ import com.qlsv.exception.AppException;
 import com.qlsv.model.Faculty;
 import com.qlsv.model.Subject;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityTransaction;
 import org.hibernate.exception.ConstraintViolationException;
 
 import java.util.List;

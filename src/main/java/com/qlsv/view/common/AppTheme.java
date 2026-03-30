@@ -272,7 +272,9 @@ public final class AppTheme {
         comboBox.setBorder(new FocusBorder());
         comboBox.setFocusable(true);
         comboBox.setUI(new AppComboBoxUI());
-        comboBox.setRenderer(new AppComboBoxRenderer((ListCellRenderer<Object>) comboBox.getRenderer()));
+        @SuppressWarnings("unchecked")
+        ListCellRenderer<Object> renderer = (ListCellRenderer<Object>) comboBox.getRenderer();
+        comboBox.setRenderer(new AppComboBoxRenderer(renderer));
         if (comboBox.isPreferredSizeSet() && comboBox.getPreferredSize() != null && comboBox.getPreferredSize().width > 0) {
             comboBox.putClientProperty(COMBO_EXPLICIT_WIDTH, comboBox.getPreferredSize().width);
         }

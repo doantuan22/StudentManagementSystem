@@ -7,7 +7,6 @@ import com.qlsv.config.JpaBootstrap;
 import com.qlsv.exception.AppException;
 import com.qlsv.model.Faculty;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityTransaction;
 import org.hibernate.exception.ConstraintViolationException;
 
 import java.util.List;

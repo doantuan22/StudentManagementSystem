@@ -10,7 +10,6 @@ import com.qlsv.model.ClassRoom;
 import com.qlsv.model.CourseSection;
 import com.qlsv.model.Enrollment;
 import com.qlsv.model.Faculty;
-import com.qlsv.model.Student;
 import com.qlsv.utils.DialogUtil;
 import com.qlsv.view.common.AbstractCrudPanel;
 import com.qlsv.view.common.DetailSectionPanel;
@@ -24,9 +23,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import java.text.Normalizer;
 import java.util.List;
-import java.util.Locale;
 
 public class EnrollmentManagementPanel extends AbstractCrudPanel<Enrollment> {
 
@@ -320,77 +317,5 @@ public class EnrollmentManagementPanel extends AbstractCrudPanel<Enrollment> {
             return null;
         }
         return type.cast(selectedOption.value());
-    }
-
-    /**
-     * Xử lý select trạng thái.
-     */
-    private void selectStatus(JComboBox<FilterOption<String>> statusComboBox, String statusCode) {
-        for (int index = 0; index < statusComboBox.getItemCount(); index++) {
-            FilterOption<String> option = statusComboBox.getItemAt(index);
-            if (option != null && option.value().equalsIgnoreCase(statusCode == null ? "" : statusCode)) {
-                statusComboBox.setSelectedIndex(index);
-                return;
-            }
-        }
-        statusComboBox.setSelectedIndex(0);
-    }
-
-    /**
-     * Lọc sinh viên theo keyword.
-     */
-    private List<Student> filterStudentsByKeyword(List<Student> students, String keyword) {
-        String normalizedKeyword = normalizeSearchText(keyword);
-        if (normalizedKeyword.isBlank()) {
-            return students.stream().limit(8).toList();
-        }
-
-        return students.stream()
-                .filter(student -> normalizeSearchText(student.getStudentCode()).contains(normalizedKeyword)
-                        || normalizeSearchText(student.getFullName()).contains(normalizedKeyword))
-                .limit(8)
-                .toList();
-    }
-
-    /**
-     * Định dạng sinh viên hiển thị.
-     */
-    private String formatStudentDisplay(Student student) {
-        if (student == null) {
-            return "";
-        }
-        return student.getStudentCode() + " - " + student.getFullName();
-    }
-
-    /**
-     * Cập nhật label sinh viên đã chọn.
-     */
-    private void updateSelectedStudentLabel(JLabel label, Student student) {
-        label.setText(student == null
-                ? "Chưa chọn sinh viên"
-                : "Đã chọn: " + formatStudentDisplay(student));
-    }
-
-    /**
-     * Chuẩn hóa tìm kiếm văn bản.
-     */
-    private String normalizeSearchText(String value) {
-        if (value == null) {
-            return "";
-        }
-        String normalized = Normalizer.normalize(value, Normalizer.Form.NFD)
-                .replaceAll("\\p{M}+", "");
-        return normalized.toLowerCase(Locale.ROOT).trim();
-    }
-
-    private static final class StudentSelectionState {
-        private Student selectedStudent;
-
-        /**
-         * Xử lý sinh viên selection state.
-         */
-        private StudentSelectionState(Student selectedStudent) {
-            this.selectedStudent = selectedStudent;
-        }
     }
 }

@@ -41,6 +41,7 @@ public class StudentFormDialog extends JDialog {
     private static final int TEXT_AREA_HEIGHT = 110;
 
     private static final String[] GENDER_OPTIONS = {"Nam", "Nữ", "Khác"};
+    @SuppressWarnings("unchecked")
     private static final FilterOption<String>[] STATUS_OPTIONS = new FilterOption[]{
             new FilterOption<>("Đang hoạt động", "ACTIVE"),
             new FilterOption<>("Ngừng hoạt động", "INACTIVE")
@@ -469,6 +470,7 @@ public class StudentFormDialog extends JDialog {
      * Xử lý lưu.
      */
     private void handleSave() {
+        @SuppressWarnings("unchecked")
         FilterOption<String> selectedStatus = (FilterOption<String>) statusComboBox.getSelectedItem();
         result = new StudentFormResult(
                 studentCodeField.getText(),

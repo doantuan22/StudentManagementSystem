@@ -9,7 +9,6 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.Timer;
 import java.awt.BorderLayout;
-import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;

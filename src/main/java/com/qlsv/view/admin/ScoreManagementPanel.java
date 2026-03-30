@@ -134,7 +134,6 @@ public class ScoreManagementPanel extends BasePanel {
 
     private boolean filterReady;
     private boolean suppressDetailDialogOpening;
-    private boolean isLoadingData;
     private SwingWorker<?, ?> activeWorker;
 
     /**
@@ -886,7 +885,6 @@ public class ScoreManagementPanel extends BasePanel {
      * Cập nhật trạng thái loading.
      */
     private void setLoadingState(boolean loading) {
-        isLoadingData = loading;
         filterTypeComboBox.setEnabled(!loading);
         filterValueComboBox.setEnabled(!loading && (FILTER_SECTION_CODE.equals(filterTypeComboBox.getSelectedItem()) || FILTER_CLASS_ROOM.equals(filterTypeComboBox.getSelectedItem())));
         keywordField.setEnabled(!loading);

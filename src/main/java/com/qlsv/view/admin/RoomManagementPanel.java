@@ -8,12 +8,7 @@ import com.qlsv.model.Room;
 import com.qlsv.view.common.AbstractCrudPanel;
 import com.qlsv.view.dialog.RoomFormDialog;
 
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.JTextField;
-import java.awt.FlowLayout;
 import java.util.List;
 
 public class RoomManagementPanel extends AbstractCrudPanel<Room> {
@@ -116,36 +111,5 @@ public class RoomManagementPanel extends AbstractCrudPanel<Room> {
     @Override
     protected void deleteEntity(Room item) {
         roomController.deleteRoom(item.getId());
-    }
-
-    /**
-     * Tạo panel lọc.
-     */
-    private JPanel buildFilterPanel() {
-        JButton searchButton = new JButton("Tìm kiếm");
-        JButton resetButton = new JButton("Đặt lại");
-
-        searchButton.addActionListener(event -> {
-            isSearching = true;
-            refreshData();
-        });
-
-        resetButton.addActionListener(event -> {
-            isSearching = false;
-            searchField.setText("");
-            refreshData();
-        });
-
-        JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
-        filterPanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createTitledBorder("Tra cứu phòng học"),
-                BorderFactory.createEmptyBorder(6, 8, 6, 8)
-        ));
-        filterPanel.add(new JLabel("Từ khóa (nhập mã, tên):"));
-        filterPanel.add(searchField);
-        filterPanel.add(searchButton);
-        filterPanel.add(resetButton);
-
-        return filterPanel;
     }
 }

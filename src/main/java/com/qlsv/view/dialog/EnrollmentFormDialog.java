@@ -48,6 +48,7 @@ import java.util.Locale;
 
 public class EnrollmentFormDialog extends JDialog {
 
+    @SuppressWarnings("unchecked")
     private static final FilterOption<String>[] STATUS_OPTIONS = new FilterOption[]{
             new FilterOption<>("Đã đăng ký", "REGISTERED"),
             new FilterOption<>("Đã hủy", "CANCELLED")
@@ -339,6 +340,7 @@ public class EnrollmentFormDialog extends JDialog {
             return;
         }
 
+        @SuppressWarnings("unchecked")
         FilterOption<String> selectedStatus = (FilterOption<String>) statusComboBox.getSelectedItem();
         result = new EnrollmentFormResult(
                 selectedStudent,

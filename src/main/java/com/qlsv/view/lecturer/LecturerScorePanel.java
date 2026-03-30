@@ -102,7 +102,6 @@ public class LecturerScorePanel extends BasePanel {
     private Long currentCourseSectionId;
     private String currentKeyword = "";
     private boolean suppressDetailDialogOpening;
-    private boolean loadingData;
     private SwingWorker<?, ?> activeWorker;
     private final JButton filterButton = new JButton("Lọc");
     private final JButton reloadButton = new JButton("Tải lại");
@@ -999,7 +998,6 @@ public class LecturerScorePanel extends BasePanel {
      * Cập nhật trạng thái loading.
      */
     private void setLoadingState(boolean loading) {
-        loadingData = loading;
         courseComboBox.setEnabled(!loading);
         searchField.setEnabled(!loading);
         filterButton.setEnabled(!loading);

@@ -13,7 +13,6 @@ import com.qlsv.view.common.BasePanel;
 import com.qlsv.view.common.DashboardCard;
 
 import javax.swing.BorderFactory;
-import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;

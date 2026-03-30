@@ -730,15 +730,6 @@ public abstract class AbstractCrudPanel<T> extends BasePanel {
     }
 
     /**
-     * Tạo panel loading.
-     * @deprecated Sử dụng LoadingPanel class thay thế
-     */
-    @Deprecated
-    private JPanel createLoadingPanel() {
-        return new LoadingPanel();
-    }
-
-    /**
      * Setup keyboard shortcuts cho CRUD operations.
      */
     private void setupKeyboardShortcuts() {

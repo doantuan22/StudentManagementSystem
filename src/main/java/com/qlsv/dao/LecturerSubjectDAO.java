@@ -5,7 +5,6 @@ package com.qlsv.dao;
 
 import com.qlsv.config.JpaBootstrap;
 import com.qlsv.exception.AppException;
-import com.qlsv.model.CourseSection;
 import com.qlsv.model.Lecturer;
 import com.qlsv.model.LecturerSubject;
 import com.qlsv.model.LecturerSubjectId;

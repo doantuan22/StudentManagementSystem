@@ -7,7 +7,6 @@ import com.qlsv.controller.LoginController;
 import com.qlsv.model.User;
 import com.qlsv.navigation.AppNavigator;
 import com.qlsv.utils.DialogUtil;
-import com.qlsv.view.common.AppColors;
 import com.qlsv.view.common.BaseFrame;
 import com.qlsv.view.common.RoundedButton;
 import com.qlsv.view.common.RoundedPasswordField;
@@ -32,18 +31,18 @@ import java.awt.Insets;
 
 public class LoginFrame extends BaseFrame {
 
-    private static final int WINDOW_WIDTH = 1000;
-    private static final int WINDOW_HEIGHT = 650;
-    private static final int LEFT_PANEL_WIDTH = 450;
-    private static final int RIGHT_PANEL_WIDTH = 450;
-    private static final int FORM_WIDTH = 360;
-    private static final int INPUT_HEIGHT = 42;
-    private static final int BUTTON_HEIGHT = 44;
-    private static final int FIELD_GAP = 16;
+    private static final int WINDOW_WIDTH = 1180;
+    private static final int WINDOW_HEIGHT = 700;
+    private static final int LEFT_PANEL_WIDTH = 420;
+    private static final int RIGHT_PANEL_WIDTH = 580;
+    private static final int FORM_WIDTH = 380;
+    private static final int INPUT_HEIGHT = 46;
+    private static final int BUTTON_HEIGHT = 48;
+    private static final int FIELD_GAP = 18;
     private static final int LABEL_GAP = 8;
-    private static final int SECTION_GAP = 24;
-    private static final Color GRADIENT_START = new Color(30, 60, 140);
-    private static final Color GRADIENT_END = new Color(100, 200, 255);
+    private static final int SECTION_GAP = 28;
+    private static final Color GRADIENT_START = new Color(25, 55, 135);
+    private static final Color GRADIENT_END = new Color(80, 180, 240);
 
     private final LoginController loginController;
     private final AppNavigator navigator;
@@ -64,7 +63,7 @@ public class LoginFrame extends BaseFrame {
         this.loginController = loginController;
         setExtendedState(JFrame.NORMAL);
         setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
-        setMinimumSize(new Dimension(900, 600));
+        setMinimumSize(new Dimension(1070, 700));
         setLocationRelativeTo(null);
         initUi();
     }
@@ -100,10 +99,19 @@ public class LoginFrame extends BaseFrame {
                 int w = getWidth();
                 int h = getHeight();
                 
-                // Gradient từ xanh dương đậm (trên trái) sang cyan sáng (dưới phải)
-                java.awt.GradientPaint gp = new java.awt.GradientPaint(
-                    0, 0, GRADIENT_START,
-                    w, h, GRADIENT_END
+                // Gradient mượt hơn từ xanh dương đậm sang cyan sáng
+                java.awt.geom.Point2D start = new java.awt.geom.Point2D.Float(0, 0);
+                java.awt.geom.Point2D end = new java.awt.geom.Point2D.Float(w * 0.8f, h);
+                
+                float[] dist = {0.0f, 0.5f, 1.0f};
+                Color[] colors = {
+                    GRADIENT_START,
+                    new Color(50, 110, 180),
+                    GRADIENT_END
+                };
+                
+                java.awt.LinearGradientPaint gp = new java.awt.LinearGradientPaint(
+                    start, end, dist, colors
                 );
                 g2d.setPaint(gp);
                 g2d.fillRect(0, 0, w, h);
@@ -140,7 +148,7 @@ public class LoginFrame extends BaseFrame {
         panel.setOpaque(false);
         panel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
         
-        // Panel chứa ảnh tròn
+        // Panel chứa ảnh tròn - giảm kích thước 15%
         JPanel imagePanel = new JPanel() {
             private java.awt.Image backgroundImage;
             
@@ -193,15 +201,15 @@ public class LoginFrame extends BaseFrame {
                     // Reset clip
                     g2d.setClip(null);
                     
-                    // Vẽ viền tròn
-                    g2d.setColor(new Color(255, 255, 255, 200));
-                    g2d.setStroke(new java.awt.BasicStroke(4f));
+                    // Vẽ viền tròn mảnh và tinh tế hơn
+                    g2d.setColor(new Color(255, 255, 255, 180));
+                    g2d.setStroke(new java.awt.BasicStroke(3f));
                     g2d.drawOval(x, y, diameter, diameter);
                 }
             }
         };
         imagePanel.setOpaque(false);
-        imagePanel.setPreferredSize(new Dimension(350, 350));
+        imagePanel.setPreferredSize(new Dimension(300, 300));
         
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
@@ -220,7 +228,7 @@ public class LoginFrame extends BaseFrame {
         outerBox.setPreferredSize(new Dimension(RIGHT_PANEL_WIDTH, 550));
         outerBox.setOpaque(false);
         
-        // Box đăng nhập với bo tròn
+        // Box đăng nhập với bo tròn - giảm chiều cao, tăng padding
         JPanel loginBox = new JPanel() {
             @Override
             protected void paintComponent(java.awt.Graphics g) {
@@ -228,43 +236,46 @@ public class LoginFrame extends BaseFrame {
                 g2d.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, 
                                     java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
                 
-                // Vẽ shadow nhẹ
-                g2d.setColor(new Color(0, 0, 0, 30));
-                g2d.fillRoundRect(4, 4, getWidth() - 8, getHeight() - 8, 25, 25);
+                // Shadow mềm và tinh tế hơn
+                g2d.setColor(new Color(0, 0, 0, 15));
+                g2d.fillRoundRect(3, 3, getWidth() - 6, getHeight() - 6, 28, 28);
+                
+                g2d.setColor(new Color(0, 0, 0, 10));
+                g2d.fillRoundRect(2, 2, getWidth() - 4, getHeight() - 4, 28, 28);
                 
                 // Vẽ nền trắng bo tròn
                 g2d.setColor(Color.WHITE);
-                g2d.fillRoundRect(0, 0, getWidth() - 8, getHeight() - 8, 25, 25);
+                g2d.fillRoundRect(0, 0, getWidth() - 6, getHeight() - 6, 28, 28);
                 
-                // Vẽ viền nhẹ
-                g2d.setColor(new Color(220, 220, 220, 100));
-                g2d.setStroke(new java.awt.BasicStroke(1.5f));
-                g2d.drawRoundRect(0, 0, getWidth() - 9, getHeight() - 9, 25, 25);
+                // Vẽ viền nhẹ và mảnh hơn
+                g2d.setColor(new Color(230, 230, 230, 80));
+                g2d.setStroke(new java.awt.BasicStroke(1.0f));
+                g2d.drawRoundRect(0, 0, getWidth() - 7, getHeight() - 7, 28, 28);
             }
         };
         
         loginBox.setLayout(new BoxLayout(loginBox, BoxLayout.Y_AXIS));
         loginBox.setOpaque(false);
-        loginBox.setPreferredSize(new Dimension(FORM_WIDTH + 60, 480));
-        loginBox.setBorder(BorderFactory.createEmptyBorder(40, 30, 40, 30));
+        loginBox.setPreferredSize(new Dimension(FORM_WIDTH + 80, 440));
+        loginBox.setBorder(BorderFactory.createEmptyBorder(45, 40, 45, 40));
         
-        // Tiêu đề
-        JLabel titleLabel = new JLabel("ĐĂNG NHẬP");
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 32));
-        titleLabel.setForeground(new Color(30, 30, 30));
+        // Tiêu đề - mềm hơn, không viết hoa toàn bộ
+        JLabel titleLabel = new JLabel("Đăng nhập");
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 30));
+        titleLabel.setForeground(new Color(25, 25, 25));
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
         
-        JLabel subtitleLabel = new JLabel("HỆ THỐNG QUẢN LÝ SINH VIÊN");
-        subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        subtitleLabel.setForeground(new Color(120, 120, 120));
+        JLabel subtitleLabel = new JLabel("Hệ thống quản lý sinh viên");
+        subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        subtitleLabel.setForeground(new Color(130, 130, 130));
         subtitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         subtitleLabel.setHorizontalAlignment(SwingConstants.CENTER);
         
         loginBox.add(titleLabel);
-        loginBox.add(Box.createVerticalStrut(8));
+        loginBox.add(Box.createVerticalStrut(6));
         loginBox.add(subtitleLabel);
-        loginBox.add(Box.createVerticalStrut(SECTION_GAP + 10));
+        loginBox.add(Box.createVerticalStrut(SECTION_GAP + 8));
         
         // Form
         JPanel formPanel = createFormPanel();
@@ -305,7 +316,7 @@ public class LoginFrame extends BaseFrame {
         gbc.insets = new Insets(0, 0, LABEL_GAP, 0);
         JLabel usernameLabel = new JLabel("Tên đăng nhập");
         usernameLabel.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        usernameLabel.setForeground(new Color(60, 60, 60));
+        usernameLabel.setForeground(new Color(50, 50, 50));
         formPanel.add(usernameLabel, gbc);
         
         // Username field
@@ -318,7 +329,7 @@ public class LoginFrame extends BaseFrame {
         gbc.insets = new Insets(0, 0, LABEL_GAP, 0);
         JLabel passwordLabel = new JLabel("Mật khẩu");
         passwordLabel.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        passwordLabel.setForeground(new Color(60, 60, 60));
+        passwordLabel.setForeground(new Color(50, 50, 50));
         formPanel.add(passwordLabel, gbc);
         
         // Password field
@@ -355,7 +366,7 @@ public class LoginFrame extends BaseFrame {
      * Tạo trường input.
      */
     private RoundedTextField createInputField() {
-        RoundedTextField textField = new RoundedTextField(16);
+        RoundedTextField textField = new RoundedTextField(18);
         textField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         textField.setPreferredSize(new Dimension(FORM_WIDTH, INPUT_HEIGHT));
         textField.setMinimumSize(new Dimension(FORM_WIDTH, INPUT_HEIGHT));
@@ -367,7 +378,7 @@ public class LoginFrame extends BaseFrame {
      * Tạo trường mật khẩu.
      */
     private RoundedPasswordField createPasswordField() {
-        RoundedPasswordField passwordField = new RoundedPasswordField(16);
+        RoundedPasswordField passwordField = new RoundedPasswordField(18);
         passwordField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         passwordField.setPreferredSize(new Dimension(FORM_WIDTH, INPUT_HEIGHT));
         passwordField.setMinimumSize(new Dimension(FORM_WIDTH, INPUT_HEIGHT));
@@ -380,7 +391,7 @@ public class LoginFrame extends BaseFrame {
      */
     private RoundedButton createLoginButton() {
         RoundedButton loginButton = new RoundedButton("Đăng nhập", 18);
-        loginButton.setBackground(AppColors.LOGIN_PRIMARY);
+        loginButton.setBackground(new Color(40, 120, 220));
         loginButton.setForeground(Color.WHITE);
         loginButton.setFont(new Font("Segoe UI", Font.BOLD, 15));
         loginButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));

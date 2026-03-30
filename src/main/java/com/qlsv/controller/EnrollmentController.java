@@ -34,6 +34,20 @@ public class EnrollmentController {
     }
 
     /**
+     * Lấy danh sách các học phần mà một sinh viên cụ thể đã đăng ký và chưa có điểm.
+     */
+    public List<Enrollment> getEnrollmentsWithoutScoreByStudentId(Long studentId) {
+        return enrollmentService.findByStudentIdWithoutScore(studentId);
+    }
+
+    /**
+     * Lấy danh sách đăng ký theo student ID.
+     */
+    public List<Enrollment> getEnrollmentsByStudentId(Long studentId) {
+        return enrollmentService.findByStudentId(studentId);
+    }
+
+    /**
      * Lấy danh sách đăng ký căn cứ theo mã giảng viên phụ trách.
      */
     public List<Enrollment> getLecturerEnrollments(Long lecturerId) {

@@ -60,4 +60,18 @@ public class ScoreController {
     public boolean deleteScore(Long id) {
         return scoreService.delete(id);
     }
+
+    /**
+     * Tìm điểm theo enrollment ID.
+     */
+    public Score findScoreByEnrollmentId(Long enrollmentId) {
+        return scoreService.findByEnrollmentId(enrollmentId);
+    }
+
+    /**
+     * Trả về điểm theo student ID.
+     */
+    public List<Score> getScoresByStudentId(Long studentId) {
+        return scoreService.findByStudentId(studentId);
+    }
 }

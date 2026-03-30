@@ -141,6 +141,22 @@ public class ScoreService {
     }
 
     /**
+     * Tìm điểm theo enrollment ID.
+     */
+    public Score findByEnrollmentId(Long enrollmentId) {
+        permissionService.requirePermission(RolePermission.MANAGE_SCORES);
+        return scoreDAO.findByEnrollmentId(enrollmentId).orElse(null);
+    }
+
+    /**
+     * Lấy danh sách điểm của một sinh viên cụ thể.
+     */
+    public List<Score> findByStudentId(Long studentId) {
+        permissionService.requirePermission(RolePermission.MANAGE_SCORES);
+        return scoreDAO.findByStudentId(studentId);
+    }
+
+    /**
      * Cập nhật and return.
      */
     private Score updateAndReturn(Score score) {

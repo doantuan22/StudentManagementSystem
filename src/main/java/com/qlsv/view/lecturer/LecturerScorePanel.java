@@ -133,11 +133,10 @@ public class LecturerScorePanel extends BasePanel {
         saveButton.addActionListener(event -> handleSaveScore());
 
         searchField.setToolTipText("Tìm theo mã sinh viên hoặc họ tên trong danh sách đang lọc.");
-        searchField.setPreferredSize(new Dimension(220, CONTROL_HEIGHT));
         searchField.setMinimumSize(new Dimension(180, CONTROL_HEIGHT));
         searchField.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(AppColors.INPUT_BORDER),
-                BorderFactory.createEmptyBorder(6, 10, 6, 10)
+                BorderFactory.createLineBorder(AppColors.INPUT_BORDER, 2),
+                BorderFactory.createEmptyBorder(5, 9, 5, 9)
         ));
         courseComboBox.setPreferredSize(new Dimension(220, CONTROL_HEIGHT));
         courseComboBox.setMinimumSize(new Dimension(180, CONTROL_HEIGHT));
@@ -363,7 +362,7 @@ public class LecturerScorePanel extends BasePanel {
         panel.setOpaque(true);
         panel.setBackground(AppColors.CARD_BACKGROUND);
         panel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(AppColors.CARD_BORDER),
+                BorderFactory.createLineBorder(AppColors.CARD_BORDER, 2),
                 BorderFactory.createEmptyBorder(14, 16, 14, 16)
         ));
         return panel;
@@ -394,7 +393,7 @@ public class LecturerScorePanel extends BasePanel {
      */
     private JScrollPane createTableScrollPane(JTable table) {
         JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setBorder(BorderFactory.createLineBorder(AppColors.CARD_BORDER));
+        scrollPane.setBorder(BorderFactory.createLineBorder(AppColors.CARD_BORDER, 2));
         scrollPane.getViewport().setBackground(AppColors.CARD_BACKGROUND);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);

@@ -4,6 +4,7 @@
 package com.qlsv.view.dialog;
 
 import com.qlsv.model.Enrollment;
+import com.qlsv.model.Score;
 import com.qlsv.model.Student;
 import com.qlsv.view.common.AppColors;
 
@@ -60,6 +61,8 @@ public class ScoreFormDialog extends JDialog {
     private final JTextField finalScoreField = new JTextField();
 
     private final List<Enrollment> allEnrollments;
+    private final Map<Long, Score> scoresByEnrollmentId;
+    private final boolean isEditMode;
     private Student selectedStudent;
     private boolean applyingStudentSelection;
 
@@ -71,6 +74,8 @@ public class ScoreFormDialog extends JDialog {
     private ScoreFormDialog(Component parent, ScoreFormModel model) {
         super(resolveOwner(parent), model.title(), Dialog.ModalityType.APPLICATION_MODAL);
         this.allEnrollments = model.enrollments();
+        this.scoresByEnrollmentId = model.scoresByEnrollmentId() != null ? model.scoresByEnrollmentId() : Map.of();
+        this.isEditMode = model.isEditMode();
         this.selectedStudent = resolveStudent(model.selectedEnrollment());
         initComponents(model);
     }
@@ -168,6 +173,11 @@ public class ScoreFormDialog extends JDialog {
         processScoreField.setText(model.processScore());
         midtermScoreField.setText(model.midtermScore());
         finalScoreField.setText(model.finalScore());
+
+        // FIX LỖI 2: Thêm listener để reload điểm khi đổi enrollment trong mode sửa
+        if (isEditMode) {
+            enrollmentComboBox.addActionListener(event -> reloadScoreFieldsForSelectedEnrollment());
+        }
 
         SwingUtilities.invokeLater(() -> studentSearchField.requestFocusInWindow());
     }
@@ -356,6 +366,16 @@ public class ScoreFormDialog extends JDialog {
     private void refreshEnrollmentChoices(Enrollment preferredEnrollment) {
         enrollmentComboBox.removeAllItems();
         List<Enrollment> visibleEnrollments = filterEnrollmentsBySelectedStudent();
+        
+        // FIX LỖI 1: Kiểm tra nếu không còn enrollment nào để thêm điểm
+        if (visibleEnrollments.isEmpty() && selectedStudent != null && !isEditMode) {
+            validationLabel.setText("Sinh viên này đã có điểm hết tất cả các môn đã đăng ký.");
+            enrollmentComboBox.setEnabled(false);
+            return;
+        } else {
+            enrollmentComboBox.setEnabled(true);
+        }
+        
         for (Enrollment enrollment : visibleEnrollments) {
             enrollmentComboBox.addItem(enrollment);
         }
@@ -392,6 +412,30 @@ public class ScoreFormDialog extends JDialog {
         selectedStudentLabel.setText(selectedStudent == null
                 ? "Chưa chọn sinh viên"
                 : "Đã chọn: " + formatStudentDisplay(selectedStudent));
+    }
+
+    /**
+     * FIX LỖI 2: Reload các field điểm khi đổi enrollment trong mode sửa.
+     */
+    private void reloadScoreFieldsForSelectedEnrollment() {
+        Enrollment selectedEnrollment = (Enrollment) enrollmentComboBox.getSelectedItem();
+        if (selectedEnrollment == null || selectedEnrollment.getId() == null) {
+            processScoreField.setText("");
+            midtermScoreField.setText("");
+            finalScoreField.setText("");
+            return;
+        }
+
+        Score score = scoresByEnrollmentId.get(selectedEnrollment.getId());
+        if (score != null) {
+            processScoreField.setText(score.getProcessScore() == null ? "" : String.valueOf(score.getProcessScore()));
+            midtermScoreField.setText(score.getMidtermScore() == null ? "" : String.valueOf(score.getMidtermScore()));
+            finalScoreField.setText(score.getFinalScore() == null ? "" : String.valueOf(score.getFinalScore()));
+        } else {
+            processScoreField.setText("");
+            midtermScoreField.setText("");
+            finalScoreField.setText("");
+        }
     }
 
     /**
@@ -568,14 +612,30 @@ public class ScoreFormDialog extends JDialog {
 
     /**
      * Thu gọn danh sách đăng ký theo sinh viên hiện tại.
+     * FIX LỖI 1: Trong mode thêm, chỉ hiển thị enrollment chưa có điểm.
      */
     private List<Enrollment> filterEnrollmentsBySelectedStudent() {
         if (selectedStudent == null) {
             return allEnrollments;
         }
-        return allEnrollments.stream()
+        
+        List<Enrollment> studentEnrollments = allEnrollments.stream()
                 .filter(this::matchesSelectedStudent)
                 .toList();
+        
+        // FIX LỖI 1: Trong mode thêm, lọc bỏ những enrollment đã có điểm
+        if (!isEditMode) {
+            return studentEnrollments.stream()
+                    .filter(enrollment -> {
+                        if (enrollment.getId() == null) {
+                            return true;
+                        }
+                        return !scoresByEnrollmentId.containsKey(enrollment.getId());
+                    })
+                    .toList();
+        }
+        
+        return studentEnrollments;
     }
 
     /**
@@ -691,7 +751,9 @@ public class ScoreFormDialog extends JDialog {
             Enrollment selectedEnrollment,
             String processScore,
             String midtermScore,
-            String finalScore
+            String finalScore,
+            Map<Long, Score> scoresByEnrollmentId,
+            boolean isEditMode
     ) {
     }
 

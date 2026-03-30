@@ -57,6 +57,22 @@ public class EnrollmentService {
     }
 
     /**
+     * Lấy danh sách học phần đã đăng ký của một sinh viên cụ thể mà chưa có điểm.
+     */
+    public List<Enrollment> findByStudentIdWithoutScore(Long studentId) {
+        permissionService.requirePermission(RolePermission.MANAGE_SCORES);
+        return enrollmentDAO.findByStudentIdWithoutScore(studentId);
+    }
+
+    /**
+     * Lấy danh sách học phần đã đăng ký của một sinh viên cụ thể.
+     */
+    public List<Enrollment> findByStudentId(Long studentId) {
+        permissionService.requirePermission(RolePermission.MANAGE_SCORES);
+        return enrollmentDAO.findByStudentId(studentId);
+    }
+
+    /**
      * Tim kiem danh sach sinh vien dang ky cac hoc phan do giang vien phu trach.
      */
     public List<Enrollment> findByLecturer(Long lecturerId) {

@@ -300,8 +300,7 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
         filterTypeComboBox.addActionListener(event -> reloadFilterValues());
 
         filterTypeComboBox.setPreferredSize(new java.awt.Dimension(170, 36));
-        filterValueComboBox.setPreferredSize(new java.awt.Dimension(220, 36));
-        filterValueComboBox.setMinimumSize(new java.awt.Dimension(220, 36));
+        filterValueComboBox.setMinimumSize(new java.awt.Dimension(160, 36));
 
         JPanel filterPanel = new JPanel(new BorderLayout(12, 8));
         filterPanel.setBorder(BorderFactory.createCompoundBorder(
@@ -327,27 +326,20 @@ public class StudentManagementPanel extends AbstractCrudPanel<Student> {
         fieldPanel.add(new JLabel("Giá trị"), gbc);
 
         gbc.gridx = 3;
-        gbc.weightx = 0.0;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.insets = new Insets(0, 0, 0, 0);
+        gbc.weightx = 1.0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(0, 0, 0, 8);
         fieldPanel.add(filterValueComboBox, gbc);
 
         gbc.gridx = 4;
         gbc.weightx = 0.0;
         gbc.fill = GridBagConstraints.NONE;
-        gbc.insets = new Insets(0, 8, 0, 8);
+        gbc.insets = new Insets(0, 0, 0, 8);
         fieldPanel.add(applyButton, gbc);
 
         gbc.gridx = 5;
         gbc.insets = new Insets(0, 0, 0, 0);
         fieldPanel.add(resetButton, gbc);
-
-        gbc.gridx = 6;
-        gbc.weightx = 1.0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        JPanel spacer = new JPanel();
-        spacer.setOpaque(false);
-        fieldPanel.add(spacer, gbc);
 
         filterPanel.add(fieldPanel, BorderLayout.CENTER);
         return filterPanel;

@@ -8,6 +8,7 @@ import com.qlsv.controller.ScoreManagementScreenController;
 import com.qlsv.dto.ScoreDisplayDto;
 import com.qlsv.model.ClassRoom;
 import com.qlsv.model.CourseSection;
+import com.qlsv.model.Enrollment;
 import com.qlsv.model.Score;
 import com.qlsv.model.Student;
 import com.qlsv.utils.AcademicFormatUtil;
@@ -194,14 +195,12 @@ public class ScoreManagementPanel extends BasePanel {
         headerPanel.add(subtitleLabel);
 
         styleTextField(keywordField);
-        keywordField.setPreferredSize(new Dimension(180, 36));
         keywordField.setMinimumSize(new Dimension(160, 36));
         keywordField.addActionListener(event -> reloadData());
 
         filterTypeComboBox.setPreferredSize(new Dimension(170, 36));
         filterTypeComboBox.setMinimumSize(new Dimension(150, 36));
-        filterValueComboBox.setPreferredSize(new Dimension(250, 36));
-        filterValueComboBox.setMinimumSize(new Dimension(220, 36));
+        filterValueComboBox.setMinimumSize(new Dimension(160, 36));
         filterValueComboBox.setEnabled(false);
 
         styleActionButton(searchButton, AppColors.BUTTON_PRIMARY);
@@ -254,10 +253,14 @@ public class ScoreManagementPanel extends BasePanel {
         filterFieldsPanel.add(new JLabel("Từ khóa"), filterConstraints);
 
         filterConstraints.gridx = 5;
+        filterConstraints.weightx = 0.5;
+        filterConstraints.fill = GridBagConstraints.HORIZONTAL;
         filterConstraints.insets = new Insets(0, 0, 0, TOOLBAR_GAP);
         filterFieldsPanel.add(keywordField, filterConstraints);
 
         filterConstraints.gridx = 6;
+        filterConstraints.weightx = 0.0;
+        filterConstraints.fill = GridBagConstraints.NONE;
         filterFieldsPanel.add(searchButton, filterConstraints);
 
         toolbarButtonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, TOOLBAR_GAP, 0));
@@ -565,15 +568,29 @@ public class ScoreManagementPanel extends BasePanel {
      * Xử lý prompt for điểm.
      */
     private Score promptForScore(Score existingItem) {
+        boolean isEditMode = existingItem != null;
+        List<Enrollment> enrollments = screenController.loadEnrollments();
+        Map<Long, Score> scoresByEnrollmentId = new java.util.HashMap<>();
+        
+        // Load tất cả điểm để kiểm tra enrollment nào đã có điểm
+        List<Score> allScores = screenController.loadAllScores();
+        for (Score score : allScores) {
+            if (score.getEnrollment() != null && score.getEnrollment().getId() != null) {
+                scoresByEnrollmentId.put(score.getEnrollment().getId(), score);
+            }
+        }
+        
         ScoreFormDialog.ScoreFormResult formResult = ScoreFormDialog.showDialog(
                 this,
                 new ScoreFormDialog.ScoreFormModel(
-                        existingItem == null ? "Thêm điểm" : "Cập nhật điểm",
-                        screenController.loadEnrollments(),
+                        isEditMode ? "Cập nhật điểm" : "Thêm điểm",
+                        enrollments,
                         existingItem == null ? null : existingItem.getEnrollment(),
                         existingItem == null || existingItem.getProcessScore() == null ? "" : String.valueOf(existingItem.getProcessScore()),
                         existingItem == null || existingItem.getMidtermScore() == null ? "" : String.valueOf(existingItem.getMidtermScore()),
-                        existingItem == null || existingItem.getFinalScore() == null ? "" : String.valueOf(existingItem.getFinalScore())
+                        existingItem == null || existingItem.getFinalScore() == null ? "" : String.valueOf(existingItem.getFinalScore()),
+                        scoresByEnrollmentId,
+                        isEditMode
                 )
         );
         if (formResult == null) {
@@ -997,7 +1014,7 @@ public class ScoreManagementPanel extends BasePanel {
         emptyStatePanel.setOpaque(true);
         emptyStatePanel.setBackground(AppColors.CARD_BACKGROUND);
         emptyStatePanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(AppColors.CARD_BORDER),
+                BorderFactory.createLineBorder(AppColors.CARD_BORDER, 2),
                 BorderFactory.createEmptyBorder(48, 24, 48, 24)
         ));
         emptyStateLabel.setFont(emptyStateLabel.getFont().deriveFont(Font.ITALIC, 15f));
@@ -1034,7 +1051,7 @@ public class ScoreManagementPanel extends BasePanel {
      */
     private JScrollPane createTableScrollPane(JTable table, boolean alwaysShowVerticalBar) {
         JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setBorder(BorderFactory.createLineBorder(AppColors.CARD_BORDER));
+        scrollPane.setBorder(BorderFactory.createLineBorder(AppColors.CARD_BORDER, 2));
         scrollPane.setVerticalScrollBarPolicy(alwaysShowVerticalBar
                 ? JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
                 : JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
@@ -1127,10 +1144,7 @@ public class ScoreManagementPanel extends BasePanel {
      * Áp dụng kiểu cho trường văn bản.
      */
     private void styleTextField(JTextField field) {
-        field.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(AppColors.INPUT_BORDER),
-                BorderFactory.createEmptyBorder(9, 10, 9, 10)
-        ));
+        field.setBorder(createInputBorder());
     }
 
     /**

@@ -237,7 +237,7 @@ public class LecturerStudentListPanel extends BasePanel {
         panel.setOpaque(true);
         panel.setBackground(AppColors.CARD_BACKGROUND);
         panel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(AppColors.CARD_BORDER),
+                BorderFactory.createLineBorder(AppColors.CARD_BORDER, 2),
                 BorderFactory.createEmptyBorder(16, 18, 16, 18)
         ));
         return panel;
@@ -258,7 +258,7 @@ public class LecturerStudentListPanel extends BasePanel {
      */
     private JScrollPane createTableScrollPane(JTable table) {
         JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setBorder(BorderFactory.createLineBorder(AppColors.CARD_BORDER));
+        scrollPane.setBorder(BorderFactory.createLineBorder(AppColors.CARD_BORDER, 2));
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);

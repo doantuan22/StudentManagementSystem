@@ -137,7 +137,7 @@ VALUES
     (3, 7,  'SV2200003', 'Nguyễn Đặng Minh Khôi',     'Nam', '2004-08-01', 'nm.khoi@sms.edu.vn', '0912000003', 'Thôn 5, Đông Anh, Hà Nội', 2, 3, '2022 - 2026', 'ACTIVE'),
     (4, 8,  'SV2200004', 'Đỗ Thị Linh',               'Nữ',  '2004-11-25', 'dt.linh@sms.edu.vn', '0912000004', 'Mỹ Đình, Nam Từ Liêm, Hà Nội', 1, 2, '2022 - 2026', 'ACTIVE'),
     (5, 9,  'SV2200005', 'Đoàn Anh Tuấn',             'Nam', '2004-07-10', 'lm.tuan@sms.edu.vn', '0912000005', 'Phường Mộ Lao, Hà Đông, Hà Nội', 3, 4, '2022 - 2026', 'ACTIVE'),
-    (6, 10, 'SV2200006', 'Ngô Minh Khánh',            'Nữ',  '2004-02-14', 'bt.hoa@sms.edu.vn',      '0912000006', 'Phố Huế, Hai Bà Trưng, Hà Nội', 1, 1, '2022 - 2026', 'ACTIVE'),
+    (6, 10, 'SV2200006', 'Ngô Minh Khánh',            'Nam',  '2004-02-14', 'bt.hoa@sms.edu.vn',      '0912000006', 'Phố Huế, Hai Bà Trưng, Hà Nội', 1, 1, '2022 - 2026', 'ACTIVE'),
     (7, 23, 'SV2200007', 'Phạm Gia Huy',              'Nam', '2004-04-11', 'sv2200007@sms.edu.vn',   '0912000007', 'Số 25 Trần Duy Hưng, Cầu Giấy, Hà Nội', 1, 1, '2022 - 2026', 'ACTIVE'),
     (8, 24, 'SV2200008', 'Vũ Thị Ngọc Anh',           'Nữ',  '2004-06-03', 'sv2200008@sms.edu.vn',   '0912000008', 'Số 9 Phạm Ngọc Thạch, Đống Đa, Hà Nội', 1, 1, '2022 - 2026', 'ACTIVE'),
     (9, 25, 'SV2200009', 'Lê Quốc Cường',             'Nam', '2004-01-19', 'sv2200009@sms.edu.vn',   '0912000009', 'Số 63 Nguyễn Chí Thanh, Đống Đa, Hà Nội', 1, 1, '2022 - 2026', 'ACTIVE'),

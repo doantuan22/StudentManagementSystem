@@ -78,6 +78,53 @@ public class ScoreManagementScreenController {
     }
 
     /**
+     * Nạp đăng ký chưa có điểm của một sinh viên.
+     */
+    public List<Enrollment> loadEnrollmentsWithoutScoreByStudentId(Long studentId) {
+        if (studentId == null) {
+            return List.of();
+        }
+        return enrollmentController.getEnrollmentsWithoutScoreByStudentId(studentId);
+    }
+
+    /**
+     * Tìm điểm theo enrollment ID.
+     */
+    public Score findScoreByEnrollmentId(Long enrollmentId) {
+        if (enrollmentId == null) {
+            return null;
+        }
+        return scoreController.findScoreByEnrollmentId(enrollmentId);
+    }
+
+    /**
+     * Nạp đăng ký theo student ID.
+     */
+    public List<Enrollment> loadEnrollmentsByStudentId(Long studentId) {
+        if (studentId == null) {
+            return List.of();
+        }
+        return enrollmentController.getEnrollmentsByStudentId(studentId);
+    }
+
+    /**
+     * Nạp điểm theo student ID.
+     */
+    public List<Score> loadScoresByStudentId(Long studentId) {
+        if (studentId == null) {
+            return List.of();
+        }
+        return scoreController.getScoresByStudentId(studentId);
+    }
+
+    /**
+     * Nạp tất cả điểm.
+     */
+    public List<Score> loadAllScores() {
+        return scoreController.getAllScores();
+    }
+
+    /**
      * Nạp học phần.
      */
     public List<CourseSection> loadCourseSections() {

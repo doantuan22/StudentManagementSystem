@@ -123,6 +123,6 @@ public class DetailSectionPanel extends JPanel {
                 .replace(">", "&gt;")
                 .replace("\"", "&quot;")
                 .replace("\n", "<br>");
-        return "<html><div style='width:220px;line-height:1.4;'>" + escapedValue + "</div></html>";
+        return "<html><div style='width:280px;line-height:1.4;'>" + escapedValue + "</div></html>";
     }
 }

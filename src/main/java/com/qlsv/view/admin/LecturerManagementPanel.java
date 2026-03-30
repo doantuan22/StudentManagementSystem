@@ -33,7 +33,6 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -265,20 +264,42 @@ public class LecturerManagementPanel extends AbstractCrudPanel<Lecturer> {
         resetButton.addActionListener(event -> resetFilter());
         filterTypeComboBox.addActionListener(event -> reloadFilterValues());
         filterTypeComboBox.setPreferredSize(new Dimension(170, 36));
-        filterValueComboBox.setPreferredSize(new Dimension(220, 36));
-        filterValueComboBox.setMinimumSize(new Dimension(220, 36));
+        filterValueComboBox.setMinimumSize(new Dimension(160, 36));
 
-        JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        JPanel filterPanel = new JPanel(new java.awt.GridBagLayout());
         filterPanel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createTitledBorder("Bộ lọc giảng viên"),
                 BorderFactory.createEmptyBorder(6, 8, 6, 8)
         ));
-        filterPanel.add(new JLabel("Điều kiện"));
-        filterPanel.add(filterTypeComboBox);
-        filterPanel.add(new JLabel("Giá trị"));
-        filterPanel.add(filterValueComboBox);
-        filterPanel.add(applyButton);
-        filterPanel.add(resetButton);
+
+        java.awt.GridBagConstraints gbc = new java.awt.GridBagConstraints();
+        gbc.gridy = 0;
+        gbc.anchor = java.awt.GridBagConstraints.WEST;
+        gbc.insets = new java.awt.Insets(0, 0, 0, 8);
+
+        gbc.gridx = 0;
+        filterPanel.add(new JLabel("Điều kiện"), gbc);
+
+        gbc.gridx = 1;
+        filterPanel.add(filterTypeComboBox, gbc);
+
+        gbc.gridx = 2;
+        filterPanel.add(new JLabel("Giá trị"), gbc);
+
+        gbc.gridx = 3;
+        gbc.weightx = 1.0;
+        gbc.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        filterPanel.add(filterValueComboBox, gbc);
+
+        gbc.gridx = 4;
+        gbc.weightx = 0.0;
+        gbc.fill = java.awt.GridBagConstraints.NONE;
+        filterPanel.add(applyButton, gbc);
+
+        gbc.gridx = 5;
+        gbc.insets = new java.awt.Insets(0, 0, 0, 0);
+        filterPanel.add(resetButton, gbc);
+
         return filterPanel;
     }
 

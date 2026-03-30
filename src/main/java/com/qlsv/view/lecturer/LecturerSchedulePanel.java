@@ -56,7 +56,7 @@ public class LecturerSchedulePanel extends BasePanel {
         configureTable(table);
 
         JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setBorder(BorderFactory.createLineBorder(AppColors.CARD_BORDER));
+        scrollPane.setBorder(BorderFactory.createLineBorder(AppColors.CARD_BORDER, 2));
         scrollPane.getViewport().setBackground(AppColors.CARD_BACKGROUND);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         scrollPane.getHorizontalScrollBar().setUnitIncrement(16);
@@ -65,7 +65,7 @@ public class LecturerSchedulePanel extends BasePanel {
         tablePanel.setOpaque(true);
         tablePanel.setBackground(AppColors.CARD_BACKGROUND);
         tablePanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(AppColors.CARD_BORDER),
+                BorderFactory.createLineBorder(AppColors.CARD_BORDER, 2),
                 BorderFactory.createEmptyBorder(14, 14, 14, 14)
         ));
 

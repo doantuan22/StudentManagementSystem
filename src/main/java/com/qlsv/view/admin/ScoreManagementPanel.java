@@ -503,11 +503,9 @@ public class ScoreManagementPanel extends BasePanel {
             if (score == null) {
                 return;
             }
-            screenController.saveScore(score);
+            Score savedScore = screenController.saveScore(score);
             DialogUtil.showInfo(this, "Lưu điểm thành công.");
-            applyCurrentFilters(score.getEnrollment() == null || score.getEnrollment().getStudent() == null
-                    ? null
-                    : score.getEnrollment().getStudent().getId());
+            applyCurrentFilters(resolveStudentId(savedScore));
         } catch (Exception exception) {
             DialogUtil.showError(this, exception.getMessage());
         }
@@ -528,11 +526,9 @@ public class ScoreManagementPanel extends BasePanel {
             if (updatedScore == null) {
                 return;
             }
-            screenController.saveScore(updatedScore);
+            Score savedScore = screenController.saveScore(updatedScore);
             DialogUtil.showInfo(this, "Cập nhật điểm thành công.");
-            applyCurrentFilters(updatedScore.getEnrollment() == null || updatedScore.getEnrollment().getStudent() == null
-                    ? null
-                    : updatedScore.getEnrollment().getStudent().getId());
+            applyCurrentFilters(resolveStudentId(savedScore));
         } catch (Exception exception) {
             DialogUtil.showError(this, exception.getMessage());
         }
@@ -597,8 +593,9 @@ public class ScoreManagementPanel extends BasePanel {
         }
 
         try {
+            Score targetScore = resolveTargetScoreForForm(existingItem, formResult.enrollment(), scoresByEnrollmentId);
             return screenController.applyFormData(
-                    existingItem,
+                    targetScore,
                     new ScoreManagementScreenController.ScoreFormData(
                             formResult.enrollment(),
                             formResult.processScore(),
@@ -610,6 +607,37 @@ public class ScoreManagementPanel extends BasePanel {
             DialogUtil.showError(this, exception.getMessage());
             return null;
         }
+    }
+
+    /**
+     * Xác định score đích cần cập nhật theo enrollment đang chọn trên form.
+     */
+    private Score resolveTargetScoreForForm(Score existingItem, Enrollment selectedEnrollment, Map<Long, Score> scoresByEnrollmentId) {
+        if (selectedEnrollment == null || selectedEnrollment.getId() == null) {
+            return existingItem;
+        }
+
+        Score selectedEnrollmentScore = scoresByEnrollmentId.get(selectedEnrollment.getId());
+        if (selectedEnrollmentScore != null) {
+            return selectedEnrollmentScore;
+        }
+
+        if (existingItem != null
+                && existingItem.getEnrollment() != null
+                && selectedEnrollment.getId().equals(existingItem.getEnrollment().getId())) {
+            return existingItem;
+        }
+
+        return null;
+    }
+
+    /**
+     * Trả về student id ưu tiên sau khi lưu điểm.
+     */
+    private Long resolveStudentId(Score score) {
+        return score == null || score.getEnrollment() == null || score.getEnrollment().getStudent() == null
+                ? null
+                : score.getEnrollment().getStudent().getId();
     }
 
     /**

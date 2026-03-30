@@ -132,13 +132,13 @@ public class LecturerScorePanel extends BasePanel {
         saveButton.addActionListener(event -> handleSaveScore());
 
         searchField.setToolTipText("Tìm theo mã sinh viên hoặc họ tên trong danh sách đang lọc.");
-        searchField.setMinimumSize(new Dimension(180, CONTROL_HEIGHT));
+        searchField.setMinimumSize(new Dimension(126, CONTROL_HEIGHT));
         searchField.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(AppColors.INPUT_BORDER, 2),
                 BorderFactory.createEmptyBorder(5, 9, 5, 9)
         ));
-        courseComboBox.setPreferredSize(new Dimension(220, CONTROL_HEIGHT));
-        courseComboBox.setMinimumSize(new Dimension(180, CONTROL_HEIGHT));
+        courseComboBox.setPreferredSize(new Dimension(286, CONTROL_HEIGHT));
+        courseComboBox.setMinimumSize(new Dimension(200, CONTROL_HEIGHT));
         courseComboBox.setFont(courseComboBox.getFont().deriveFont(Font.PLAIN, 13.5f));
 
         searchDebounceTimer = new Timer(250, event -> {

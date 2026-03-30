@@ -153,8 +153,8 @@ public class ScoreManagementScreenController {
     /**
      * Lưu điểm.
      */
-    public void saveScore(Score score) {
-        scoreController.saveScore(score);
+    public Score saveScore(Score score) {
+        return scoreController.saveScore(score);
     }
 
     /**

@@ -34,7 +34,7 @@ public class CourseSectionService {
     private static final String LECTURER_SUBJECT_MISMATCH_MESSAGE =
             "Giảng viên chưa nằm trong whitelist môn học đã chọn.";
     private static final String STUDENT_ENROLLMENT_CONFLICT_MESSAGE =
-            "Khong the dong bo dang ky hoc phan trung mon trong cung hoc ky va nam hoc.";
+            "Không thể cập nhật: Phát hiện xung đột đăng ký học phần";
 
     private final CourseSectionDAO courseSectionDAO = new CourseSectionDAO();
     private final EnrollmentDAO enrollmentDAO = new EnrollmentDAO();
@@ -259,7 +259,12 @@ public class CourseSectionService {
                 courseSection.getSemester(),
                 courseSection.getSchoolYear()
         )) {
-            throw new ValidationException(STUDENT_ENROLLMENT_CONFLICT_MESSAGE + " (Trùng môn học)");
+            throw new ValidationException(
+                STUDENT_ENROLLMENT_CONFLICT_MESSAGE + "\n\n" +
+                "Loại xung đột: Trùng môn học\n" +
+                "Một số sinh viên đã đăng ký môn học này ở học phần khác trong cùng học kỳ.\n\n" +
+                "Vui lòng kiểm tra lại môn học, học kỳ hoặc năm học."
+            );
         }
 
         if (enrollmentDAO.hasEffectiveStudentScheduleConflictForCourseSection(
@@ -267,7 +272,12 @@ public class CourseSectionService {
                 courseSection.getSemester(),
                 courseSection.getSchoolYear()
         )) {
-            throw new ValidationException(STUDENT_ENROLLMENT_CONFLICT_MESSAGE + " (Trùng lịch học)");
+            throw new ValidationException(
+                STUDENT_ENROLLMENT_CONFLICT_MESSAGE + "\n\n" +
+                "Loại xung đột: Trùng lịch học\n" +
+                "Một số sinh viên có lịch học bị trùng với học phần khác đã đăng ký.\n\n" +
+                "Vui lòng kiểm tra lại thời khóa biểu của học phần."
+            );
         }
     }
 
@@ -302,19 +312,61 @@ public class CourseSectionService {
                         .thenComparing(Enrollment::getId, Comparator.nullsLast(Comparator.naturalOrder()))
         );
 
+        // Collect all students with scores that would be affected
+        List<String> studentsWithScores = new ArrayList<>();
+        
         // Keep the first one. For all others, check scores.
         for (int i = 1; i < duplicateEnrollments.size(); i++) {
             Enrollment laterEnrollment = duplicateEnrollments.get(i);
             boolean hasScore = scoreDAO.findByEnrollmentId(laterEnrollment.getId()).isPresent();
             if (hasScore) {
-                throw new ValidationException(STUDENT_ENROLLMENT_CONFLICT_MESSAGE +
-                        " (Sinh viên " + laterEnrollment.getStudent().getFullName() + " đã có điểm ở đăng ký bị trùng mới phát sinh)");
-            }
-            // Safe to delete
-            if (!enrollmentDAO.delete(laterEnrollment.getId())) {
-                throw new ValidationException("Không thể tự động xóa đăng ký trùng của sinh viên " + laterEnrollment.getStudent().getFullName());
+                String studentInfo = laterEnrollment.getStudent().getStudentCode() + " - " + 
+                                   laterEnrollment.getStudent().getFullName();
+                studentsWithScores.add(studentInfo);
             }
         }
+        
+        // If any student has scores, throw detailed error
+        if (!studentsWithScores.isEmpty()) {
+            String errorMessage = buildConflictErrorMessage(studentsWithScores);
+            throw new ValidationException(errorMessage);
+        }
+        
+        // Safe to delete all later enrollments (no scores)
+        for (int i = 1; i < duplicateEnrollments.size(); i++) {
+            Enrollment laterEnrollment = duplicateEnrollments.get(i);
+            if (!enrollmentDAO.delete(laterEnrollment.getId())) {
+                throw new ValidationException("Không thể tự động xóa đăng ký trùng của sinh viên " + 
+                                            laterEnrollment.getStudent().getFullName());
+            }
+        }
+    }
+    
+    /**
+     * Tạo thông báo lỗi chi tiết khi có xung đột với sinh viên đã có điểm.
+     */
+    private String buildConflictErrorMessage(List<String> studentsWithScores) {
+        StringBuilder message = new StringBuilder();
+        message.append("KHÔNG THỂ CẬP NHẬT HỌC PHẦN\n\n");
+        message.append("Lý do: Thay đổi thời khóa biểu hoặc môn học gây xung đột với ");
+        message.append(studentsWithScores.size());
+        message.append(" sinh viên đã có điểm.\n\n");
+        message.append("Danh sách sinh viên bị ảnh hưởng:\n");
+        
+        int count = 1;
+        for (String student : studentsWithScores) {
+            message.append(count++).append(". ").append(student).append("\n");
+            if (count > 10) {
+                message.append("... và ").append(studentsWithScores.size() - 10).append(" sinh viên khác\n");
+                break;
+            }
+        }
+        
+        message.append("\nGiải pháp:\n");
+        message.append("• Xóa điểm của các sinh viên trên trước khi cập nhật\n");
+        message.append("• Hoặc giữ nguyên thời khóa biểu/môn học hiện tại");
+        
+        return message.toString();
     }
 
     private String resolveSubjectName(CourseSection courseSection) {

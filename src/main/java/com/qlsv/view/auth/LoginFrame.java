@@ -16,7 +16,6 @@ import com.qlsv.view.common.RoundedTextField;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -33,20 +32,18 @@ import java.awt.Insets;
 
 public class LoginFrame extends BaseFrame {
 
-    private static final int WINDOW_WIDTH = 480;
-    private static final int WINDOW_HEIGHT = 600;
-    private static final int FORM_WIDTH = 344;
+    private static final int WINDOW_WIDTH = 1000;
+    private static final int WINDOW_HEIGHT = 650;
+    private static final int LEFT_PANEL_WIDTH = 450;
+    private static final int RIGHT_PANEL_WIDTH = 450;
+    private static final int FORM_WIDTH = 360;
     private static final int INPUT_HEIGHT = 42;
     private static final int BUTTON_HEIGHT = 44;
-    private static final int HEADER_HEIGHT = 140;
-    private static final int HEADER_GAP = 8;
-    private static final int TITLE_GAP = 6;
-    private static final int SECTION_GAP = 24;
     private static final int FIELD_GAP = 16;
-    private static final int LABEL_GAP = 10;
-    private static final double TOP_SPACER_WEIGHT = 0.40;
-    private static final double BOTTOM_SPACER_WEIGHT = 0.60;
-    private static final float APP_TITLE_FONT_SIZE = 58f;
+    private static final int LABEL_GAP = 8;
+    private static final int SECTION_GAP = 24;
+    private static final Color GRADIENT_START = new Color(30, 60, 140);
+    private static final Color GRADIENT_END = new Color(100, 200, 255);
 
     private final LoginController loginController;
     private final AppNavigator navigator;
@@ -67,74 +64,277 @@ public class LoginFrame extends BaseFrame {
         this.loginController = loginController;
         setExtendedState(JFrame.NORMAL);
         setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
-        setMinimumSize(new Dimension(440, 560));
+        setMinimumSize(new Dimension(900, 600));
         setLocationRelativeTo(null);
-        initComponents();
+        initUi();
     }
 
     /**
-     * Khởi tạo giao diện đăng nhập với các thành phần: tiêu đề, form nhập liệu và nút bấm.
+     * Khởi tạo giao diện tổng thể.
      */
-    private void initComponents() {
-        JPanel wrapperPanel = new JPanel(new GridBagLayout());
-        wrapperPanel.setOpaque(true);
-        wrapperPanel.setBackground(AppColors.CARD_BACKGROUND);
-        wrapperPanel.setBorder(BorderFactory.createEmptyBorder(20, 36, 20, 36));
+    private void initUi() {
+        JPanel outerPanel = createOuterPanel();
+        JPanel mainContentPanel = createMainContentPanel();
+        
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.CENTER;
+        outerPanel.add(mainContentPanel, gbc);
+        
+        setContentPane(outerPanel);
+    }
 
-        JPanel contentPanel = new JPanel(new GridBagLayout());
-        contentPanel.setOpaque(false);
+    /**
+     * Tạo panel nền xanh gradient ngoài cùng.
+     */
+    private JPanel createOuterPanel() {
+        JPanel panel = new JPanel(new GridBagLayout()) {
+            @Override
+            protected void paintComponent(java.awt.Graphics g) {
+                super.paintComponent(g);
+                java.awt.Graphics2D g2d = (java.awt.Graphics2D) g;
+                g2d.setRenderingHint(java.awt.RenderingHints.KEY_RENDERING, 
+                                    java.awt.RenderingHints.VALUE_RENDER_QUALITY);
+                
+                int w = getWidth();
+                int h = getHeight();
+                
+                // Gradient từ xanh dương đậm (trên trái) sang cyan sáng (dưới phải)
+                java.awt.GradientPaint gp = new java.awt.GradientPaint(
+                    0, 0, GRADIENT_START,
+                    w, h, GRADIENT_END
+                );
+                g2d.setPaint(gp);
+                g2d.fillRect(0, 0, w, h);
+            }
+        };
+        panel.setOpaque(true);
+        panel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
+        return panel;
+    }
 
+    /**
+     * Tạo panel chính chứa 2 vùng trái và phải.
+     */
+    private JPanel createMainContentPanel() {
+        JPanel panel = new JPanel(new BorderLayout(0, 0));
+        panel.setPreferredSize(new Dimension(LEFT_PANEL_WIDTH + RIGHT_PANEL_WIDTH, 550));
+        panel.setOpaque(false);
+        
+        JPanel leftPanel = createLeftBrandPanel();
+        JPanel rightPanel = createRightLoginPanel();
+        
+        panel.add(leftPanel, BorderLayout.WEST);
+        panel.add(rightPanel, BorderLayout.CENTER);
+        
+        return panel;
+    }
+
+    /**
+     * Tạo panel bên trái với ảnh trong khung tròn.
+     */
+    private JPanel createLeftBrandPanel() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setPreferredSize(new Dimension(LEFT_PANEL_WIDTH, 550));
+        panel.setOpaque(false);
+        panel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
+        
+        // Panel chứa ảnh tròn
+        JPanel imagePanel = new JPanel() {
+            private java.awt.Image backgroundImage;
+            
+            {
+                try {
+                    java.io.InputStream is = getClass().getResourceAsStream("/image/faaf954c-a820-4023-a919-e307cd616dfc.jpg");
+                    if (is != null) {
+                        backgroundImage = javax.imageio.ImageIO.read(is);
+                    }
+                } catch (Exception e) {
+                    System.err.println("Không thể load ảnh: " + e.getMessage());
+                }
+            }
+            
+            @Override
+            protected void paintComponent(java.awt.Graphics g) {
+                super.paintComponent(g);
+                if (backgroundImage != null) {
+                    java.awt.Graphics2D g2d = (java.awt.Graphics2D) g;
+                    g2d.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION, 
+                                        java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+                    g2d.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING,
+                                        java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+                    
+                    int panelWidth = getWidth();
+                    int panelHeight = getHeight();
+                    int diameter = Math.min(panelWidth, panelHeight);
+                    int x = (panelWidth - diameter) / 2;
+                    int y = (panelHeight - diameter) / 2;
+                    
+                    // Tạo clip hình tròn
+                    java.awt.Shape circle = new java.awt.geom.Ellipse2D.Float(x, y, diameter, diameter);
+                    g2d.setClip(circle);
+                    
+                    // Vẽ ảnh trong clip tròn
+                    int imgWidth = backgroundImage.getWidth(this);
+                    int imgHeight = backgroundImage.getHeight(this);
+                    
+                    // Scale ảnh để fill đầy hình tròn
+                    double scale = Math.max((double) diameter / imgWidth, (double) diameter / imgHeight);
+                    int scaledWidth = (int) (imgWidth * scale);
+                    int scaledHeight = (int) (imgHeight * scale);
+                    
+                    // Căn giữa ảnh trong hình tròn
+                    int imgX = x + (diameter - scaledWidth) / 2;
+                    int imgY = y + (diameter - scaledHeight) / 2;
+                    
+                    g2d.drawImage(backgroundImage, imgX, imgY, scaledWidth, scaledHeight, this);
+                    
+                    // Reset clip
+                    g2d.setClip(null);
+                    
+                    // Vẽ viền tròn
+                    g2d.setColor(new Color(255, 255, 255, 200));
+                    g2d.setStroke(new java.awt.BasicStroke(4f));
+                    g2d.drawOval(x, y, diameter, diameter);
+                }
+            }
+        };
+        imagePanel.setOpaque(false);
+        imagePanel.setPreferredSize(new Dimension(350, 350));
+        
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.CENTER;
+        panel.add(imagePanel, gbc);
+        
+        return panel;
+    }
+
+    /**
+     * Tạo panel bên phải - box đăng nhập riêng biệt với bo tròn.
+     */
+    private JPanel createRightLoginPanel() {
+        JPanel outerBox = new JPanel(new GridBagLayout());
+        outerBox.setPreferredSize(new Dimension(RIGHT_PANEL_WIDTH, 550));
+        outerBox.setOpaque(false);
+        
+        // Box đăng nhập với bo tròn
+        JPanel loginBox = new JPanel() {
+            @Override
+            protected void paintComponent(java.awt.Graphics g) {
+                java.awt.Graphics2D g2d = (java.awt.Graphics2D) g;
+                g2d.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, 
+                                    java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                // Vẽ shadow nhẹ
+                g2d.setColor(new Color(0, 0, 0, 30));
+                g2d.fillRoundRect(4, 4, getWidth() - 8, getHeight() - 8, 25, 25);
+                
+                // Vẽ nền trắng bo tròn
+                g2d.setColor(Color.WHITE);
+                g2d.fillRoundRect(0, 0, getWidth() - 8, getHeight() - 8, 25, 25);
+                
+                // Vẽ viền nhẹ
+                g2d.setColor(new Color(220, 220, 220, 100));
+                g2d.setStroke(new java.awt.BasicStroke(1.5f));
+                g2d.drawRoundRect(0, 0, getWidth() - 9, getHeight() - 9, 25, 25);
+            }
+        };
+        
+        loginBox.setLayout(new BoxLayout(loginBox, BoxLayout.Y_AXIS));
+        loginBox.setOpaque(false);
+        loginBox.setPreferredSize(new Dimension(FORM_WIDTH + 60, 480));
+        loginBox.setBorder(BorderFactory.createEmptyBorder(40, 30, 40, 30));
+        
+        // Tiêu đề
+        JLabel titleLabel = new JLabel("ĐĂNG NHẬP");
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 32));
+        titleLabel.setForeground(new Color(30, 30, 30));
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        
+        JLabel subtitleLabel = new JLabel("HỆ THỐNG QUẢN LÝ SINH VIÊN");
+        subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        subtitleLabel.setForeground(new Color(120, 120, 120));
+        subtitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        subtitleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        
+        loginBox.add(titleLabel);
+        loginBox.add(Box.createVerticalStrut(8));
+        loginBox.add(subtitleLabel);
+        loginBox.add(Box.createVerticalStrut(SECTION_GAP + 10));
+        
+        // Form
+        JPanel formPanel = createFormPanel();
+        formPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        loginBox.add(formPanel);
+        
+        loginBox.add(Box.createVerticalGlue());
+        
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.CENTER;
+        outerBox.add(loginBox, gbc);
+        
+        return outerBox;
+    }
+
+    /**
+     * Tạo form nhập liệu đăng nhập.
+     */
+    private JPanel createFormPanel() {
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setOpaque(false);
+        formPanel.setMaximumSize(new Dimension(FORM_WIDTH, 400));
+        
         RoundedTextField usernameField = createInputField();
         RoundedPasswordField passwordField = createPasswordField();
         RoundedButton loginButton = createLoginButton();
-
-        GridBagConstraints contentConstraints = new GridBagConstraints();
-        contentConstraints.gridx = 0;
-        contentConstraints.weightx = 1;
-        contentConstraints.anchor = GridBagConstraints.CENTER;
-        contentConstraints.fill = GridBagConstraints.NONE;
-
-        contentConstraints.gridy = 0;
-        contentConstraints.insets = new Insets(0, 0, SECTION_GAP, 0);
-        contentPanel.add(createHeaderSection(), contentConstraints);
-
-        contentConstraints.gridy = 1;
-        contentConstraints.insets = new Insets(0, 0, SECTION_GAP, 0);
-        contentPanel.add(createFormSection(usernameField, passwordField), contentConstraints);
-
-        contentConstraints.gridy = 2;
-        contentConstraints.insets = new Insets(0, 0, 0, 0);
-        contentPanel.add(createActionSection(loginButton), contentConstraints);
-
-        GridBagConstraints spacerConstraints = new GridBagConstraints();
-        spacerConstraints.gridx = 0;
-        spacerConstraints.weightx = 1;
-        spacerConstraints.fill = GridBagConstraints.BOTH;
-
-        JPanel topSpacer = new JPanel();
-        topSpacer.setOpaque(false);
-        spacerConstraints.gridy = 0;
-        spacerConstraints.weighty = TOP_SPACER_WEIGHT;
-        wrapperPanel.add(topSpacer, spacerConstraints);
-
-        GridBagConstraints constraints = new GridBagConstraints();
-        constraints.gridx = 0;
-        constraints.gridy = 1;
-        constraints.weightx = 1;
-        constraints.weighty = 0;
-        constraints.anchor = GridBagConstraints.CENTER;
-        constraints.insets = new Insets(0, 0, 0, 0);
-        wrapperPanel.add(contentPanel, constraints);
-
-        JPanel bottomSpacer = new JPanel();
-        bottomSpacer.setOpaque(false);
-        spacerConstraints.gridy = 2;
-        spacerConstraints.weighty = BOTTOM_SPACER_WEIGHT;
-        wrapperPanel.add(bottomSpacer, spacerConstraints);
-
-        setContentPane(wrapperPanel);
+        
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.weightx = 1.0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.WEST;
+        
+        // Username label
+        gbc.gridy = 0;
+        gbc.insets = new Insets(0, 0, LABEL_GAP, 0);
+        JLabel usernameLabel = new JLabel("Tên đăng nhập");
+        usernameLabel.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        usernameLabel.setForeground(new Color(60, 60, 60));
+        formPanel.add(usernameLabel, gbc);
+        
+        // Username field
+        gbc.gridy = 1;
+        gbc.insets = new Insets(0, 0, FIELD_GAP, 0);
+        formPanel.add(usernameField, gbc);
+        
+        // Password label
+        gbc.gridy = 2;
+        gbc.insets = new Insets(0, 0, LABEL_GAP, 0);
+        JLabel passwordLabel = new JLabel("Mật khẩu");
+        passwordLabel.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        passwordLabel.setForeground(new Color(60, 60, 60));
+        formPanel.add(passwordLabel, gbc);
+        
+        // Password field
+        gbc.gridy = 3;
+        gbc.insets = new Insets(0, 0, SECTION_GAP, 0);
+        formPanel.add(passwordField, gbc);
+        
+        // Login button
+        gbc.gridy = 4;
+        gbc.insets = new Insets(0, 0, 0, 0);
+        formPanel.add(loginButton, gbc);
+        
+        // Set default button
         getRootPane().setDefaultButton(loginButton);
-
+        
+        // Login action
         loginButton.addActionListener(event -> {
             try {
                 User user = loginController.login(
@@ -147,70 +347,8 @@ public class LoginFrame extends BaseFrame {
                 DialogUtil.showError(this, exception.getMessage());
             }
         });
-    }
-
-    /**
-     * Tạo phần tiêu đề của trang đăng nhập (Logo và tên hệ thống).
-     */
-    private JPanel createHeaderSection() {
-        JPanel headerPanel = new JPanel();
-        headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
-        headerPanel.setOpaque(false);
-        headerPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        headerPanel.setPreferredSize(new Dimension(FORM_WIDTH, HEADER_HEIGHT));
-        headerPanel.setMinimumSize(new Dimension(FORM_WIDTH, HEADER_HEIGHT));
-        headerPanel.setMaximumSize(new Dimension(FORM_WIDTH, HEADER_HEIGHT));
-
-        JLabel appLabel = new JLabel("TKL");
-        appLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        appLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        appLabel.setForeground(AppColors.INPUT_BORDER_FOCUS);
-        appLabel.setFont(new Font("Segoe UI", Font.BOLD, Math.round(APP_TITLE_FONT_SIZE)));
-        appLabel.putClientProperty("appTheme.labelStyled", Boolean.TRUE);
-
-        JLabel subTitleLabel = new JLabel("HỆ THỐNG QUẢN LÝ SINH VIÊN ");
-        subTitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        subTitleLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        subTitleLabel.setForeground(AppColors.CARD_MUTED_TEXT);
-        subTitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-
-        headerPanel.add(appLabel);
-        headerPanel.add(Box.createVerticalStrut(HEADER_GAP));
-        headerPanel.add(Box.createVerticalStrut(TITLE_GAP));
-        headerPanel.add(subTitleLabel);
-        return headerPanel;
-    }
-
-    /**
-     * Tạo phần form chứa các ô nhập tên đăng nhập và mật khẩu.
-     */
-    private JPanel createFormSection(RoundedTextField usernameField, RoundedPasswordField passwordField) {
-        JPanel formPanel = new JPanel();
-        formPanel.setLayout(new BoxLayout(formPanel, BoxLayout.Y_AXIS));
-        formPanel.setOpaque(false);
-        formPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        formPanel.setPreferredSize(new Dimension(FORM_WIDTH, 156));
-        formPanel.setMinimumSize(new Dimension(FORM_WIDTH, 156));
-        formPanel.setMaximumSize(new Dimension(FORM_WIDTH, 156));
-
-        formPanel.add(createFieldGroup("Tên đăng nhập", usernameField));
-        formPanel.add(Box.createVerticalStrut(FIELD_GAP));
-        formPanel.add(createFieldGroup("Mật khẩu", passwordField));
+        
         return formPanel;
-    }
-
-    /**
-     * Tạo phần chứa nút bấm thực hiện hành động đăng nhập.
-     */
-    private JPanel createActionSection(RoundedButton loginButton) {
-        JPanel actionPanel = new JPanel(new BorderLayout());
-        actionPanel.setOpaque(false);
-        actionPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        actionPanel.setPreferredSize(new Dimension(FORM_WIDTH, BUTTON_HEIGHT));
-        actionPanel.setMinimumSize(new Dimension(FORM_WIDTH, BUTTON_HEIGHT));
-        actionPanel.setMaximumSize(new Dimension(FORM_WIDTH, BUTTON_HEIGHT));
-        actionPanel.add(loginButton, BorderLayout.CENTER);
-        return actionPanel;
     }
 
     /**
@@ -222,7 +360,6 @@ public class LoginFrame extends BaseFrame {
         textField.setPreferredSize(new Dimension(FORM_WIDTH, INPUT_HEIGHT));
         textField.setMinimumSize(new Dimension(FORM_WIDTH, INPUT_HEIGHT));
         textField.setMaximumSize(new Dimension(FORM_WIDTH, INPUT_HEIGHT));
-        textField.setAlignmentX(Component.LEFT_ALIGNMENT);
         return textField;
     }
 
@@ -235,7 +372,6 @@ public class LoginFrame extends BaseFrame {
         passwordField.setPreferredSize(new Dimension(FORM_WIDTH, INPUT_HEIGHT));
         passwordField.setMinimumSize(new Dimension(FORM_WIDTH, INPUT_HEIGHT));
         passwordField.setMaximumSize(new Dimension(FORM_WIDTH, INPUT_HEIGHT));
-        passwordField.setAlignmentX(Component.LEFT_ALIGNMENT);
         return passwordField;
     }
 
@@ -246,36 +382,11 @@ public class LoginFrame extends BaseFrame {
         RoundedButton loginButton = new RoundedButton("Đăng nhập", 18);
         loginButton.setBackground(AppColors.LOGIN_PRIMARY);
         loginButton.setForeground(Color.WHITE);
-        loginButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        loginButton.setFont(new Font("Segoe UI", Font.BOLD, 15));
         loginButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         loginButton.setPreferredSize(new Dimension(FORM_WIDTH, BUTTON_HEIGHT));
         loginButton.setMinimumSize(new Dimension(FORM_WIDTH, BUTTON_HEIGHT));
         loginButton.setMaximumSize(new Dimension(FORM_WIDTH, BUTTON_HEIGHT));
-        loginButton.setAlignmentX(Component.LEFT_ALIGNMENT);
         return loginButton;
-    }
-
-    /**
-     * Tạo một nhóm thành phần bao gồm nhãn (label) và ô nhập liệu tương ứng.
-     */
-    private JPanel createFieldGroup(String labelText, JComponent inputComponent) {
-        JPanel fieldGroup = new JPanel();
-        fieldGroup.setLayout(new BoxLayout(fieldGroup, BoxLayout.Y_AXIS));
-        fieldGroup.setOpaque(false);
-        fieldGroup.setAlignmentX(Component.CENTER_ALIGNMENT);
-        fieldGroup.setPreferredSize(new Dimension(FORM_WIDTH, 70));
-        fieldGroup.setMinimumSize(new Dimension(FORM_WIDTH, 70));
-        fieldGroup.setMaximumSize(new Dimension(FORM_WIDTH, 70));
-
-        JLabel label = new JLabel(labelText);
-        label.setForeground(AppColors.CARD_TITLE_TEXT);
-        label.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        label.setHorizontalAlignment(SwingConstants.LEFT);
-        label.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        fieldGroup.add(label);
-        fieldGroup.add(Box.createVerticalStrut(LABEL_GAP));
-        fieldGroup.add(inputComponent);
-        return fieldGroup;
     }
 }

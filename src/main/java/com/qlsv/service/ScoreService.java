@@ -59,7 +59,7 @@ public class ScoreService {
         Lecturer lecturer = lecturerDAO.findByUserId(SessionManager.requireCurrentUser().getId())
                 .orElseThrow(() -> new ValidationException("Không tìm thấy giảng viên đang đăng nhập."));
 
-        List<Enrollment> enrollments = enrollmentDAO.findByLecturerId(lecturer.getId());
+        List<Enrollment> enrollments = enrollmentDAO.findEffectiveByLecturerId(lecturer.getId());
         Map<Long, Score> persistedScoresByEnrollmentId = scoreDAO.findByLecturerId(lecturer.getId()).stream()
                 .filter(score -> score.getEnrollment() != null && score.getEnrollment().getId() != null)
                 .collect(Collectors.toMap(
@@ -144,8 +144,12 @@ public class ScoreService {
      * Cập nhật and return.
      */
     private Score updateAndReturn(Score score) {
-        scoreDAO.update(score);
-        return score;
+        boolean updated = scoreDAO.update(score);
+        if (!updated) {
+            throw new ValidationException("Không tìm thấy bản ghi điểm để cập nhật.");
+        }
+        return scoreDAO.findById(score.getId())
+                .orElseThrow(() -> new ValidationException("Không thể tải lại bản ghi điểm sau khi cập nhật."));
     }
 
     /**

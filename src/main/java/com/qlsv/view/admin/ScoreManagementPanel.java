@@ -200,7 +200,7 @@ public class ScoreManagementPanel extends BasePanel {
 
         filterTypeComboBox.setPreferredSize(new Dimension(170, 36));
         filterTypeComboBox.setMinimumSize(new Dimension(150, 36));
-        filterValueComboBox.setPreferredSize(new Dimension(280, 36));
+        filterValueComboBox.setPreferredSize(new Dimension(250, 36));
         filterValueComboBox.setMinimumSize(new Dimension(220, 36));
         filterValueComboBox.setEnabled(false);
 
@@ -243,7 +243,7 @@ public class ScoreManagementPanel extends BasePanel {
         filterFieldsPanel.add(new JLabel("Giá trị"), filterConstraints);
 
         filterConstraints.gridx = 3;
-        filterConstraints.weightx = 1.0;
+        filterConstraints.weightx = 0.5;
         filterConstraints.fill = GridBagConstraints.HORIZONTAL;
         filterConstraints.insets = new Insets(0, 0, 0, TOOLBAR_GAP);
         filterFieldsPanel.add(filterValueComboBox, filterConstraints);

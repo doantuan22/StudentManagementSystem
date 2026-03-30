@@ -168,7 +168,7 @@ public class LoginFrame extends BaseFrame {
         appLabel.setFont(new Font("Segoe UI", Font.BOLD, Math.round(APP_TITLE_FONT_SIZE)));
         appLabel.putClientProperty("appTheme.labelStyled", Boolean.TRUE);
 
-        JLabel subTitleLabel = new JLabel("HỆ THỐNG QUẢN LÝ SINH VIÊN");
+        JLabel subTitleLabel = new JLabel("HỆ THỐNG QUẢN LÝ SINH VIÊN ");
         subTitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         subTitleLabel.setHorizontalAlignment(SwingConstants.CENTER);
         subTitleLabel.setForeground(AppColors.CARD_MUTED_TEXT);

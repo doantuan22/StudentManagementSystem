@@ -44,7 +44,7 @@
             normalizeCardSize(gridPanel);
 
             pieChartPanel.setTitle("Tỷ lệ thành phần dữ liệu hệ thống");
-            pieChartPanel.setPreferredSize(new java.awt.Dimension(580, 480));
+            pieChartPanel.setPreferredSize(new java.awt.Dimension(700, 480));
             pieChartPanel.setBackground(java.awt.Color.WHITE);
             pieChartPanel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(AppColors.CARD_BORDER),

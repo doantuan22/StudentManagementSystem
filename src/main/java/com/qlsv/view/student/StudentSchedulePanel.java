@@ -16,10 +16,14 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.SwingConstants;
 import javax.swing.JTable;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumnModel;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -30,7 +34,7 @@ public class StudentSchedulePanel extends BasePanel {
 
     private final ScheduleController scheduleController = new ScheduleController();
     private final DefaultTableModel tableModel = new DefaultTableModel(
-            new String[]{"Học phần", "Môn học", "Học kỳ", "Năm học", "Giảng viên", "Thứ", "Tiết", "Phòng", "Ghi chú"}, 0) {
+            new String[]{"Học phần", "Môn học", "Học kỳ", "Năm học", "Giảng viên", "Thứ", "Tiết", "Phòng"}, 0) {
         /**
          * Xác định ô có cho phép chỉnh sửa hay không.
          */
@@ -126,8 +130,7 @@ public class StudentSchedulePanel extends BasePanel {
                                 ? "" : schedule.getCourseSection().getLecturer().getFullName(),
                         DisplayTextUtil.defaultText(schedule.getDayOfWeek()),
                         DisplayTextUtil.formatPeriod(schedule.getStartPeriod(), schedule.getEndPeriod()),
-                        schedule.getRoom() == null ? "Chưa cập nhật" : schedule.getRoom().getRoomName(),
-                        DisplayTextUtil.defaultText(schedule.getNote())
+                        schedule.getRoom() == null ? "Chưa cập nhật" : schedule.getRoom().getRoomName()
                 });
             }
         } catch (Exception exception) {
@@ -184,6 +187,36 @@ public class StudentSchedulePanel extends BasePanel {
         table.getTableHeader().setForeground(AppColors.CARD_VALUE_TEXT);
         table.getTableHeader().setFont(table.getTableHeader().getFont().deriveFont(Font.BOLD, 13f));
         table.getTableHeader().setPreferredSize(new Dimension(0, 32));
+        table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+
+        DefaultTableCellRenderer cellRenderer = new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable currentTable, Object value, boolean selected,
+                                                           boolean hasFocus, int row, int column) {
+                Component renderer = super.getTableCellRendererComponent(currentTable, value, selected, hasFocus, row, column);
+                setHorizontalAlignment(SwingConstants.LEFT);
+                setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
+                return renderer;
+            }
+        };
+
+        TableColumnModel columnModel = table.getColumnModel();
+        int[] columnWidths = {120, 240, 90, 100, 200, 80, 80, 255};
+        for (int i = 0; i < columnWidths.length && i < columnModel.getColumnCount(); i++) {
+            columnModel.getColumn(i).setPreferredWidth(columnWidths[i]);
+            columnModel.getColumn(i).setCellRenderer(cellRenderer);
+        }
+
+        DefaultTableCellRenderer headerRenderer = new DefaultTableCellRenderer();
+        headerRenderer.setHorizontalAlignment(SwingConstants.LEFT);
+        headerRenderer.setBackground(AppColors.TABLE_HEADER_BACKGROUND);
+        headerRenderer.setForeground(AppColors.CARD_VALUE_TEXT);
+        headerRenderer.setFont(table.getTableHeader().getFont());
+        headerRenderer.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(0, 0, 1, 0, AppColors.CARD_BORDER),
+                BorderFactory.createEmptyBorder(0, 10, 0, 10)
+        ));
+        table.getTableHeader().setDefaultRenderer(headerRenderer);
     }
 
     /**

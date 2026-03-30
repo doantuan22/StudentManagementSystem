@@ -127,6 +127,27 @@ public class EnrollmentDAO {
     }
 
     /**
+     * Lấy danh sách đăng ký học phần còn hiệu lực của các lớp do giảng viên phụ trách.
+     */
+    public List<Enrollment> findEffectiveByLecturerId(Long lecturerId) {
+        return executeRead("Không thể tải danh sách đăng ký còn hiệu lực của giảng viên.", entityManager -> {
+            List<Enrollment> enrollments = entityManager.createQuery(
+                            FETCH_BASE + """
+                                     WHERE lecturer.id = :lecturerId
+                                       AND UPPER(COALESCE(e.status, 'REGISTERED')) = :effectiveStatus
+                                     ORDER BY e.id
+                                    """,
+                            Enrollment.class
+                    )
+                    .setParameter("lecturerId", lecturerId)
+                    .setParameter("effectiveStatus", EFFECTIVE_ENROLLMENT_STATUS)
+                    .getResultList();
+            hydrateCourseSectionCompatibility(entityManager, enrollments);
+            return enrollments;
+        });
+    }
+
+    /**
      * Lấy danh sách đăng ký học phần của sinh viên thuộc một lớp hành chính.
      */
     public List<Enrollment> findByClassRoomId(Long classRoomId) {

@@ -38,7 +38,7 @@ public class StudentScorePanel extends BasePanel {
     private final GroqService groqService = new GroqService();
     private List<Score> currentScores;
     private final DefaultTableModel tableModel = new DefaultTableModel(
-            new String[]{"Học phần", "Môn học", "QT", "GK", "CK", "Tổng kết", "Kết quả"}, 0) {
+            new String[]{"Học phần", "Môn học", "Học kỳ", "Năm học", "QT", "GK", "CK", "Tổng kết", "Kết quả"}, 0) {
         /**
          * Xác định ô có cho phép chỉnh sửa hay không.
          */
@@ -138,6 +138,10 @@ public class StudentScorePanel extends BasePanel {
                         score.getEnrollment() == null || score.getEnrollment().getCourseSection() == null
                                 || score.getEnrollment().getCourseSection().getSubject() == null
                                 ? "" : score.getEnrollment().getCourseSection().getSubject().getSubjectName(),
+                        score.getEnrollment() == null || score.getEnrollment().getCourseSection() == null
+                                ? "" : com.qlsv.utils.AcademicFormatUtil.formatSemester(score.getEnrollment().getCourseSection().getSemester()),
+                        score.getEnrollment() == null || score.getEnrollment().getCourseSection() == null
+                                ? "" : com.qlsv.utils.AcademicFormatUtil.formatAcademicYear(score.getEnrollment().getCourseSection().getSchoolYear()),
                         score.getProcessScore(),
                         score.getMidtermScore(),
                         score.getFinalScore(),
@@ -217,6 +221,13 @@ public class StudentScorePanel extends BasePanel {
         table.getTableHeader().setForeground(AppColors.CARD_VALUE_TEXT);
         table.getTableHeader().setFont(table.getTableHeader().getFont().deriveFont(Font.BOLD, 13f));
         table.getTableHeader().setPreferredSize(new Dimension(0, 32));
+        
+        // Thiết lập độ rộng các cột
+        // Học phần, Môn học, Học kỳ, Năm học, QT, GK, CK, Tổng kết, Kết quả
+        int[] columnWidths = {100, 200, 80, 90, 50, 50, 50, 70, 80};
+        for (int i = 0; i < columnWidths.length && i < table.getColumnCount(); i++) {
+            table.getColumnModel().getColumn(i).setPreferredWidth(columnWidths[i]);
+        }
     }
 
     /**

@@ -154,7 +154,7 @@ public class LoginFrame extends BaseFrame {
             
             {
                 try {
-                    java.io.InputStream is = getClass().getResourceAsStream("/image/faaf954c-a820-4023-a919-e307cd616dfc.jpg");
+                    java.io.InputStream is = getClass().getResourceAsStream("/image/logo.jpg");
                     if (is != null) {
                         backgroundImage = javax.imageio.ImageIO.read(is);
                     }

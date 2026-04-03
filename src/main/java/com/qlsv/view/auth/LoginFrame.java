@@ -148,7 +148,7 @@ public class LoginFrame extends BaseFrame {
         panel.setOpaque(false);
         panel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
         
-        // Panel chứa ảnh tròn - giảm kích thước 15%
+        // Panel chứa ảnh tròn 
         JPanel imagePanel = new JPanel() {
             private java.awt.Image backgroundImage;
             
@@ -266,7 +266,7 @@ public class LoginFrame extends BaseFrame {
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
         
-        JLabel subtitleLabel = new JLabel("Hệ thống quản lý sinh viên");
+        JLabel subtitleLabel = new JLabel("Hệ Thống Quản Lý Sinh Viên");
         subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         subtitleLabel.setForeground(new Color(130, 130, 130));
         subtitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
